@@ -8864,7 +8864,10 @@ function applySessionUI(profile) {
 }
 
 
-function logout() {
+function logout(reason = "") {
+  // detener verificación automática
+  stopDeviceAuthWatcher_();
+
   // borrar perfil docente
   localStorage.removeItem(LS_PROFILE_KEY);
 
@@ -8877,9 +8880,20 @@ function logout() {
   // abrir modal login
   loginModal.hidden = false;
   updateDeviceIdUI();
-  loginHint.textContent = "Sesión cerrada. Inicia sesión para continuar.";
 
-  setStatus("warn", "Sesión cerrada", "Vuelve a iniciar sesión para registrar.");
+  const msgLogin = String(reason || "").trim()
+    ? reason
+    : "Sesión cerrada. Inicia sesión para continuar.";
+
+  loginHint.textContent = msgLogin;
+
+  setStatus(
+    "warn",
+    "Sesión cerrada",
+    String(reason || "").trim()
+      ? reason
+      : "Vuelve a iniciar sesión para registrar."
+  );
 }
 
 
@@ -8890,7 +8904,13 @@ function requireLogin() {
   }
 
   const p = loadProfile();
-  if (p && p.name && p.email && p.course) return p;
+
+  if (p && p.name && p.email && p.course) {
+    startDeviceAuthWatcher_();
+    return p;
+  }
+
+  stopDeviceAuthWatcher_();
 
   // Mostrar modal y bloquear uso hasta guardar
   loginModal.hidden = false;
@@ -12437,6 +12457,69 @@ async function gsCheckDeviceAuth(payload) {
 }
 
 
+let __deviceAuthWatcherTimer = null;
+let __deviceAuthWatcherBusy = false;
+
+async function validateCurrentDeviceSession_(options = {}) {
+  const { silent = true } = options || {};
+
+  if (__deviceAuthWatcherBusy) return true;
+
+  const profile = loadProfile();
+  if (!profile || !profile.email) return true;
+
+  // En modo admin no forzamos este control
+  if (isAdminMode()) return true;
+
+  const deviceId = getDeviceId();
+  if (!deviceId) return true;
+
+  __deviceAuthWatcherBusy = true;
+
+  try {
+    const resp = await gsCheckDeviceAuth({
+      action: "check_device_auth",
+      email: String(profile.email || "").trim().toLowerCase(),
+      device_id: deviceId
+    });
+
+    if (resp && resp.authorized === true) {
+      return true;
+    }
+
+    const serverMsg = String(resp && resp.msg ? resp.msg : "").trim();
+
+    logout(
+      serverMsg ||
+      "Este dispositivo fue desautorizado o eliminado por el administrador."
+    );
+
+    return false;
+  } catch (e) {
+    // Si falla internet, no cerramos sesión por error de red
+    if (!silent) {
+      console.warn("No se pudo validar autorización del dispositivo:", e);
+    }
+    return true;
+  } finally {
+    __deviceAuthWatcherBusy = false;
+  }
+}
+
+function startDeviceAuthWatcher_() {
+  if (__deviceAuthWatcherTimer) return;
+
+  __deviceAuthWatcherTimer = setInterval(() => {
+    validateCurrentDeviceSession_({ silent: true });
+  }, 5000); // cada 5 segundos
+}
+
+function stopDeviceAuthWatcher_() {
+  if (!__deviceAuthWatcherTimer) return;
+  clearInterval(__deviceAuthWatcherTimer);
+  __deviceAuthWatcherTimer = null;
+}
+
 async function gsClearCurrentMonth() {
   const d = new Date();
   const month = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; // YYYY-MM
@@ -13863,7 +13946,7 @@ window.addEventListener("error", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
   // precarga en segundo plano (no rompe si aún no hay login)
   prewarmCoursesAndStudents_();
-
+startDeviceAuthWatcher_();
   // si ya hay perfil guardado, deja listos los combos también
   try {
     const p = (typeof loadProfile === "function") ? loadProfile() : null;
