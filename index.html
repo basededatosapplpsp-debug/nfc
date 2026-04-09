@@ -9894,20 +9894,20 @@ function discBackToList_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-          ${item.who.map(x => `
-            <div class="actividad-pendiente-item" style="
-              border:1px solid rgba(255,255,255,.10);
-              border-radius:12px;
-              padding:10px;
-              background:rgba(255,255,255,.04);
-            ">
-              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
-              <div class="muted small" style="margin-top:4px;">
-                Nivel ${Number(x.level || 0)}
-                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
-              </div>
-            </div>
-          `).join("")}
+  ${item.who.map(x => `
+  <div style="
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    padding:10px;
+    background:rgba(255,255,255,.04);
+  ">
+    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div class="muted small" style="margin-top:4px;">
+      Nivel ${Number(x.level || 0)}
+      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+    </div>
+  </div>
+`).join("")}
         </div>
       </div>
     `
@@ -11012,20 +11012,20 @@ function piercRenderDetailView_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-          ${item.who.map(x => `
-            <div class="actividad-pendiente-item" style="
-              border:1px solid rgba(255,255,255,.10);
-              border-radius:12px;
-              padding:10px;
-              background:rgba(255,255,255,.04);
-            ">
-              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
-              <div class="muted small" style="margin-top:4px;">
-                Nivel ${Number(x.level || 0)}
-                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
-              </div>
-            </div>
-          `).join("")}
+     ${item.who.map(x => `
+  <div style="
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    padding:10px;
+    background:rgba(255,255,255,.04);
+  ">
+    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div class="muted small" style="margin-top:4px;">
+      Nivel ${Number(x.level || 0)}
+      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+    </div>
+  </div>
+`).join("")}
         </div>
       </div>
     `
@@ -11767,20 +11767,20 @@ function uniRenderDetailView_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-          ${item.who.map(x => `
-            <div class="actividad-pendiente-item" style="
-              border:1px solid rgba(255,255,255,.10);
-              border-radius:12px;
-              padding:10px;
-              background:rgba(255,255,255,.04);
-            ">
-              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
-              <div class="muted small" style="margin-top:4px;">
-                Nivel ${Number(x.level || 0)}
-                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
-              </div>
-            </div>
-          `).join("")}
+${item.who.map(x => `
+  <div style="
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    padding:10px;
+    background:rgba(255,255,255,.04);
+  ">
+    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div class="muted small" style="margin-top:4px;">
+      Nivel ${Number(x.level || 0)}
+      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+    </div>
+  </div>
+`).join("")}
         </div>
       </div>
     `
