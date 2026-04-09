@@ -13490,9 +13490,22 @@ async function register(type) {
       return;
     }
 
-    if (msg.includes("no está autorizado") || msg.includes("device_not_authorized")) {
-      setStatus("bad", "Teléfono no autorizado", String(e && e.message ? e.message : e));
-    } else if (msg.includes("ya existe") || msg.includes("already_registered")) {
+  if (msg.includes("device_not_authorized")) {
+  try {
+    localStorage.removeItem("userProfile");
+    sessionStorage.clear();
+  } catch (e) {}
+
+  setStatus("bad", "Sesión cerrada", "Este dispositivo fue desautorizado por el administrador.");
+
+  setTimeout(() => {
+    location.reload();
+  }, 1200);
+  return;
+
+} else if (msg.includes("no está autorizado")) {
+  setStatus("bad", "Teléfono no autorizado", String(e && e.message ? e.message : e));
+}else if (msg.includes("ya existe") || msg.includes("already_registered")) {
       setStatus("warn", "Registro duplicado", String(e && e.message ? e.message : e));
     } else if (msg.includes("unauthorized")) {
       setStatus("bad", "Sin permisos", "Clave incorrecta o permisos del WebApp.");
