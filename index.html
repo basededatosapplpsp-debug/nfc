@@ -13467,9 +13467,8 @@ async function register(type) {
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
     // ✅ sincroniza después, pero sin depender de esto para pintar
-   setTimeout(() => {
-  refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
-}, 1800);
+  // ✅ NO refrescar aquí: ya pintamos y bloqueamos localmente.
+// El refresco automático estaba pisando el estado recién actualizado.
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
