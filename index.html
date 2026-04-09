@@ -13467,7 +13467,9 @@ async function register(type) {
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
     // ✅ sincroniza después, pero sin depender de esto para pintar
-    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
+   setTimeout(() => {
+  refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
+}, 1800);
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
