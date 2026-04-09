@@ -9472,7 +9472,7 @@ async function adminDoManual(type) {
 
     // ✅ mostrar casi inmediato en la lista local
     if (resp && resp.record) {
-      const newRecord = {
+       const newRecord = {
         ...resp.record,
         iso: resp.record.iso || iso
       };
@@ -13406,7 +13406,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-    const resp = await gsRegister({
+     const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -13466,56 +13466,8 @@ async function register(type) {
     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
+    // ✅ sincroniza después, pero sin depender de esto para pintar
     refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
-
-    // ✅ Mostrar casi inmediato en la lista local del docente
-    if (resp && resp.record) {
-      const newRecord = {
-        ...resp.record,
-        iso: t.iso
-      };
-
-      const currentMonth = monthKeyFromDate(new Date());
-
-      // evitar duplicado visual si por alguna razón ya existe
-      const alreadyExists = Array.isArray(cachedRecords) && cachedRecords.some(r =>
-        String(r.teacher || "").trim().toLowerCase() === String(newRecord.teacher || "").trim().toLowerCase() &&
-        String(r.type || "").trim().toUpperCase() === String(newRecord.type || "").trim().toUpperCase() &&
-        String(r.date || "").trim() === String(newRecord.date || "").trim() &&
-        String(r.time || "").trim() === String(newRecord.time || "").trim()
-      );
-
-      if (!alreadyExists) {
-        cachedRecords = [newRecord].concat(Array.isArray(cachedRecords) ? cachedRecords : []);
-      }
-
-      try {
-        const cacheKey = cacheKeyForCurrentView_();
-        saveRecordsCache_(cacheKey, cachedRecords);
-      } catch (e) {}
-
-      render(cachedRecords);
-    }
-
-    // ✅ luego sincroniza con servidor en segundo plano
-      refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
-
-    if (type === "ENTRADA") {
-      hasEntradaToday = true;
-      btnEntrada.disabled = true;
-
-      btnSalida.disabled = false;
-      btnSalida.classList.remove("is-inactive");
-    }
-
-    if (type === "SALIDA") {
-      hasSalidaToday = true;
-      btnEntrada.disabled = true;
-      btnSalida.disabled = true;
-    }
-
-    setRecordsOpen(true);
-    setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
