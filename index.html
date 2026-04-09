@@ -4308,6 +4308,18 @@ function setAdminMode(on) {
 
 }
 
+function formatMonthLabel(key) {
+  if (!key) return "";
+
+  const [year, month] = key.split("-");
+  const date = new Date(`${year}-${month}-01`);
+
+  return date.toLocaleDateString("es-CO", {
+    month: "long",
+    year: "numeric"
+  });
+}
+
 function initAdminRecordsPanelUI() {
   if (!adminRecordsFilters || !recordsMonthSelect || !recordsTeacherSelect) return;
 
@@ -4330,7 +4342,7 @@ if (btnExportXlsx) btnExportXlsx.hidden = !on;
   // llenar meses (últimos 12)
   const months = buildMonthOptions(12);
   recordsMonthSelect.innerHTML = months
-    .map(m => `<option value="${m.key}">${escapeHtml(m.label)}</option>`)
+   .map(m => `<option value="${m.key}">${escapeHtml(formatMonthLabel(m.key))}</option>`)
     .join("");
 
   // mes actual por defecto
