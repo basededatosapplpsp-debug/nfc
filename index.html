@@ -1997,10 +1997,7 @@ input[list]::-moz-list-dropdown {
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-    <div class="disc-who">
-      <div class="muted small" style="margin-bottom:6px;">Docentes que han marcado niveles</div>
-      <div id="discWhoList" class="disc-who-list">—</div>
-    </div>
+
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2064,12 +2061,7 @@ input[list]::-moz-list-dropdown {
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-    <div class="disc-who">
-      <div class="muted small" style="margin-bottom:6px;">
-        Docentes que han marcado niveles
-      </div>
-      <div id="piercWhoList" class="disc-who-list">—</div>
-    </div>
+  
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2132,12 +2124,7 @@ input[list]::-moz-list-dropdown {
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-    <div class="disc-who">
-      <div class="muted small" style="margin-bottom:6px;">
-        Docentes que han marcado niveles
-      </div>
-      <div id="uniWhoList" class="disc-who-list">—</div>
-    </div>
+ 
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -9902,19 +9889,47 @@ function discBackToList_(){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
- discReportedList.innerHTML = `
-  <div class="record-card" style="margin-bottom:10px;">
-    <div class="top">
-      <span class="teacher">${escapeHtml(s || "—")}</span>
-      <span class="badge badge-neutral">${maxLevel ? `Nivel ${maxLevel}` : "Sin nivel"}</span>
-    </div>
-    <div class="meta">
-      Llamados: <b>${total}</b> • Docentes: <b>${teachersCount}</b>
-    </div>
-  </div>
+  const docentesHtml = (item && Array.isArray(item.who) && item.who.length)
+    ? `
+      <div style="margin-top:10px;">
+        <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
+        <div style="display:grid; gap:8px;">
+          ${item.who.map(x => `
+            <div class="actividad-pendiente-item" style="
+              border:1px solid rgba(255,255,255,.10);
+              border-radius:12px;
+              padding:10px;
+              background:rgba(255,255,255,.04);
+            ">
+              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+              <div class="muted small" style="margin-top:4px;">
+                Nivel ${Number(x.level || 0)}
+                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `
+    : `
+      <div class="muted small" style="margin-top:10px;">Aún no hay docentes reportados.</div>
+    `;
 
-  <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
-`;
+  discReportedList.innerHTML = `
+    <div class="record-card" style="margin-bottom:10px;">
+      <div class="top">
+        <span class="teacher">${escapeHtml(s || "—")}</span>
+        <span class="badge badge-neutral">${maxLevel ? `Nivel ${maxLevel}` : "Sin nivel"}</span>
+      </div>
+      <div class="meta">
+        Llamados: <b>${total}</b> • Docentes: <b>${teachersCount}</b>
+      </div>
+      ${docentesHtml}
+    </div>
+    <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
+  `;
+
+  discApplyLevelUI_(maxLevel);
 
 
 
@@ -10992,6 +11007,31 @@ function piercRenderDetailView_(){
   const maxLevel = item ? Number(item.maxLevel || 0) : 0;
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
+  const docentesHtml = (item && Array.isArray(item.who) && item.who.length)
+    ? `
+      <div style="margin-top:10px;">
+        <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
+        <div style="display:grid; gap:8px;">
+          ${item.who.map(x => `
+            <div class="actividad-pendiente-item" style="
+              border:1px solid rgba(255,255,255,.10);
+              border-radius:12px;
+              padding:10px;
+              background:rgba(255,255,255,.04);
+            ">
+              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+              <div class="muted small" style="margin-top:4px;">
+                Nivel ${Number(x.level || 0)}
+                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `
+    : `
+      <div class="muted small" style="margin-top:10px;">Aún no hay docentes reportados.</div>
+    `;
 
   piercReportedList.innerHTML = `
     <div class="record-card" style="margin-bottom:10px;">
@@ -11002,13 +11042,12 @@ function piercRenderDetailView_(){
       <div class="meta">
         Llamados: <b>${total}</b> • Docentes: <b>${teachersCount}</b>
       </div>
+      ${docentesHtml}
     </div>
     <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
   `;
 
   piercApplyLevelUI_(maxLevel);
-  if (item && Array.isArray(item.who) && item.who.length) piercRenderWho_(item.who);
-  else if (piercWhoList) piercWhoList.textContent = "—";
 }
 
 function piercOpenDetail_(studentName){
@@ -11723,6 +11762,32 @@ function uniRenderDetailView_(){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
+  const docentesHtml = (item && Array.isArray(item.who) && item.who.length)
+    ? `
+      <div style="margin-top:10px;">
+        <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
+        <div style="display:grid; gap:8px;">
+          ${item.who.map(x => `
+            <div class="actividad-pendiente-item" style="
+              border:1px solid rgba(255,255,255,.10);
+              border-radius:12px;
+              padding:10px;
+              background:rgba(255,255,255,.04);
+            ">
+              <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+              <div class="muted small" style="margin-top:4px;">
+                Nivel ${Number(x.level || 0)}
+                ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `
+    : `
+      <div class="muted small" style="margin-top:10px;">Aún no hay docentes reportados.</div>
+    `;
+
   uniReportedList.innerHTML = `
     <div class="record-card" style="margin-bottom:10px;">
       <div class="top">
@@ -11732,13 +11797,12 @@ function uniRenderDetailView_(){
       <div class="meta">
         Llamados: <b>${total}</b> • Docentes: <b>${teachersCount}</b>
       </div>
+      ${docentesHtml}
     </div>
     <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
   `;
 
   uniApplyLevelUI_(maxLevel);
-  if (item && Array.isArray(item.who) && item.who.length) uniRenderWho_(item.who);
-  else if (uniWhoList) uniWhoList.textContent = "—";
 }
 
 /* ======= actions ======= */
