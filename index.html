@@ -9821,11 +9821,17 @@ if (!btnRequestAuth) {
       setLoading(true, "Enviando solicitud…", "Registrando este teléfono para aprobación.");
       loginHint.textContent = "Enviando solicitud…";
 
+      const whatsappTo =
+        (typeof loginWhatsappEl !== "undefined" && loginWhatsappEl && loginWhatsappEl.value)
+          ? loginWhatsappEl.value.trim()
+          : "";
+
       const resp = await gsRequestDeviceAuth({
         action: "request_device_auth",
         name,
         email,
         course,
+        whatsapp_to: whatsappTo,
         device_id: getDeviceId()
       });
 
