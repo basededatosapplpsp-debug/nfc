@@ -3744,6 +3744,8 @@ async function gsAdminCheckPin(pin) {
   let res, text, data;
 
   try {
+    console.log("ADMIN DEBUG", { GS_WEBAPP_URL, GS_API_KEY });
+
     res = await fetch(GS_WEBAPP_URL, {
       method: "POST",
       headers: {
@@ -3779,41 +3781,12 @@ async function gsAdminCheckPin(pin) {
 }
 
 async function gsAdminChangePin(oldPin, newPin) {
-  let res, text, data;
-
-  try {
-    res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        action: "admin_change_pin",
-        old_pin: oldPin,
-        new_pin: newPin,
-        key: GS_API_KEY
-      })
-    });
-  } catch (err) {
-    throw new Error("No se pudo conectar con el backend.");
-  }
-
-  text = await res.text();
-
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch (err) {
-    throw new Error(`Respuesta no válida del servidor (${res.status}): ${text || "vacía"}`);
-  }
-
-  if (!res.ok) {
-    throw new Error(data.msg || data.error || `HTTP ${res.status}`);
-  }
-
-  if (!data.ok) {
-    throw new Error(data.msg || data.error || "admin_change_failed");
-  }
-
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "admin_change_pin", old_pin: oldPin, new_pin: newPin, key: GS_API_KEY })
+  });
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.msg || data.error || "admin_change_failed");
   return data;
 }
 
