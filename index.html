@@ -12613,9 +12613,11 @@ function render(records) {
 
     const typeLabel = ntc ? `${type} • NTC` : type;
 
-    const rowCls =
-      (type === "ENTRADA")
-        ? (r.late ? "late" : "ontime")
+  const rowCls =
+  (type === "ENTRADA")
+    ? (r.late ? "late" : "ontime")
+    : (type === "SALIDA")
+        ? (isEarlyExitRecord(r) ? "late" : "ontime")
         : "";
 
     return `
@@ -12642,17 +12644,25 @@ updateDailyButtonsState(filtered);
     const ntc = isNTCRecord(r);
     const ntcTxt = ntc ? " • NTC" : "";
 
-    const badgeClass = (type === "ENTRADA")
-      ? (r.late ? "badge badge-late" : "badge badge-ontime")
-      : "badge badge-neutral";
+const badgeClass =
+  (type === "ENTRADA")
+    ? (r.late ? "badge badge-late" : "badge badge-ontime")
+    : (type === "SALIDA")
+        ? (isEarlyExitRecord(r) ? "badge badge-late" : "badge badge-ontime")
+        : "badge badge-neutral";
 
-    const rowClass = (type === "ENTRADA")
-      ? (r.late ? "record-card late" : "record-card ontime")
-      : "record-card";
+const rowClass =
+  (type === "ENTRADA")
+    ? (r.late ? "record-card late" : "record-card ontime")
+    : (type === "SALIDA")
+        ? (isEarlyExitRecord(r) ? "record-card late" : "record-card ontime")
+        : "record-card";
 
-    const badgeText =
-      (type === "ENTRADA")
-        ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
+const badgeText =
+  (type === "ENTRADA")
+    ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
+    : (type === "SALIDA")
+        ? `${type}${isEarlyExitRecord(r) ? " • ANTES" : " • A TIEMPO"}${ntcTxt}`
         : `${type}${ntcTxt}`;
 
     return `
