@@ -9468,15 +9468,42 @@ async function adminDoManual(type) {
     // usa la hora actual (igual que si lo hiciera el docente)
     const iso = new Date().toISOString();
 
-    await gsAdminManualRegister(teacher, type, iso);
+    const resp = await gsAdminManualRegister(teacher, type, iso);
+
+    // ✅ mostrar casi inmediato en la lista local
+    if (resp && resp.record) {
+      const newRecord = {
+        ...resp.record,
+        iso: resp.record.iso || iso
+      };
+
+      const alreadyExists = Array.isArray(cachedRecords) && cachedRecords.some(r =>
+        String(r.teacher || "").trim().toLowerCase() === String(newRecord.teacher || "").trim().toLowerCase() &&
+        String(r.type || "").trim().toUpperCase() === String(newRecord.type || "").trim().toUpperCase() &&
+        String(r.date || "").trim() === String(newRecord.date || "").trim() &&
+        String(r.time || "").trim() === String(newRecord.time || "").trim()
+      );
+
+      if (!alreadyExists) {
+        cachedRecords = [newRecord].concat(Array.isArray(cachedRecords) ? cachedRecords : []);
+      }
+
+      try {
+        const cacheKey = cacheKeyForCurrentView_();
+        saveRecordsCache_(cacheKey, cachedRecords);
+      } catch (e) {}
+
+      render(cachedRecords);
+    }
 
     adminManualHint.textContent = `✅ ${type} guardada (NTC) para ${teacher}.`;
 
-    // refrescar listas/contadores
-refreshFromSheet(); // ✅ sin await
+    // ✅ sincroniza después sin bloquear la UI
+    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
 
-    // si está abierto el modal de asistencias admin, recarga si coincide el docente
-    // (opcional, no rompe nada)
+    // si la tarjeta de registros está cerrada, la abre para que se vea
+    setRecordsOpen(true);
+
   } catch (e) {
     adminManualHint.textContent = String(e && e.message ? e.message : e);
   } finally {
