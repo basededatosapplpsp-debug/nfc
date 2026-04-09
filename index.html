@@ -13303,11 +13303,29 @@ async function scanQrValidated_() {
 // ======= Registrar =======
 async function register(type) {
 
+  if (type === "ENTRADA" && hasEntradaToday) {
+    setStatus(
+      "warn",
+      "Entrada ya registrada",
+      "Ya tienes una ENTRADA registrada hoy."
+    );
+    return;
+  }
+
   if (type === "SALIDA" && !hasEntradaToday) {
     setStatus(
       "warn",
       "Primero registra ENTRADA",
       "No puedes registrar la salida sin haber registrado la entrada hoy."
+    );
+    return;
+  }
+
+  if (type === "SALIDA" && hasSalidaToday) {
+    setStatus(
+      "warn",
+      "Salida ya registrada",
+      "Ya tienes una SALIDA registrada hoy."
     );
     return;
   }
@@ -13402,6 +13420,53 @@ async function register(type) {
       lng: geo.longitude,
       qr: qrText
     });
+
+    // ✅ pintar de inmediato el registro recién guardado
+    if (resp && resp.record) {
+      const newRecord = {
+        ...resp.record,
+        iso: resp.record.iso || t.iso
+      };
+
+      const alreadyExists = Array.isArray(cachedRecords) && cachedRecords.some(r =>
+        String(r.teacher || "").trim().toLowerCase() === String(newRecord.teacher || "").trim().toLowerCase() &&
+        String(r.type || "").trim().toUpperCase() === String(newRecord.type || "").trim().toUpperCase() &&
+        String(r.date || "").trim() === String(newRecord.date || "").trim() &&
+        String(r.time || "").trim() === String(newRecord.time || "").trim()
+      );
+
+      if (!alreadyExists) {
+        cachedRecords = [newRecord].concat(Array.isArray(cachedRecords) ? cachedRecords : []);
+      }
+
+      try {
+        const cacheKey = cacheKeyForCurrentView_();
+        saveRecordsCache_(cacheKey, cachedRecords);
+      } catch (e) {}
+
+      render(cachedRecords);
+      updateDailyButtonsState(cachedRecords);
+    }
+
+    if (type === "ENTRADA") {
+      hasEntradaToday = true;
+      btnEntrada.disabled = true;
+
+      btnSalida.disabled = false;
+      btnSalida.classList.remove("is-inactive");
+    }
+
+    if (type === "SALIDA") {
+      hasSalidaToday = true;
+      btnEntrada.disabled = true;
+      btnSalida.disabled = true;
+      btnSalida.classList.remove("is-inactive");
+    }
+
+    setRecordsOpen(true);
+    setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
+
+    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
 
     // ✅ Mostrar casi inmediato en la lista local del docente
     if (resp && resp.record) {
