@@ -3891,9 +3891,30 @@ async function gsAdminListMonths() {
     method: "POST",
     body: JSON.stringify({ action: "admin_list_months", key: GS_API_KEY })
   });
+
   const data = await res.json();
   if (!data.ok) throw new Error(data.msg || data.error || "admin_list_months_failed");
-  return data.months || []; // [{key:"YYYY-MM", label:"enero 2026"}, ...]
+
+  let months = Array.isArray(data.months) ? data.months : [];
+
+  // ✅ limpiar y normalizar
+  months = months
+    .map(m => ({
+      key: String(m && m.key || "").trim(),
+      label: String(m && m.label || "").trim()
+    }))
+    .filter(m => /^\d{4}-\d{2}$/.test(m.key));
+
+  // ✅ si backend no devuelve nada útil, crear fallback local
+  if (!months.length) {
+    const fallback = buildMonthOptions(12);
+    return fallback.map(m => ({
+      key: String(m.key || "").trim(),
+      label: formatMonthLabel(m.key)
+    }));
+  }
+
+  return months;
 }
 
 
@@ -4482,9 +4503,14 @@ async function initAdminRecordsPanelUI() {
   // ✅ ordenar de más reciente a más antiguo
   months.sort((a, b) => String(b.key || "").localeCompare(String(a.key || "")));
 
-  recordsMonthSelect.innerHTML = months.length
-    ? months.map(m => `<option value="${escapeHtml(m.key)}">${escapeHtml(formatMonthLabel(m.key))}</option>`).join("")
-    : `<option value="${escapeHtml(currentMonth)}">${escapeHtml(formatMonthLabel(currentMonth))}</option>`;
+ recordsMonthSelect.innerHTML = months.length
+  ? months.map(m => `<option value="${escapeHtml(m.key)}">${escapeHtml(formatMonthLabel(m.key))}</option>`).join("")
+  : `<option value="${escapeHtml(currentMonth)}">${escapeHtml(formatMonthLabel(currentMonth))}</option>`;
+
+// ✅ si por cualquier razón quedó vacío, forzar mes actual
+if (!recordsMonthSelect.innerHTML.trim()) {
+  recordsMonthSelect.innerHTML = `<option value="${escapeHtml(currentMonth)}">${escapeHtml(formatMonthLabel(currentMonth))}</option>`;
+}
 
   // ✅ mes actual por defecto
   recordsMonthSelect.value = currentMonth;
