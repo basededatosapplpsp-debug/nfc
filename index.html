@@ -9571,9 +9571,24 @@ setLoading(true, "Cargando…", "Leyendo docentes del mes seleccionado.");
 // ✅ AQUI VA ESTO:
 if (adminMonthSelect) {
   const months = await gsAdminListMonths();
-  adminMonthSelect.innerHTML = (months.length ? months : [{key:"",label:"(Sin meses)"}])
-    .map(m => `<option value="${escapeHtml(m.key)}">${escapeHtml(m.label)}</option>`)
-    .join("");
+
+recordsMonthSelect.innerHTML = (months.length ? months : [{ key: "", label: "(Sin meses)" }])
+  .map(m => {
+    const year = String(m.key || "").split("-")[0] || "";
+    const label = year ? `${m.label} de ${year}` : String(m.label || "");
+    return `<option value="${escapeHtml(m.key)}">${escapeHtml(label)}</option>`;
+  })
+  .join("");
+
+// ✅ por defecto: mes actual
+const currentMonth = monthKeyFromDate(new Date());
+const hasCurrentMonth = (months || []).some(m => String(m.key || "").trim() === currentMonth);
+
+if (hasCurrentMonth) {
+  recordsMonthSelect.value = currentMonth;
+} else if ((months || []).length) {
+  recordsMonthSelect.value = String(months[0].key || "").trim();
+}
 }
 
 // y después:
