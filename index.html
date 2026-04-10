@@ -12976,24 +12976,37 @@ function render(records) {
       const acc = ntc
         ? "NTC"
         : (r.accuracy_m ?? r.acc ?? r.accuracy ?? "—");
+const ntcTxt = ntc ? " • NTC" : "";
 
-      const typeLabel = ntc ? `${type} • NTC` : type;
+const typeHtml = (type === "ENTRADA")
+  ? (r.late
+      ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
+      : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
+    )
+  : (type === "SALIDA")
+      ? (isEarlyExitRecord(r)
+          ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
+          : `<span class="badge badge-ontime">SALIDA • OK${ntcTxt}</span>`
+        )
+      : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
 
-      const rowCls =
-        (type === "ENTRADA")
-          ? (r.late ? "late" : "ontime")
-          : "";
+const rowCls =
+  (type === "ENTRADA")
+    ? (r.late ? "late" : "ontime")
+    : (type === "SALIDA")
+        ? (isEarlyExitRecord(r) ? "late" : "ontime")
+        : "";
 
-      return `
-        <tr class="${rowCls}">
-          <td>${escapeHtml(r.date)}</td>
-          <td>${escapeHtml(r.time)}</td>
-          <td>${escapeHtml(r.teacher)}</td>
-          <td>${escapeHtml(typeLabel)}</td>
-          <td>${escapeHtml(dist)}</td>
-          <td>${escapeHtml(acc)}</td>
-        </tr>
-      `;
+return `
+  <tr class="${rowCls}">
+    <td>${escapeHtml(r.date)}</td>
+    <td>${escapeHtml(r.time)}</td>
+    <td>${escapeHtml(r.teacher)}</td>
+    <td>${typeHtml}</td>
+    <td>${escapeHtml(dist)}</td>
+    <td>${escapeHtml(acc)}</td>
+  </tr>
+`;
     }).join("");
 
     // ======= CARDS (mobile) =======
@@ -13067,25 +13080,37 @@ function render(records) {
       ? "NTC"
       : (r.accuracy_m ?? r.acc ?? r.accuracy ?? "—");
 
-    const typeLabel = ntc ? `${type} • NTC` : type;
+ const ntcTxt = ntc ? " • NTC" : "";
 
-  const rowCls =
-  (type === "ENTRADA")
-    ? (r.late ? "late" : "ontime")
-    : (type === "SALIDA")
-        ? (isEarlyExitRecord(r) ? "late" : "ontime")
-        : "";
+const typeHtml = (type === "ENTRADA")
+  ? (r.late
+      ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
+      : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
+    )
+  : (type === "SALIDA")
+      ? (isEarlyExitRecord(r)
+          ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
+          : `<span class="badge badge-ontime">SALIDA • OK${ntcTxt}</span>`
+        )
+      : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
 
-    return `
-      <tr class="${rowCls}">
-        <td>${escapeHtml(r.date)}</td>
-        <td>${escapeHtml(r.time)}</td>
-        <td>${escapeHtml(r.teacher)}</td>
-        <td>${escapeHtml(typeLabel)}</td>
-        <td>${escapeHtml(dist)}</td>
-        <td>${escapeHtml(acc)}</td>
-      </tr>
-    `;
+const rowCls =
+(type === "ENTRADA")
+  ? (r.late ? "late" : "ontime")
+  : (type === "SALIDA")
+      ? (isEarlyExitRecord(r) ? "late" : "ontime")
+      : "";
+
+return `
+  <tr class="${rowCls}">
+    <td>${escapeHtml(r.date)}</td>
+    <td>${escapeHtml(r.time)}</td>
+    <td>${escapeHtml(r.teacher)}</td>
+    <td>${typeHtml}</td>
+    <td>${escapeHtml(dist)}</td>
+    <td>${escapeHtml(acc)}</td>
+  </tr>
+`;
   }).join("");
 
   // ======= CARDS (mobile) =======
