@@ -4392,13 +4392,15 @@ function setAdminMode(on) {
     if (btnUserMenu) btnUserMenu.hidden = false;
     setMenuOpen(false);
 
-    initAdminRecordsPanelUI();
-
-    // ✅ cargar en segundo plano, después de que la UI ya abrió
-    setTimeout(() => {
-      try { initAllModalCourses_(); } catch (e) {}
-      try { refreshFromSheet(); } catch (e) {}
-    }, 0);
+    Promise.resolve(initAdminRecordsPanelUI())
+      .catch(() => {})
+      .finally(() => {
+        // ✅ cargar en segundo plano, después de que la UI ya abrió
+        setTimeout(() => {
+          try { initAllModalCourses_(); } catch (e) {}
+          try { refreshFromSheet(); } catch (e) {}
+        }, 0);
+      });
 
 
   } else {
@@ -4413,7 +4415,7 @@ function setAdminMode(on) {
     }
   }
 
-  initAdminRecordsPanelUI(); // ✅ fuerza ocultar/mostrar SIEMPRE
+   Promise.resolve(initAdminRecordsPanelUI()).catch(() => {}); // ✅ fuerza ocultar/mostrar SIEMPRE
 
 }
 
@@ -4429,13 +4431,12 @@ function formatMonthLabel(key) {
   });
 }
 
-function initAdminRecordsPanelUI() {
+async function initAdminRecordsPanelUI() {
   if (!adminRecordsFilters || !recordsMonthSelect || !recordsTeacherSelect) return;
 
   const on = isAdminMode();
 
-if (btnExportXlsx) btnExportXlsx.hidden = !on;
-
+  if (btnExportXlsx) btnExportXlsx.hidden = !on;
 
   // ✅ SOLO ADMIN ve filtros
   adminRecordsFilters.hidden = !on;
@@ -4448,14 +4449,42 @@ if (btnExportXlsx) btnExportXlsx.hidden = !on;
   // Si NO es admin, no llenar combos (y listo)
   if (!on) return;
 
-  // llenar meses (últimos 12)
-  const months = buildMonthOptions(12);
-  recordsMonthSelect.innerHTML = months
-   .map(m => `<option value="${m.key}">${escapeHtml(formatMonthLabel(m.key))}</option>`)
-    .join("");
+  const currentMonth = monthKeyFromDate(new Date());
 
-  // mes actual por defecto
-  recordsMonthSelect.value = monthKeyFromDate(new Date());
+  let months = [];
+  try {
+    // ✅ usar meses reales del backend
+    months = await gsAdminListMonths();
+  } catch (e) {
+    // fallback por si falla el backend
+    months = [];
+  }
+
+  // ✅ asegurar que el mes actual SIEMPRE exista en el combo,
+  // aunque todavía no venga en la lista del backend
+  const hasCurrent = (months || []).some(m => String(m && m.key || "").trim() === currentMonth);
+  if (!hasCurrent) {
+    months = [{ key: currentMonth, label: formatMonthLabel(currentMonth) }].concat(months || []);
+  }
+
+  // ✅ quitar duplicados por key
+  const seen = new Set();
+  months = (months || []).filter(m => {
+    const k = String(m && m.key || "").trim();
+    if (!k || seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+
+  // ✅ ordenar de más reciente a más antiguo
+  months.sort((a, b) => String(b.key || "").localeCompare(String(a.key || "")));
+
+  recordsMonthSelect.innerHTML = months.length
+    ? months.map(m => `<option value="${escapeHtml(m.key)}">${escapeHtml(formatMonthLabel(m.key))}</option>`).join("")
+    : `<option value="${escapeHtml(currentMonth)}">${escapeHtml(formatMonthLabel(currentMonth))}</option>`;
+
+  // ✅ mes actual por defecto
+  recordsMonthSelect.value = currentMonth;
 
   // docente inicia en Todos
   recordsTeacherSelect.innerHTML = `<option value="__ALL__">Todos</option>`;
