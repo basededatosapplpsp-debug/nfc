@@ -13898,15 +13898,35 @@ async function downloadAdminExcel() {
     if (teacher) url.searchParams.set("teacher", teacher);
 
     const res = await fetch(url.toString(), { method: "GET" });
-    const data = await res.json();
 
-    if (!data.ok || !data.url) throw new Error(data.msg || "No se pudo generar el link.");
+    if (!res.ok) {
+      let msg = "No se pudo generar el Excel.";
+      try {
+        const errData = await res.json();
+        msg = errData.msg || errData.error || msg;
+      } catch (_) {}
+      throw new Error(msg);
+    }
 
-    // ✅ Abrir directo Drive (ya no abre script.google.com)
-    const opened = window.open(data.url, "_blank");
-    if (!opened) window.location.href = data.url;
+    const blob = await res.blob();
 
-    setStatus("", "Listo", "Descarga iniciada ✅");
+    const fileTeacher =
+      teacher && teacher !== "__ALL__"
+        ? `_${teacher.replace(/\s+/g, "_")}`
+        : "";
+    const fileMonth = month ? `_${month}` : "";
+    const filename = `asistencia${fileMonth}${fileTeacher}.xlsx`;
+
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+
+    setStatus("", "Listo", "Excel descargado ✅");
   } catch (e) {
     setStatus("bad", "Error", String(e && e.message ? e.message : e));
   } finally {
