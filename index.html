@@ -4513,7 +4513,7 @@ if (!recordsMonthSelect.innerHTML.trim()) {
 }
 
   // ✅ mes actual por defecto
-  recordsMonthSelect.value = currentMonth;
+ adminMonthSelect.value = currentMonth;
 
   // docente inicia en Todos
   recordsTeacherSelect.innerHTML = `<option value="__ALL__">Todos</option>`;
@@ -9630,10 +9630,10 @@ setLoading(true, "Cargando…", "Leyendo docentes del mes seleccionado.");
 if (adminMonthSelect) {
   const months = await gsAdminListMonths();
 
-recordsMonthSelect.innerHTML = (months.length ? months : [{ key: "", label: "(Sin meses)" }])
+adminMonthSelect.innerHTML = (months.length ? months : [{ key: "", label: "(Sin meses)" }])
   .map(m => {
     const year = String(m.key || "").split("-")[0] || "";
-    const label = year ? `${m.label} de ${year}` : String(m.label || "");
+    const label = year ? `${formatMonthLabel(m.key)}` : String(m.label || "");
     return `<option value="${escapeHtml(m.key)}">${escapeHtml(label)}</option>`;
   })
   .join("");
@@ -9643,9 +9643,9 @@ const currentMonth = monthKeyFromDate(new Date());
 const hasCurrentMonth = (months || []).some(m => String(m.key || "").trim() === currentMonth);
 
 if (hasCurrentMonth) {
-  recordsMonthSelect.value = currentMonth;
+  adminMonthSelect.value = currentMonth;
 } else if ((months || []).length) {
-  recordsMonthSelect.value = String(months[0].key || "").trim();
+  adminMonthSelect.value = String(months[0].key || "").trim();
 }
 }
 
