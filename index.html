@@ -4422,13 +4422,16 @@ function setAdminMode(on) {
 function formatMonthLabel(key) {
   if (!key) return "";
 
-  const [year, month] = key.split("-");
-  const date = new Date(`${year}-${month}-01`);
+  const [year, month] = String(key).split("-");
+  const monthNames = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+  ];
 
-  return date.toLocaleDateString("es-CO", {
-    month: "long",
-    year: "numeric"
-  });
+  const monthIndex = Number(month) - 1;
+  const monthLabel = monthNames[monthIndex] || month || "";
+
+  return `${monthLabel} de ${year}`;
 }
 
 async function initAdminRecordsPanelUI() {
