@@ -1715,16 +1715,24 @@ body.is-admin #registerActions{
   display: none !important;
 }
 
-/* cuando ambos quedan disabled, mostrar SALIDA apagado como estado final */
+/* cuando ambos quedan disabled, mostrar mensaje final */
 .single-action-wrap.done #btnEntrada{
   display: none !important;
 }
 
 .single-action-wrap.done #btnSalida{
   display: inline-flex !important;
-  opacity: .6 !important;
+  opacity: 1 !important;
   pointer-events: none !important;
-  filter: grayscale(.20);
+  filter: none;
+  background: linear-gradient(
+    180deg,
+    rgba(226,232,240,.95),
+    rgba(203,213,225,.92)
+  );
+  color: #334155;
+  border-color: rgba(255,255,255,.14);
+  box-shadow: none;
 }
 
 
@@ -3873,14 +3881,26 @@ function updateDailyButtonsState(records) {
 
 function syncSingleActionUI_() {
   const wrap = $("registerActions");
-  if (!wrap) return;
+  if (!wrap || !btnEntrada || !btnSalida) return;
 
-  const entradaDisabled = !!(btnEntrada && btnEntrada.disabled);
-  const salidaDisabled = !!(btnSalida && btnSalida.disabled);
+  const entradaDisabled = !!btnEntrada.disabled;
+  const salidaDisabled = !!btnSalida.disabled;
+  const isDone = entradaDisabled && salidaDisabled;
 
-  wrap.classList.toggle("done", entradaDisabled && salidaDisabled);
+  wrap.classList.toggle("done", isDone);
+
+  if (isDone) {
+    btnSalida.textContent = "Registro completo hoy";
+    btnSalida.setAttribute("aria-label", "Registro completo hoy");
+    return;
+  }
+
+  btnEntrada.textContent = "Entrada";
+  btnEntrada.setAttribute("aria-label", "Entrada");
+
+  btnSalida.textContent = "Salida";
+  btnSalida.setAttribute("aria-label", "Salida");
 }
-
 
 // ======= Helpers =======
 
