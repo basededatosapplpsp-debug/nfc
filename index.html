@@ -293,6 +293,14 @@ h2{font-size:16px; margin:0 0 12px}
   border-color: rgba(239,68,68,.45);
   background: rgba(239,68,68,.10);
 }
+.record-card.soft{
+  border-color: rgba(245,158,11,.45);
+  background: rgba(245,158,11,.10);
+}
+.record-card.extra{
+  border-color: rgba(96,165,250,.45);
+  background: rgba(96,165,250,.10);
+}
 
 .badge{
   font-size:12px;
@@ -1620,6 +1628,121 @@ input[list]::-moz-list-dropdown {
 }
 
 
+.badge{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  font-weight:800;
+}
+.badge-ontime{ background: rgba(34,197,94,.15); color:#22c55e; border-color: rgba(34,197,94,.35); }
+.badge-late{ background: rgba(239,68,68,.15); color:#ef4444; border-color: rgba(239,68,68,.35); }
+.badge-neutral{ background: rgba(255,255,255,.08); color: var(--text); }
+
+/* ✅ NUEVOS */
+.badge-soft{
+  background: rgba(245,158,11,.15);
+  color: #f59e0b;
+  border-color: rgba(245,158,11,.35);
+}
+
+.badge-extra{
+  background: rgba(96,165,250,.15);
+  color: #60a5fa;
+  border-color: rgba(96,165,250,.35);
+}
+
+.table tr.soft td{ background: rgba(245,158,11,.08); }
+.table tr.extra td{ background: rgba(96,165,250,.08); }
+
+/* ===== Admin: tarjeta superior sin botones de registrar ===== */
+.admin-welcome-box{
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    linear-gradient(180deg, rgba(59,130,246,.12), rgba(59,130,246,.06));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 10px 24px rgba(0,0,0,.16);
+}
+
+.admin-welcome-title{
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  margin-bottom: 4px;
+}
+
+.admin-welcome-sub{
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+/* Solo admin oculta botones de Entrada/Salida */
+body.is-admin #registerActions{
+  display: none !important;
+}
+
+
+/* ===== Un solo botón visual usando los 2 botones reales ===== */
+.single-action-wrap{
+  margin-top: 14px;
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+}
+
+.single-action-wrap .action-pill{
+  position: absolute;
+  inset: 0;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .3px;
+  box-shadow:
+    0 14px 30px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.40);
+}
+
+/* mostrar solo el botón habilitado */
+.single-action-wrap #btnEntrada:disabled,
+.single-action-wrap #btnSalida:disabled{
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(.96);
+}
+
+/* si ambos quedan disabled, mostramos el de salida como estado final */
+.single-action-wrap.done #btnEntrada{
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.single-action-wrap.done #btnSalida{
+  opacity: .70 !important;
+  pointer-events: none !important;
+  filter: grayscale(.12);
+}
+
+/* móvil: centrar bonito */
+@media (max-width: 699px){
+  .single-action-wrap{
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+
 </style>
 </head>
 
@@ -1720,15 +1843,22 @@ input[list]::-moz-list-dropdown {
   <main class="container">
     <!-- ===== Registrar ===== -->
     <section class="card">
-      <h2>Registrar</h2>
+      <h2 id="registerCardTitle">Registrar</h2>
 
       <label class="label" for="teacherName">Nombre del docente</label>
       <input id="teacherName" class="input" type="text" placeholder="Ej: Ana Pérez" autocomplete="name" />
 
-      <div class="row">
-        <button id="btnEntrada" class="btn btn-primary">Entrada</button>
-        <button id="btnSalida" class="btn btn-secondary">Salida</button>
-      </div>
+  <div id="registerActions" class="single-action-wrap">
+  <button id="btnEntrada" class="btn btn-primary action-pill">Entrada</button>
+  <button id="btnSalida" class="btn btn-secondary action-pill">Salida</button>
+</div>
+
+<div id="adminWelcomeBox" class="admin-welcome-box" hidden>
+  <div class="admin-welcome-title">Panel administrativo</div>
+  <div class="admin-welcome-sub muted">
+    Gestiona asistencias, exportaciones y configuración del sistema.
+  </div>
+</div>
 
       <div class="status" id="status">
         <span class="dot" id="dot"></span>
@@ -1761,10 +1891,10 @@ input[list]::-moz-list-dropdown {
 
     <!-- ===== Panel de registros (colapsable) ===== -->
     <section class="card collapse" id="recordsPanel" hidden>
-      <div class="row">
-        <button id="btnExport" class="btn btn-ghost">Exportar CSV</button>
-          <button id="btnExportXlsx" class="btn btn-ghost" hidden>Excel (con formato)</button>
-      </div>
+   <div class="row">
+  <button id="btnExport" class="btn btn-ghost">Excel (mi registro)</button>
+  <button id="btnExportXlsx" class="btn btn-ghost" hidden>Excel (con formato)</button>
+</div>
 
 
 
@@ -2771,6 +2901,10 @@ const distEl = $("dist");
 const accEl = $("acc");
 const coordsEl = $("coords");
 
+const registerCardTitle = $("registerCardTitle");
+const registerActions = $("registerActions");
+const adminWelcomeBox = $("adminWelcomeBox");
+
 // ======= LOADER UI =======
 const appLoader = $("appLoader");
 const loaderTitleEl = $("loaderTitle");
@@ -2842,6 +2976,8 @@ function initQrUi_() {
 // ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
+  try { syncSingleActionUI_(); } catch (e) {}
+  try { updateRegisterCardUI_(); } catch (e) {}
   loadRuntimeConfig_({ silent: true });
 });
 
@@ -3665,7 +3801,7 @@ function normalizeDateYYYYMMDD(v) {
 }
 
 function updateDailyButtonsState(records) {
-  // En admin, no se usan estos botones (y además el input dice ADMINISTRADOR)
+  // En admin no se usan estos botones
   if (isAdminMode()) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
@@ -3673,51 +3809,98 @@ function updateDailyButtonsState(records) {
     return;
   }
 
-  
-
   const p = loadProfile();
   if (!p) return;
 
   const today = todayStr();
 
-  // ✅ OJO: "records" aquí YA viene filtrado al docente logueado (en modo normal)
+  function recordDate_(r) {
+    const raw =
+      String(
+        r?.date ??
+        r?.iso ??
+        r?.datetime ??
+        r?.created_at ??
+        r?.createdAt ??
+        r?.timestamp ??
+        ""
+      ).trim();
+
+    if (!raw) return "";
+
+    // yyyy-mm-dd
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+    // dd/mm/yyyy
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
+      const [dd, mm, yyyy] = raw.split("/");
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // ISO (evita error por zona horaria)
+    if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
+      return raw.slice(0, 10);
+    }
+
+    // fallback
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    return "";
+  }
+
   hasEntradaToday = (records || []).some(r =>
-    String(r.type || "").toUpperCase() === "ENTRADA" &&
-    normalizeDateYYYYMMDD(r.date) === today
+    String(r?.type || "").trim().toUpperCase() === "ENTRADA" &&
+    recordDate_(r) === today
   );
 
   hasSalidaToday = (records || []).some(r =>
-    String(r.type || "").toUpperCase() === "SALIDA" &&
-    normalizeDateYYYYMMDD(r.date) === today
+    String(r?.type || "").trim().toUpperCase() === "SALIDA" &&
+    recordDate_(r) === today
   );
 
-  // ✅ Estados:
-  // 1) Ninguno: Entrada ON, Salida OFF
-  // 2) Solo entrada: Entrada OFF, Salida ON
-  // 3) Entrada + salida: ambos OFF hasta mañana
+  // Estado 1: no hay nada hoy
   if (!hasEntradaToday && !hasSalidaToday) {
     btnEntrada.disabled = false;
-
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
+
+    saveAttendanceButtonsState_(); // ✅ AÑADIDO
     return;
   }
 
+  // Estado 2: ya hay entrada, falta salida
   if (hasEntradaToday && !hasSalidaToday) {
     btnEntrada.disabled = true;
-
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
+
+    saveAttendanceButtonsState_(); // ✅ AÑADIDO
+
+    syncSingleActionUI_();
     return;
   }
 
-  // ✅ Si ya están ambas hoy:
+  // Estado 3: ya hay entrada y salida hoy
   btnEntrada.disabled = true;
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
+
+  saveAttendanceButtonsState_(); // ✅ AÑADIDO
 }
 
+function syncSingleActionUI_() {
+  const wrap = $("registerActions");
+  if (!wrap) return;
 
+  const entradaDisabled = !!(btnEntrada && btnEntrada.disabled);
+  const salidaDisabled = !!(btnSalida && btnSalida.disabled);
+
+  // Estado final: ambos deshabilitados
+  wrap.classList.toggle("done", entradaDisabled && salidaDisabled);
+}
 
 
 // ======= Helpers =======
@@ -3740,6 +3923,58 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, (c)=>({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
   }[c]));
+}
+
+
+
+function attendanceButtonsStateKey_() {
+  const p = loadProfile();
+  const teacher = normalizeKey((p && p.name) || "anon");
+  return `attendance_buttons_state_v1|${teacher}|${todayStr()}`;
+}
+
+function saveAttendanceButtonsState_() {
+  try {
+    localStorage.setItem(attendanceButtonsStateKey_(), JSON.stringify({
+      date: todayStr(),
+      hasEntradaToday: !!hasEntradaToday,
+      hasSalidaToday: !!hasSalidaToday
+    }));
+  } catch {}
+}
+
+function restoreAttendanceButtonsState_() {
+  try {
+    const raw = localStorage.getItem(attendanceButtonsStateKey_());
+    if (!raw) return false;
+
+    const data = JSON.parse(raw);
+    if (!data || data.date !== todayStr()) return false;
+
+    hasEntradaToday = !!data.hasEntradaToday;
+    hasSalidaToday = !!data.hasSalidaToday;
+
+    if (!hasEntradaToday && !hasSalidaToday) {
+      btnEntrada.disabled = false;
+      btnSalida.disabled = true;
+      btnSalida.classList.add("is-inactive");
+      return true;
+    }
+
+    if (hasEntradaToday && !hasSalidaToday) {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = false;
+      btnSalida.classList.remove("is-inactive");
+      return true;
+    }
+
+    btnEntrada.disabled = true;
+    btnSalida.disabled = true;
+    btnSalida.classList.remove("is-inactive");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 // ======= CACHE + TIMEOUT LIST =======
@@ -4024,12 +4259,30 @@ function timeToMinutes(hhmmss) {
   return hh * 60 + mm;
 }
 
-function isEarlyExitRecord(r) {
-  if (!r || String(r.type || "").toUpperCase() !== "SALIDA") return false;
+function getExitVisualState_(r) {
+  if (!r || String(r.type || "").toUpperCase() !== "SALIDA") return "normal";
+
   const t = timeToMinutes(r.time);
-  const limit = timeToMinutes(EXIT_OK_HHMM_CLIENT);
-  if (t == null || limit == null) return false;
-  return t < limit;
+  const limit = timeToMinutes(EXIT_OK_HHMM_CLIENT); // hora configurada
+  const extraStart = timeToMinutes("16:30");        // 4:30 PM
+
+  if (t == null || limit == null) return "normal";
+
+  // antes de la hora configurada
+  if (t < limit) return "early";
+
+  // hasta 5 minutos después de la hora configurada => verde
+  if (t <= (limit + 5)) return "ontime";
+
+  // desde las 4:30 PM en adelante => azul + EXTRA
+  if (extraStart != null && t >= extraStart) return "extra";
+
+  // después de los 5 min y antes de 4:30 => naranja, sigue diciendo A TIEMPO
+  return "soft";
+}
+
+function isEarlyExitRecord(r) {
+  return getExitVisualState_(r) === "early";
 }
 
 
@@ -4437,7 +4690,38 @@ function setAdminMode(on) {
   }
 
    Promise.resolve(initAdminRecordsPanelUI()).catch(() => {}); // ✅ fuerza ocultar/mostrar SIEMPRE
+try { updateRegisterCardUI_(); } catch (e) {}
+}
 
+function updateRegisterCardUI_() {
+  const admin = isAdminMode();
+  const profile = loadProfile();
+
+  if (registerCardTitle) {
+    registerCardTitle.textContent = admin ? "Panel administrativo" : "Registrar";
+  }
+
+  if (registerActions) {
+    registerActions.hidden = !!admin;
+  }
+
+  if (adminWelcomeBox) {
+    adminWelcomeBox.hidden = !admin;
+  }
+
+  if (teacherNameEl) {
+    if (admin) {
+      teacherNameEl.value = "ADMINISTRADOR";
+      teacherNameEl.disabled = true;
+      teacherNameEl.classList.add("is-locked");
+      teacherNameEl.placeholder = "Administrador";
+    } else {
+      teacherNameEl.value = String((profile && profile.name) || "").trim();
+      teacherNameEl.disabled = true;
+      teacherNameEl.classList.add("is-locked");
+      teacherNameEl.placeholder = "Docente";
+    }
+  }
 }
 
 function formatMonthLabel(key) {
@@ -4461,6 +4745,7 @@ async function initAdminRecordsPanelUI() {
   const on = isAdminMode();
 
   if (btnExportXlsx) btnExportXlsx.hidden = !on;
+  if (btnExport) btnExport.hidden = !!on;
 
   // ✅ SOLO ADMIN ve filtros
   adminRecordsFilters.hidden = !on;
@@ -8910,6 +9195,10 @@ function applySessionUI(profile) {
 
     // mostrar botón/menu solo si hay sesión
     if (btnUserMenu) btnUserMenu.hidden = false;
+
+    // ✅ RESTAURAR ESTADO VISUAL DE BOTONES
+    restoreAttendanceButtonsState_();
+
   } else {
     teacherNameEl.disabled = false;
     teacherNameEl.classList.remove("is-locked");
@@ -8921,6 +9210,34 @@ function applySessionUI(profile) {
   }
 }
 
+
+
+let __attendanceResumeSyncTimer = null;
+
+function syncAttendanceOnResume_() {
+  if (isAdminMode()) return;
+
+  const p = loadProfile();
+  if (!p || !p.name) return;
+
+  if (__attendanceResumeSyncTimer) {
+    clearTimeout(__attendanceResumeSyncTimer);
+  }
+
+  __attendanceResumeSyncTimer = setTimeout(() => {
+    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
+  }, 250);
+}
+
+window.addEventListener("focus", syncAttendanceOnResume_);
+window.addEventListener("pageshow", syncAttendanceOnResume_);
+window.addEventListener("online", syncAttendanceOnResume_);
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    syncAttendanceOnResume_();
+  }
+});
 
 function logout(reason = "") {
   // detener verificación automática
@@ -9435,45 +9752,60 @@ function closeAdminAssistModal() {
 }
 
 function renderAdminTeacherRecords(teacher, records) {
+  const list = Array.isArray(records) ? records : [];
+
   adminTeacherTitle.textContent = teacher || "—";
 
-  // contadores
-  const lateCount = (records || []).filter(r =>
+  const lateCount = list.filter(r =>
     String(r.type || "").toUpperCase() === "ENTRADA" && !!r.late
   ).length;
 
-  const earlyExitCount = (records || []).filter(isEarlyExitRecord).length;
+  const earlyExitCount = list.filter(isEarlyExitRecord).length;
 
   adminLateCountEl.textContent = `Entradas tardes: ${lateCount}`;
   adminEarlyExitCountEl.textContent = `Salidas antes: ${earlyExitCount}`;
 
-  if (!records || !records.length) {
+  if (!list.length) {
     adminAssistList.innerHTML = `<div class="muted small">No hay registros para este docente.</div>`;
     return;
   }
 
-  adminAssistList.innerHTML = records.map(r => {
+  adminAssistList.innerHTML = list.map(r => {
     const type = String(r.type || "").toUpperCase();
-    const isLate = (type === "ENTRADA" && !!r.late);
-    const isEarly = isEarlyExitRecord(r);
-
-    // ✅ NTC SOLO si viene explícito desde el servidor (por NOTE = "NTC")
     const ntc = isNTCRecord(r);
     const ntcTxt = ntc ? " • NTC" : "";
+    const exitState = getExitVisualState_(r);
 
     const cls = (type === "ENTRADA")
-      ? (isLate ? "record-card late" : "record-card ontime")
-      : (isEarly ? "record-card late" : "record-card ontime");
+      ? (r.late ? "record-card late" : "record-card ontime")
+      : (type === "SALIDA")
+          ? (
+              exitState === "early" ? "record-card late" :
+              exitState === "ontime" ? "record-card ontime" :
+              exitState === "soft" ? "record-card soft" :
+              exitState === "extra" ? "record-card extra" :
+              "record-card"
+            )
+          : "record-card";
 
     const badge = (type === "ENTRADA")
-      ? (isLate
+      ? (r.late
           ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
           : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
         )
-      : (isEarly
-          ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
-          : `<span class="badge badge-ontime">SALIDA • OK${ntcTxt}</span>`
-        );
+      : (type === "SALIDA")
+          ? (
+              exitState === "early"
+                ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
+                : exitState === "ontime"
+                  ? `<span class="badge badge-ontime">SALIDA • A TIEMPO${ntcTxt}</span>`
+                  : exitState === "soft"
+                    ? `<span class="badge badge-soft">SALIDA • A TIEMPO${ntcTxt}</span>`
+                    : exitState === "extra"
+                      ? `<span class="badge badge-extra">SALIDA • EXTRA${ntcTxt}</span>`
+                      : `<span class="badge badge-neutral">SALIDA${ntcTxt}</span>`
+            )
+          : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
 
     return `
       <div class="${cls}" style="margin-bottom:10px;">
@@ -12478,27 +12810,54 @@ async function gsGetList(limit = 50, monthYYYYMM = "", teacher = "") {
   return data.records || [];
 }
 
-
+function ensureOnlineOrThrow_() {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    throw new Error("NO_INTERNET");
+  }
+}
 
 
 async function gsRegister(payload) {
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    // NO headers: evita preflight CORS
-    body: JSON.stringify({ ...payload, key: GS_API_KEY })
-  });
+  ensureOnlineOrThrow_();
+
+  let res;
+  try {
+    res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      // NO headers: evita preflight CORS
+      body: JSON.stringify({ ...payload, key: GS_API_KEY })
+    });
+  } catch (e) {
+    const msg = String(e && e.message ? e.message : e).toLowerCase();
+
+    const isOffline =
+      (typeof navigator !== "undefined" && navigator.onLine === false) ||
+      msg.includes("failed to fetch") ||
+      msg.includes("networkerror") ||
+      msg.includes("load failed") ||
+      msg.includes("err_internet_disconnected") ||
+      msg.includes("err_network_changed");
+
+    if (isOffline) {
+      throw new Error("NO_INTERNET");
+    }
+
+    throw e;
+  }
 
   let data = null;
-  try { data = await res.json(); }
-  catch { throw new Error("Respuesta inválida del servidor"); }
-
-  // ✅ IMPORTANTE: si el servidor envía msg, lo usamos
-  if (!data.ok) {
-    throw new Error(data.msg || data.error || "gs_register_failed");
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
   }
+
+  if (!data || !data.ok) {
+    throw new Error(data?.msg || data?.error || "gs_register_failed");
+  }
+
   return data;
 }
-
 
 async function gsRequestDeviceAuth(payload) {
   const res = await fetch(GS_WEBAPP_URL, {
@@ -12968,6 +13327,7 @@ function render(records) {
     tbody.innerHTML = filtered.map(r => {
       const type = String(r.type || "").toUpperCase();
       const ntc = isNTCRecord(r);
+      const exitState = getExitVisualState_(r);
 
       const dist = ntc
         ? "NTC"
@@ -12976,62 +13336,103 @@ function render(records) {
       const acc = ntc
         ? "NTC"
         : (r.accuracy_m ?? r.acc ?? r.accuracy ?? "—");
-const ntcTxt = ntc ? " • NTC" : "";
 
-const typeHtml = (type === "ENTRADA")
-  ? (r.late
-      ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
-      : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
-    )
-  : (type === "SALIDA")
-      ? (isEarlyExitRecord(r)
-          ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
-          : `<span class="badge badge-ontime">SALIDA • OK${ntcTxt}</span>`
-        )
-      : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
+      const ntcTxt = ntc ? " • NTC" : "";
 
-const rowCls =
-  (type === "ENTRADA")
-    ? (r.late ? "late" : "ontime")
-    : (type === "SALIDA")
-        ? (isEarlyExitRecord(r) ? "late" : "ontime")
-        : "";
+      const typeHtml = (type === "ENTRADA")
+        ? (r.late
+            ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
+            : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
+          )
+        : (type === "SALIDA")
+            ? (
+                exitState === "early"
+                  ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
+                  : exitState === "ontime"
+                    ? `<span class="badge badge-ontime">SALIDA • A TIEMPO${ntcTxt}</span>`
+                    : exitState === "soft"
+                      ? `<span class="badge badge-soft">SALIDA • A TIEMPO${ntcTxt}</span>`
+                      : exitState === "extra"
+                        ? `<span class="badge badge-extra">SALIDA • EXTRA${ntcTxt}</span>`
+                        : `<span class="badge badge-neutral">SALIDA${ntcTxt}</span>`
+              )
+            : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
 
-return `
-  <tr class="${rowCls}">
-    <td>${escapeHtml(r.date)}</td>
-    <td>${escapeHtml(r.time)}</td>
-    <td>${escapeHtml(r.teacher)}</td>
-    <td>${typeHtml}</td>
-    <td>${escapeHtml(dist)}</td>
-    <td>${escapeHtml(acc)}</td>
-  </tr>
-`;
+      const rowCls =
+        (type === "ENTRADA")
+          ? (r.late ? "late" : "ontime")
+          : (type === "SALIDA")
+              ? (
+                  exitState === "early" ? "late" :
+                  exitState === "ontime" ? "ontime" :
+                  exitState === "soft" ? "soft" :
+                  exitState === "extra" ? "extra" :
+                  ""
+                )
+              : "";
+
+      return `
+        <tr class="${rowCls}">
+          <td>${escapeHtml(r.date)}</td>
+          <td>${escapeHtml(r.time)}</td>
+          <td>${escapeHtml(r.teacher)}</td>
+          <td>${typeHtml}</td>
+          <td>${escapeHtml(dist)}</td>
+          <td>${escapeHtml(acc)}</td>
+        </tr>
+      `;
     }).join("");
 
     // ======= CARDS (mobile) =======
     if (!filtered.length) {
       recordsList.innerHTML = `<div class="muted small">No hay registros para el filtro seleccionado.</div>`;
-      return; // ✅ en admin no tocamos updateSalidaState()
+      return;
     }
 
     recordsList.innerHTML = filtered.map(r => {
       const type = String(r.type || "").toUpperCase();
       const ntc = isNTCRecord(r);
       const ntcTxt = ntc ? " • NTC" : "";
+      const exitState = getExitVisualState_(r);
 
-      const badgeClass = (type === "ENTRADA")
-        ? (r.late ? "badge badge-late" : "badge badge-ontime")
-        : "badge badge-neutral";
+      const badgeClass =
+        (type === "ENTRADA")
+          ? (r.late ? "badge badge-late" : "badge badge-ontime")
+          : (type === "SALIDA")
+              ? (
+                  exitState === "early" ? "badge badge-late" :
+                  exitState === "ontime" ? "badge badge-ontime" :
+                  exitState === "soft" ? "badge badge-soft" :
+                  exitState === "extra" ? "badge badge-extra" :
+                  "badge badge-neutral"
+                )
+              : "badge badge-neutral";
 
-      const rowClass = (type === "ENTRADA")
-        ? (r.late ? "record-card late" : "record-card ontime")
-        : "record-card";
+      const rowClass =
+        (type === "ENTRADA")
+          ? (r.late ? "record-card late" : "record-card ontime")
+          : (type === "SALIDA")
+              ? (
+                  exitState === "early" ? "record-card late" :
+                  exitState === "ontime" ? "record-card ontime" :
+                  exitState === "soft" ? "record-card soft" :
+                  exitState === "extra" ? "record-card extra" :
+                  "record-card"
+                )
+              : "record-card";
 
       const badgeText =
         (type === "ENTRADA")
           ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
-          : `${type}${ntcTxt}`;
+          : (type === "SALIDA")
+              ? (
+                  exitState === "early"
+                    ? `${type} • ANTES${ntcTxt}`
+                    : exitState === "extra"
+                      ? `${type} • EXTRA${ntcTxt}`
+                      : `${type} • A TIEMPO${ntcTxt}`
+                )
+              : `${type}${ntcTxt}`;
 
       return `
         <div class="${rowClass}">
@@ -13046,10 +13447,10 @@ return `
       `;
     }).join("");
 
-    return; // ✅ admin termina aquí
+    return;
   }
 
-  // ✅ Docente: solo sus registros (como lo tenías)
+  // ✅ Docente: solo sus registros
   const myNameKey = normalizeKey(p && p.name ? p.name : "");
   const filtered = myNameKey
     ? __recordsAllRaw.filter(r => normalizeKey(r.teacher) === myNameKey)
@@ -13071,6 +13472,7 @@ return `
   tbody.innerHTML = filtered.map(r => {
     const type = String(r.type || "").toUpperCase();
     const ntc = isNTCRecord(r);
+    const exitState = getExitVisualState_(r);
 
     const dist = ntc
       ? "NTC"
@@ -13080,43 +13482,56 @@ return `
       ? "NTC"
       : (r.accuracy_m ?? r.acc ?? r.accuracy ?? "—");
 
- const ntcTxt = ntc ? " • NTC" : "";
+    const ntcTxt = ntc ? " • NTC" : "";
 
-const typeHtml = (type === "ENTRADA")
-  ? (r.late
-      ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
-      : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
-    )
-  : (type === "SALIDA")
-      ? (isEarlyExitRecord(r)
-          ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
-          : `<span class="badge badge-ontime">SALIDA • OK${ntcTxt}</span>`
+    const typeHtml = (type === "ENTRADA")
+      ? (r.late
+          ? `<span class="badge badge-late">ENTRADA • TARDE${ntcTxt}</span>`
+          : `<span class="badge badge-ontime">ENTRADA • A TIEMPO${ntcTxt}</span>`
         )
-      : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
+      : (type === "SALIDA")
+          ? (
+              exitState === "early"
+                ? `<span class="badge badge-late">SALIDA • ANTES${ntcTxt}</span>`
+                : exitState === "ontime"
+                  ? `<span class="badge badge-ontime">SALIDA • A TIEMPO${ntcTxt}</span>`
+                  : exitState === "soft"
+                    ? `<span class="badge badge-soft">SALIDA • A TIEMPO${ntcTxt}</span>`
+                    : exitState === "extra"
+                      ? `<span class="badge badge-extra">SALIDA • EXTRA${ntcTxt}</span>`
+                      : `<span class="badge badge-neutral">SALIDA${ntcTxt}</span>`
+            )
+          : `<span class="badge badge-neutral">${type}${ntcTxt}</span>`;
 
-const rowCls =
-(type === "ENTRADA")
-  ? (r.late ? "late" : "ontime")
-  : (type === "SALIDA")
-      ? (isEarlyExitRecord(r) ? "late" : "ontime")
-      : "";
+    const rowCls =
+      (type === "ENTRADA")
+        ? (r.late ? "late" : "ontime")
+        : (type === "SALIDA")
+            ? (
+                exitState === "early" ? "late" :
+                exitState === "ontime" ? "ontime" :
+                exitState === "soft" ? "soft" :
+                exitState === "extra" ? "extra" :
+                ""
+              )
+            : "";
 
-return `
-  <tr class="${rowCls}">
-    <td>${escapeHtml(r.date)}</td>
-    <td>${escapeHtml(r.time)}</td>
-    <td>${escapeHtml(r.teacher)}</td>
-    <td>${typeHtml}</td>
-    <td>${escapeHtml(dist)}</td>
-    <td>${escapeHtml(acc)}</td>
-  </tr>
-`;
+    return `
+      <tr class="${rowCls}">
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.time)}</td>
+        <td>${escapeHtml(r.teacher)}</td>
+        <td>${typeHtml}</td>
+        <td>${escapeHtml(dist)}</td>
+        <td>${escapeHtml(acc)}</td>
+      </tr>
+    `;
   }).join("");
 
   // ======= CARDS (mobile) =======
   if (!filtered.length) {
-    recordsList.innerHTML = `<div class="muted small">No hay registros para este docente.</div>`;
-updateDailyButtonsState(filtered);
+    recordsList.innerHTML = `<div class="muted small">No hay registros aún.</div>`;
+    updateDailyButtonsState(filtered);
     return;
   }
 
@@ -13124,27 +13539,46 @@ updateDailyButtonsState(filtered);
     const type = String(r.type || "").toUpperCase();
     const ntc = isNTCRecord(r);
     const ntcTxt = ntc ? " • NTC" : "";
+    const exitState = getExitVisualState_(r);
 
-const badgeClass =
-  (type === "ENTRADA")
-    ? (r.late ? "badge badge-late" : "badge badge-ontime")
-    : (type === "SALIDA")
-        ? (isEarlyExitRecord(r) ? "badge badge-late" : "badge badge-ontime")
-        : "badge badge-neutral";
+    const badgeClass =
+      (type === "ENTRADA")
+        ? (r.late ? "badge badge-late" : "badge badge-ontime")
+        : (type === "SALIDA")
+            ? (
+                exitState === "early" ? "badge badge-late" :
+                exitState === "ontime" ? "badge badge-ontime" :
+                exitState === "soft" ? "badge badge-soft" :
+                exitState === "extra" ? "badge badge-extra" :
+                "badge badge-neutral"
+              )
+            : "badge badge-neutral";
 
-const rowClass =
-  (type === "ENTRADA")
-    ? (r.late ? "record-card late" : "record-card ontime")
-    : (type === "SALIDA")
-        ? (isEarlyExitRecord(r) ? "record-card late" : "record-card ontime")
-        : "record-card";
+    const rowClass =
+      (type === "ENTRADA")
+        ? (r.late ? "record-card late" : "record-card ontime")
+        : (type === "SALIDA")
+            ? (
+                exitState === "early" ? "record-card late" :
+                exitState === "ontime" ? "record-card ontime" :
+                exitState === "soft" ? "record-card soft" :
+                exitState === "extra" ? "record-card extra" :
+                "record-card"
+              )
+            : "record-card";
 
-const badgeText =
-  (type === "ENTRADA")
-    ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
-    : (type === "SALIDA")
-        ? `${type}${isEarlyExitRecord(r) ? " • ANTES" : " • A TIEMPO"}${ntcTxt}`
-        : `${type}${ntcTxt}`;
+    const badgeText =
+      (type === "ENTRADA")
+        ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
+        : (type === "SALIDA")
+            ? (
+                exitState === "early"
+                  ? `${type} • ANTES${ntcTxt}`
+                  : exitState === "extra"
+                    ? `${type} • EXTRA${ntcTxt}`
+                    : `${type} • A TIEMPO${ntcTxt}`
+              )
+            : `${type}${ntcTxt}`;
 
     return `
       <div class="${rowClass}">
@@ -13159,7 +13593,7 @@ const badgeText =
     `;
   }).join("");
 
-updateDailyButtonsState(filtered);
+  updateDailyButtonsState(filtered);
 }
 
   function filterToMonth_(records, monthYYYYMM) {
@@ -13515,6 +13949,15 @@ async function register(type) {
     return;
   }
 
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    setStatus(
+      "bad",
+      "Sin conexión",
+      "No se puede registrar sin internet. Activa datos o Wi-Fi y vuelve a intentar."
+    );
+    return;
+  }
+
   const profile = requireLogin();
   if (!profile) return;
 
@@ -13666,8 +14109,12 @@ async function register(type) {
       msg.includes("err_internet_disconnected") ||
       msg.includes("err_network_changed");
 
-    if (isOffline) {
-      setStatus("bad", "Sin conexión", "Revisa tu conexión a internet e intenta de nuevo.");
+    if (isOffline || msg.includes("no_internet")) {
+      setStatus(
+        "bad",
+        "Sin conexión",
+        "No se pudo registrar porque no hay internet. Activa datos o Wi-Fi y vuelve a intentar."
+      );
       return;
     }
 
@@ -13822,62 +14269,62 @@ async function ensureWhatsAppToOnLogin_(email, deviceId) {
 }
 
 
-
-
-
-// ======= CSV (desde lo que se ve en la app) =======
-function csvCell(v){
-  if (v === null || v === undefined) return "";
-  const s = String(v);
-  if (/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
-  return s;
-}
-
-
-
-
-
-function exportCSV() {
-  // En admin, cachedRecords ya representa:
-  // - Todos (si selector = __ALL__)
-  // - Un docente (si selector = ese nombre)
-  // En modo normal, cachedRecords es el docente logueado.
-  const dataToExport = cachedRecords || [];
-
-  if (!dataToExport.length) {
-    setStatus("warn", "Sin datos", "No hay registros para exportar.");
+async function downloadUserExcel() {
+  if (isAdminMode()) {
+    setStatus("warn", "Modo administrador", "Usa el botón Excel (con formato) para exportación admin.");
     return;
   }
 
-  const header = ["teacher","type","date","time","late","iso"];
-  const lines = [header.join(",")].concat(
-    dataToExport.map(r => header.map(k => csvCell(r[k])).join(","))
-  );
+  const p = loadProfile();
+  const teacher = p && p.name ? String(p.name).trim() : "";
+  const month = monthKeyFromDate(new Date());
 
-  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-
-  // nombre del archivo: admin incluye mes y (si aplica) docente
-  let fname = `asistencia_${new Date().toISOString().slice(0,10)}`;
-
-  if (isAdminMode()) {
-    const month = recordsMonthSelect ? String(recordsMonthSelect.value || "").trim() : "";
-    const who = recordsTeacherSelect ? String(recordsTeacherSelect.value || "__ALL__") : "__ALL__";
-    if (month) fname += `_${month}`;
-    if (who && who !== "__ALL__") fname += `_${who.replace(/\s+/g, "_")}`;
+  if (!teacher) {
+    setStatus("warn", "Sin perfil", "No encontré el nombre del docente logueado.");
+    return;
   }
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${fname}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  try {
+    setLoading(true, "Generando Excel…", "Preparando tu registro para descarga.");
 
-  setStatus("", "Exportado", "CSV descargado.");
+    const url = new URL(GS_WEBAPP_URL);
+    url.searchParams.set("action", "export_xlsx_link");
+    url.searchParams.set("key", GS_API_KEY);
+    url.searchParams.set("month", month);
+    url.searchParams.set("teacher", teacher);
+
+    const res = await fetch(url.toString(), { method: "GET" });
+
+    if (!res.ok) {
+      let msg = "No se pudo generar el Excel.";
+      try {
+        const errData = await res.json();
+        msg = errData.msg || errData.error || msg;
+      } catch (_) {}
+      throw new Error(msg);
+    }
+
+    const blob = await res.blob();
+
+    const safeTeacher = teacher.replace(/\s+/g, "_");
+    const filename = `asistencia_${month}_${safeTeacher}.xlsx`;
+
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(blobUrl);
+
+    setStatus("", "Listo", "Excel descargado ✅");
+  } catch (e) {
+    setStatus("bad", "Error", String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
 }
-
 
 async function downloadAdminExcel() {
   if (!isAdminMode()) {
@@ -13962,6 +14409,8 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
+const APP_BUILD = "2026-04-10-04";
+
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
   try {
@@ -13997,10 +14446,70 @@ if (btnLogout) {
 }
 
 
-// ======= SW register =======
+// ======= SW register + auto refresh por build =======
 if ("serviceWorker" in navigator) {
+  let __swReloading = false;
+  let __autoBuildRefreshRunning = false;
+
+  async function checkAppBuildAndRefresh_() {
+    try {
+      const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
+
+      // primera vez: solo guardar versión actual
+      if (!savedBuild) {
+        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
+        return;
+      }
+
+      // si cambió el build del HTML, hacer hard refresh una sola vez
+      if (savedBuild !== APP_BUILD) {
+        if (__autoBuildRefreshRunning) return;
+        __autoBuildRefreshRunning = true;
+
+        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
+        await hardRefreshPWA();
+      }
+    } catch {}
+  }
+
+  async function registerAndUpdateSW_() {
+    try {
+      const reg = await navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(APP_BUILD)}`);
+      try { await reg.update(); } catch {}
+
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+    } catch {}
+  }
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (__swReloading) return;
+    __swReloading = true;
+    location.reload();
+  });
+
   window.addEventListener("load", async () => {
-    try { await navigator.serviceWorker.register("./sw.js"); } catch {}
+    await registerAndUpdateSW_();
+    await checkAppBuildAndRefresh_();
+  });
+
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState === "visible") {
+      await registerAndUpdateSW_();
+      await checkAppBuildAndRefresh_();
+    }
   });
 }
 
@@ -14008,7 +14517,7 @@ if ("serviceWorker" in navigator) {
 btnEntrada.addEventListener("click", () => register("ENTRADA"));
 btnSalida.addEventListener("click",  () => register("SALIDA"));
 
-btnExport.addEventListener("click", exportCSV);
+btnExport.addEventListener("click", downloadUserExcel);
 
 
 
@@ -14041,14 +14550,17 @@ if (isAdminMode()) {
   initAdminRecordsPanelUI(); // ✅ fuerza ocultar combos + resumen si NO es admin
   const _p = requireLogin();
 
-  if (_p) {
-    applySessionUI(_p);
+if (_p) {
+  applySessionUI(_p);
 
-    // ✅ FIX: si ya hay sesión guardada, inicializa cursos + estudiantes
-    initAllModalCourses_();
-  } else {
-    applySessionUI(null);
-  }
+  // ✅ FIX: si ya hay sesión guardada, inicializa cursos + estudiantes
+  initAllModalCourses_();
+
+  // ✅ NUEVO: al restaurar sesión, sincroniza estado real de asistencia
+  syncAttendanceOnResume_();
+} else {
+  applySessionUI(null);
+}
 }
 
 
@@ -14064,14 +14576,7 @@ window.addEventListener("error", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
   // precarga en segundo plano (no rompe si aún no hay login)
   prewarmCoursesAndStudents_();
-startDeviceAuthWatcher_();
-  // si ya hay perfil guardado, deja listos los combos también
-  try {
-    const p = (typeof loadProfile === "function") ? loadProfile() : null;
-    if (p && p.course) initAllModalCourses_();
-  } catch {}
 });
-
 
 
 // 🔄 actualización automática cada 25 segundos
