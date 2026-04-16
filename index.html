@@ -1715,11 +1715,21 @@ body.is-admin #registerActions{
 }
 
 /* mostrar solo el botón habilitado */
-.single-action-wrap #btnEntrada:disabled,
-.single-action-wrap #btnSalida:disabled{
+/* Mostrar SOLO el botón activo */
+.single-action-wrap #btnEntrada,
+.single-action-wrap #btnSalida{
   opacity: 0;
   pointer-events: none;
-  transform: scale(.96);
+  transform: scale(.95);
+  transition: all .25s ease;
+}
+
+/* El botón habilitado es el visible */
+.single-action-wrap #btnEntrada:not(:disabled),
+.single-action-wrap #btnSalida:not(:disabled){
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
 }
 
 /* si ambos quedan disabled, mostramos el de salida como estado final */
