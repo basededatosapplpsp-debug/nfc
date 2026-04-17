@@ -14929,27 +14929,30 @@ btnRefreshSW.addEventListener("click", async () => {
     const profile = loadProfile();
     const admin = isAdminMode();
 
-    // ✅ Si hay docente logueado, sincroniza contra backend real
+    // ✅ Si hay docente logueado, primero sincroniza con backend real
     if (profile && profile.name && !admin) {
-      setLoading(true, "Actualizando…", "Consultando estado real del registro.");
+      try {
+        setLoading(true, "Actualizando…", "Consultando estado real del registro.");
 
-      await refreshFromSheet({
-        useCache: false,
-        silent: false,
-        preferRemote: true
-      });
-
-      return;
+        await refreshFromSheet({
+          useCache: false,
+          silent: true,
+          preferRemote: true
+        });
+      } catch (e) {
+        // no bloquea el hard refresh
+      } finally {
+        try { setLoading(false); } catch (e) {}
+      }
     }
 
-    // ✅ En otros casos, mantener comportamiento actual
+    // ✅ Luego mantiene el comportamiento original
     await hardRefreshPWA();
   } catch (e) {
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
-  } finally {
-    try { setLoading(false); } catch (e) {}
   }
 });
+
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
