@@ -2969,11 +2969,15 @@ function initQrUi_() {
 // ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
+
+  // ✅ Restaurar estado local inmediato del botón al abrir
+  try { restoreAttendanceButtonsState_(); } catch (e) {}
+
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
+
   loadRuntimeConfig_({ silent: true });
 });
-
 
 
 
@@ -3979,6 +3983,69 @@ function restoreAttendanceButtonsState_() {
   }
 }
 
+
+function applyAttendanceState_(type, recordData = {}) {
+  const t = nowParts();
+
+  if (type === "ENTRADA") {
+    hasEntradaToday = true;
+    hasSalidaToday = false;
+  } else if (type === "SALIDA") {
+    hasEntradaToday = true;
+    hasSalidaToday = true;
+  }
+
+  // ✅ persistir flags del día
+  saveAttendanceButtonsState_();
+
+  // ✅ construir registro local aunque el backend no devuelva resp.record
+  const profile = loadProfile() || {};
+  const localRecord = {
+    teacher: String(recordData.teacher || profile.name || teacherNameEl.value || "").trim(),
+    type: String(type || "").trim().toUpperCase(),
+    date: recordData.date || t.date,
+    time: recordData.time || t.time,
+    iso: recordData.iso || t.iso,
+    distance_m: recordData.distance_m ?? recordData.dist ?? "—",
+    accuracy_m: recordData.accuracy_m ?? recordData.acc ?? "—"
+  };
+
+  if (!Array.isArray(cachedRecords)) {
+    cachedRecords = [];
+  }
+
+  const exists = cachedRecords.some(r =>
+    String(r.teacher || "").trim().toLowerCase() === String(localRecord.teacher || "").trim().toLowerCase() &&
+    String(r.type || "").trim().toUpperCase() === String(localRecord.type || "").trim().toUpperCase() &&
+    String(r.date || "").trim() === String(localRecord.date || "").trim()
+  );
+
+  if (!exists) {
+    cachedRecords = [localRecord, ...cachedRecords];
+  }
+
+  try {
+    const cacheKey = cacheKeyForCurrentView_();
+    saveRecordsCache_(cacheKey, cachedRecords);
+  } catch (e) {}
+
+  try {
+    updateDailyButtonsState(cachedRecords);
+  } catch (e) {
+    // fallback directo de UI
+    if (type === "ENTRADA") {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = false;
+      btnSalida.classList.remove("is-inactive");
+    } else {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = true;
+      btnSalida.classList.remove("is-inactive");
+    }
+    syncSingleActionUI_();
+  }
+}
+
 // ======= CACHE + TIMEOUT LIST =======
 const LS_CACHE_KEY = "asistencia_cache_records_v1";
 const LIST_TIMEOUT_MS = 12000; // 12s (ajústalo si quieres)
@@ -4393,9 +4460,24 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
   } else {
     if (btnExport) btnExport.disabled = false;
 
-    // restaurar estado real de los botones del día
+    // ✅ PRIMERO intenta restaurar desde localStorage del día
+    let restored = false;
     try {
-      updateDailyButtonsState(cachedRecords);
+      restored = restoreAttendanceButtonsState_();
+    } catch (e) {
+      restored = false;
+    }
+
+    // ✅ Si no había estado local, usa caché de registros
+    if (!restored) {
+      try {
+        updateDailyButtonsState(cachedRecords || []);
+      } catch (e) {}
+    }
+
+    // ✅ Refuerza la UI visual del botón único
+    try {
+      syncSingleActionUI_();
     } catch (e) {}
   }
 
@@ -4415,11 +4497,10 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
     return;
   }
 
-  // ✅ Cuando termina, recalcular el estado real del bloque Registrar
+  // Cuando termina, recalcular estado general
   try {
     refreshHomeStatus_();
   } catch (e) {
-    // fallback seguro por si todavía no existe geo o algo no cargó
     setStatus("warn", "Listo", "Activa ubicación para registrar en el colegio.");
   }
 }
@@ -14051,54 +14132,40 @@ async function register(type) {
       qr: qrText
     });
 
-    // ✅ pintar de inmediato el registro recién guardado
-    if (resp && resp.record) {
-      const newRecord = {
-        ...resp.record,
-        iso: resp.record.iso || t.iso
-      };
+    // ✅ Aplicar SIEMPRE estado local inmediato
+    applyAttendanceState_(
+      type,
+      resp && resp.record
+        ? {
+            ...resp.record,
+            iso: resp.record.iso || t.iso,
+            teacher: resp.record.teacher || teacher,
+            date: resp.record.date || t.date,
+            time: resp.record.time || t.time,
+            distance_m: resp.record.distance_m ?? Math.round(geo.dist),
+            accuracy_m: resp.record.accuracy_m ?? Math.round(geo.accuracy)
+          }
+        : {
+            teacher,
+            date: t.date,
+            time: t.time,
+            iso: t.iso,
+            distance_m: Math.round(geo.dist),
+            accuracy_m: Math.round(geo.accuracy)
+          }
+    );
 
-      const alreadyExists = Array.isArray(cachedRecords) && cachedRecords.some(r =>
-        String(r.teacher || "").trim().toLowerCase() === String(newRecord.teacher || "").trim().toLowerCase() &&
-        String(r.type || "").trim().toUpperCase() === String(newRecord.type || "").trim().toUpperCase() &&
-        String(r.date || "").trim() === String(newRecord.date || "").trim() &&
-        String(r.time || "").trim() === String(newRecord.time || "").trim()
-      );
-
-      if (!alreadyExists) {
-        cachedRecords = [newRecord].concat(Array.isArray(cachedRecords) ? cachedRecords : []);
-      }
-
-      try {
-        const cacheKey = cacheKeyForCurrentView_();
-        saveRecordsCache_(cacheKey, cachedRecords);
-      } catch (e) {}
-
-      render(cachedRecords);
-      updateDailyButtonsState(cachedRecords);
-    }
-
-    if (type === "ENTRADA") {
-      hasEntradaToday = true;
-      btnEntrada.disabled = true;
-
-      btnSalida.disabled = false;
-      btnSalida.classList.remove("is-inactive");
-    }
-
-    if (type === "SALIDA") {
-      hasSalidaToday = true;
-      btnEntrada.disabled = true;
-      btnSalida.disabled = true;
-      btnSalida.classList.remove("is-inactive");
-    }
+    try {
+      render(cachedRecords || []);
+    } catch (e) {}
 
     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
-    // ✅ sincroniza después, pero sin depender de esto para pintar
-  // ✅ NO refrescar aquí: ya pintamos y bloqueamos localmente.
-// El refresco automático estaba pisando el estado recién actualizado.
+    // ✅ sincronización silenciosa posterior, sin romper la UI local
+    setTimeout(() => {
+      refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+    }, 700);
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
