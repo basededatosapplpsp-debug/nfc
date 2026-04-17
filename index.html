@@ -14013,7 +14013,58 @@ function render(records) {
   return (records || []).filter(r => String(r.date || "").startsWith(m + "-"));
 }
 
+function sameRecordKey_(r) {
+  return [
+    normalizeKey(r && r.teacher),
+    String((r && r.type) || "").trim().toUpperCase(),
+    String((r && r.date) || "").trim(),
+    String((r && r.time) || "").trim()
+  ].join("|");
+}
 
+function mergeRecordsPreferLocal_(remoteRecords, localRecords) {
+  const out = [];
+  const seen = new Set();
+
+  // 1) primero los locales: si ya los pintaste al registrar, no los pierdas
+  (localRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 2) luego lo remoto que no exista todavía
+  (remoteRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 3) ordenar más nuevo primero
+  out.sort((a, b) => {
+    const aIso = String(a && (a.iso || `${a.date || ""}T${a.time || ""}`) || "");
+    const bIso = String(b && (b.iso || `${b.date || ""}T${b.time || ""}`) || "");
+    return bIso.localeCompare(aIso);
+  });
+
+  return out;
+}
+
+function currentLocalViewRecords_() {
+  try {
+    const cacheKey = cacheKeyForCurrentView_();
+    const saved = loadRecordsCache_(cacheKey);
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch (e) {}
+
+  if (Array.isArray(cachedRecords) && cachedRecords.length) {
+    return cachedRecords;
+  }
+
+  return [];
+}
   
 
 async function refreshFromSheet(options = {}) {
@@ -14084,11 +14135,17 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    // Render final
-    render(records);
+    // ✅ proteger contra respuesta vieja del backend:
+    // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+    const localViewRecords = currentLocalViewRecords_();
+    const mergedRecords = mergeRecordsPreferLocal_(records, localViewRecords);
 
-    // Guardar caché (ya filtrado)
-    saveRecordsCache_(cacheKey, records);
+    // Render final protegido
+    cachedRecords = mergedRecords;
+    render(mergedRecords);
+
+    // Guardar caché ya fusionado
+    saveRecordsCache_(cacheKey, mergedRecords);
 
     if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
   } catch (e) {
@@ -14496,10 +14553,10 @@ async function register(type) {
     // ✅ mostrar chulito grande automático
     showSuccessCheck(`${type} registrada correctamente`, 3200);
 
-    // ✅ sincronización silenciosa posterior, sin romper la UI local
-    setTimeout(() => {
-      refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
-    }, 5000);
+  // ✅ sincronización automática más segura
+setTimeout(() => {
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
 
     return;
 
