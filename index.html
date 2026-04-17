@@ -14499,7 +14499,7 @@ async function register(type) {
     // ✅ sincronización silenciosa posterior, sin romper la UI local
     setTimeout(() => {
       refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
-    }, 700);
+    }, 5000);
 
     return;
 
