@@ -1955,6 +1955,63 @@ body.is-admin #registerActions{
   from{ opacity:0; transform: translate(0,0) scale(.4); }
   to{ opacity:0; transform: translate(16px,20px) scale(1.15); }
 }
+
+
+
+/* ======= REFRESH SPINNER OVERLAY ======= */
+.refresh-spin{
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.refresh-spin[hidden]{
+  display: none !important;
+}
+
+.refresh-spin-wrap{
+  position: relative;
+  width: min(320px, 86vw);
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.refresh-spin-icon{
+  font-size: 120px;
+  line-height: 1;
+  color: #60a5fa;
+  text-shadow:
+    0 0 18px rgba(96,165,250,.38),
+    0 0 42px rgba(96,165,250,.22);
+  animation: refreshSpinRotate 1s linear infinite;
+}
+
+.refresh-spin-text{
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: #e9eefc;
+  text-align: center;
+  opacity: .96;
+}
+
+@keyframes refreshSpinRotate{
+  from{ transform: rotate(0deg); }
+  to{ transform: rotate(360deg); }
+}
+
+
+
+
 </style>
 </head>
 
@@ -2266,6 +2323,17 @@ body.is-admin #registerActions{
       ¡Registro guardado!
     </div>
 
+  </div>
+</div>
+
+
+<!-- ======= REFRESH SPINNER OVERLAY ======= -->
+<div id="refreshSpin" class="refresh-spin" hidden>
+  <div class="refresh-spin-wrap">
+    <div class="refresh-spin-icon">
+      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+    </div>
+    <div id="refreshSpinText" class="refresh-spin-text">Actualizando…</div>
   </div>
 </div>
 
@@ -3973,6 +4041,24 @@ function vibrateSuccess_() {
     }
   } catch (e) {}
 }
+
+
+function showRefreshSpin(message = "Actualizando…") {
+  const box = document.getElementById("refreshSpin");
+  const text = document.getElementById("refreshSpinText");
+  if (!box || !text) return;
+
+  text.textContent = message;
+  box.hidden = false;
+}
+
+function hideRefreshSpin() {
+  const box = document.getElementById("refreshSpin");
+  if (!box) return;
+  box.hidden = true;
+}
+
+
 
 function showSuccessCheck(message = "¡Registro guardado!", ms = 3200) {
   const box = document.getElementById("successCheck");
@@ -14928,15 +15014,13 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ mostrar solo loader, sin repintar UI antes del reset
-    try {
-      setLoading(true, "Actualizando…", "Reiniciando y consultando estado real.");
-    } catch (e) {}
+    // ✅ mostrar animación pro de actualizar
+    showRefreshSpin("Actualizando…");
 
     // ✅ mantener el comportamiento original
     await hardRefreshPWA();
   } catch (e) {
-    try { setLoading(false); } catch (e) {}
+    hideRefreshSpin();
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
