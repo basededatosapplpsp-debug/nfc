@@ -15014,15 +15014,16 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ mostrar animación
+    // ✅ mostrar animación primero
     showRefreshSpin("Actualizando…");
 
-    // ⏱️ tiempo mínimo para que se vea (ajústalo aquí)
-    const MIN_SPIN_TIME = 1500;
+    // ✅ dejar que el navegador pinte el modal
+    await new Promise(resolve => requestAnimationFrame(() => resolve()));
 
-    await new Promise(resolve => setTimeout(resolve, MIN_SPIN_TIME));
+    // ✅ pequeño respiro para asegurar que se vea
+    await new Promise(resolve => setTimeout(resolve, 120));
 
-    // ✅ ahora sí hacer el refresh real
+    // ✅ ahora sí lanzar la actualización REAL mientras el modal está visible
     await hardRefreshPWA();
 
   } catch (e) {
