@@ -14924,7 +14924,35 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+btnRefreshSW.addEventListener("click", async () => {
+  try {
+    const profile = loadProfile();
+    const admin = isAdminMode();
+
+    // ✅ Si hay docente logueado, primero sincroniza con backend real
+    if (profile && profile.name && !admin) {
+      try {
+        setLoading(true, "Actualizando…", "Consultando estado real del registro.");
+
+        await refreshFromSheet({
+          useCache: false,
+          silent: true,
+          preferRemote: true
+        });
+      } catch (e) {
+        // no bloquea el hard refresh
+      } finally {
+        try { setLoading(false); } catch (e) {}
+      }
+    }
+
+    // ✅ Luego mantiene el comportamiento original
+    await hardRefreshPWA();
+  } catch (e) {
+    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
+  }
+});
+
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
