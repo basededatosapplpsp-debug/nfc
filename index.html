@@ -1171,7 +1171,7 @@ input[list]::-moz-list-dropdown {
 }
 
 #appConfirm {
-  z-index: 10000 !important;
+  z-index: 100001 !important;
 }
 
 
@@ -3756,27 +3756,34 @@ function alertPro({
 
     btnOk.textContent = okText;
 
-    // ocultar botón cancelar en modo alert
+    // ocultar cancelar en modo alert
     btnNo.hidden = true;
 
-    // estilos
     btnOk.classList.toggle("btn-danger", !!danger);
     btnOk.classList.toggle("btn-primary", !danger);
 
-    // abrir modal + bloquear fondo (igual que loader)
+    // ✅ por seguridad, si quedó loader prendido lo apagamos
+    try {
+      if (typeof __loadingCount !== "undefined") {
+        __loadingCount = 0;
+      }
+      if (typeof appLoader !== "undefined" && appLoader) {
+        appLoader.hidden = true;
+      }
+    } catch (e) {}
+
     modal.hidden = false;
     document.body.classList.add("is-loading");
 
     const cleanup = () => {
       btnOk.onclick = null;
-      // restaurar botón cancelar para futuras confirmaciones
       btnNo.hidden = false;
+      modal.hidden = true;
+      document.body.classList.remove("is-loading");
     };
 
     btnOk.onclick = () => {
       cleanup();
-      modal.hidden = true;
-      document.body.classList.remove("is-loading");
       resolve(true);
     };
   });
@@ -14217,13 +14224,24 @@ async function register(type) {
       render(cachedRecords || []);
     } catch (e) {}
 
-    setRecordsOpen(true);
+     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
+
+    // ✅ apagar loader antes del chulito
+    try { setLoading(false); } catch (e) {}
+
+    await alertPro({
+      title: "✅ Registro exitoso",
+      msg: `${type} registrada correctamente para ${teacher}.`,
+      okText: "Aceptar"
+    });
 
     // ✅ sincronización silenciosa posterior, sin romper la UI local
     setTimeout(() => {
       refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
     }, 700);
+
+    return;
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
