@@ -2106,7 +2106,7 @@ body.is-admin #registerActions{
 
 <!-- ======= MODAL VER ASISTENCIAS (ADMIN) ======= -->
 <div id="adminAssistModal" class="modal-backdrop" hidden>
-<div class="modal-card">
+  <div class="modal-card" style="width:min(920px,100%); max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); display:flex; flex-direction:column; overflow:hidden;">
     <h2 class="modal-title">Ver asistencias</h2>
     <p class="modal-sub">Selecciona un docente para ver sus registros del mes seleccionado.</p>
 
@@ -2126,9 +2126,10 @@ body.is-admin #registerActions{
       </div>
     </div>
 
-    <div id="adminAssistList" style="
+   <div id="adminAssistList" style="
       margin-top:12px;
-      max-height: min(60vh, 520px);
+      flex:1 1 auto;
+      min-height:160px;
       overflow:auto;
       -webkit-overflow-scrolling:touch;
       border:1px solid var(--line);
