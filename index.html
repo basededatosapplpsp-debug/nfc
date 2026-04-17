@@ -3307,6 +3307,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
+
+  // ✅ mostrar animación post-refresh
+try {
+  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+
+  if (showAfter === "1") {
+    sessionStorage.removeItem("showRefreshAfterReload");
+
+    showRefreshSpin("Actualizado");
+
+    setTimeout(() => {
+      hideRefreshSpin();
+    }, 1200); // ⏱️ duración después del reload
+  }
+} catch (e) {}
 });
 
 
@@ -15014,16 +15029,16 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ mostrar animación primero
+    // ✅ guardar flag para mostrar animación después del reload
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
 
-    // ✅ dejar que el navegador pinte el modal
-    await new Promise(resolve => requestAnimationFrame(() => resolve()));
+    // pequeño delay para que se vea antes del reload
+    await new Promise(r => setTimeout(r, 120));
 
-    // ✅ pequeño respiro para asegurar que se vea
-    await new Promise(resolve => setTimeout(resolve, 120));
-
-    // ✅ ahora sí lanzar la actualización REAL mientras el modal está visible
+    // ✅ refrescar inmediatamente
     await hardRefreshPWA();
 
   } catch (e) {
