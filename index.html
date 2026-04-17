@@ -15014,11 +15014,17 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ mostrar animación pro de actualizar
+    // ✅ mostrar animación
     showRefreshSpin("Actualizando…");
 
-    // ✅ mantener el comportamiento original
+    // ⏱️ tiempo mínimo para que se vea (ajústalo aquí)
+    const MIN_SPIN_TIME = 900;
+
+    await new Promise(resolve => setTimeout(resolve, MIN_SPIN_TIME));
+
+    // ✅ ahora sí hacer el refresh real
     await hardRefreshPWA();
+
   } catch (e) {
     hideRefreshSpin();
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
