@@ -1792,67 +1792,102 @@ body.is-admin #registerActions{
     inset 0 1px 0 rgba(255,255,255,.55) !important;
 }
 
-/* ======= SUCCESS CHECK OVERLAY ======= */
+/* ======= SUCCESS CHECK PRO ======= */
 .success-check{
   position: fixed;
   inset: 0;
-  z-index: 100002; /* por encima del loader y confirm */
+  z-index: 100002;
   display: grid;
   place-items: center;
-  padding: 24px;
-  background: rgba(0,0,0,.18);
-  backdrop-filter: blur(4px);
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
 }
 
 .success-check[hidden]{
   display: none !important;
 }
 
-.success-check-card{
+.success-check-wrap{
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  min-width: min(320px, 88vw);
-  padding: 26px 24px;
-  border-radius: 24px;
-  background: rgba(11,18,32,.92);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 24px 60px rgba(0,0,0,.35);
-  animation: successPop .28s cubic-bezier(.2,.8,.2,1);
+  gap: 18px;
 }
 
+/* ===== CÍRCULO GIRANDO ===== */
+.success-ring{
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 6px solid transparent;
+
+  background:
+    conic-gradient(
+      #22c55e 0deg,
+      #22c55e 40deg,
+      transparent 60deg,
+      transparent 360deg
+    );
+
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+
+  animation: ringSpin 1s ease-out forwards;
+}
+
+/* ===== CHECK ===== */
 .success-check-icon{
-  font-size: clamp(86px, 18vw, 150px);
-  line-height: 1;
+  font-size: 120px;
   font-weight: 900;
   color: #22c55e;
+  opacity: 0;
+  transform: scale(.6);
+
   text-shadow:
-    0 10px 25px rgba(34,197,94,.24),
-    0 0 0 10px rgba(34,197,94,.08);
-  transform: translateY(-2px);
+    0 0 25px rgba(34,197,94,.4),
+    0 0 60px rgba(34,197,94,.25);
+
+  animation: checkPop .5s ease-out .6s forwards;
 }
 
+/* ===== TEXTO ===== */
 .success-check-text{
-  text-align: center;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
   color: #e9eefc;
-  letter-spacing: .2px;
+  opacity: 0;
+  transform: translateY(10px);
+
+  animation: textFade .4s ease-out .9s forwards;
 }
 
-@keyframes successPop{
+/* ===== ANIMACIONES ===== */
+
+@keyframes ringSpin{
   from{
+    transform: rotate(-180deg) scale(.6);
     opacity: 0;
-    transform: scale(.88);
   }
+  to{
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkPop{
   to{
     opacity: 1;
     transform: scale(1);
   }
 }
 
+@keyframes textFade{
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 </style>
 </head>
@@ -2142,11 +2177,21 @@ body.is-admin #registerActions{
 </div>
 
 
-<!-- ======= SUCCESS CHECK OVERLAY ======= -->
-<div id="successCheck" class="success-check" hidden aria-live="polite" aria-atomic="true">
-  <div class="success-check-card">
+<!-- ======= SUCCESS CHECK PRO ======= -->
+<div id="successCheck" class="success-check" hidden>
+  <div class="success-check-wrap">
+
+    <!-- círculo animado -->
+    <div class="success-ring"></div>
+
+    <!-- check -->
     <div class="success-check-icon">✓</div>
-    <div id="successCheckText" class="success-check-text">Registro guardado</div>
+
+    <!-- texto -->
+    <div id="successCheckText" class="success-check-text">
+      ¡Registro guardado!
+    </div>
+
   </div>
 </div>
 
@@ -3797,20 +3842,22 @@ let __successCheckTimer = null;
 function showSuccessCheck(message = "Registro guardado", ms = 1800) {
   const box = document.getElementById("successCheck");
   const text = document.getElementById("successCheckText");
+
   if (!box || !text) return;
 
   text.textContent = message;
 
+  // reiniciar animación (clave 🔥)
+  box.hidden = true;
+  box.offsetHeight; // force reflow
+  box.hidden = false;
+
   if (__successCheckTimer) {
     clearTimeout(__successCheckTimer);
-    __successCheckTimer = null;
   }
-
-  box.hidden = false;
 
   __successCheckTimer = setTimeout(() => {
     box.hidden = true;
-    __successCheckTimer = null;
   }, ms);
 }
 
