@@ -10049,17 +10049,12 @@ async function adminDoManual(type) {
 
     adminManualHint.textContent = `✅ ${type} guardada (NTC) para ${teacher}.`;
 
-    await alertPro({
-      title: "✅ Registro manual exitoso",
-      msg: `${type} guardada (NTC) para ${teacher}.`,
-      okText: "Aceptar"
-    });
-
     // ✅ sincroniza después sin bloquear la UI
     refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
 
     // si la tarjeta de registros está cerrada, la abre para que se vea
     setRecordsOpen(true);
+
   } catch (e) {
     adminManualHint.textContent = String(e && e.message ? e.message : e);
   } finally {
@@ -14224,12 +14219,6 @@ async function register(type) {
 
     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
-
-    await alertPro({
-      title: "✅ Registro exitoso",
-      msg: `${type} registrada correctamente para ${teacher}.`,
-      okText: "Aceptar"
-    });
 
     // ✅ sincronización silenciosa posterior, sin romper la UI local
     setTimeout(() => {
