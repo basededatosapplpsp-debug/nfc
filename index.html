@@ -3216,27 +3216,29 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // ✅ Restaurar estado local inmediato del botón al abrir
+  // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
-
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
+  // ✅ primero carga configuración real
   await loadRuntimeConfig_({ silent: true });
 
-  // ✅ Al abrir, si hay sesión docente, consultar backend real
+  // ✅ luego consulta backend real si hay docente logueado
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
     if (profile && profile.name && !admin) {
-      refreshFromSheet({
-        useCache: true,      // pinta rápido el cache primero
+      await refreshFromSheet({
+        useCache: true,
         silent: true,
-        preferRemote: true   // luego reemplaza con el estado real de Supabase
-      }).catch(() => {});
+        preferRemote: true
+      });
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("No se pudo refrescar estado inicial:", e);
+  }
 });
 
 
@@ -14926,29 +14928,15 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    const profile = loadProfile();
-    const admin = isAdminMode();
+    // ✅ mostrar solo loader, sin repintar UI antes del reset
+    try {
+      setLoading(true, "Actualizando…", "Reiniciando y consultando estado real.");
+    } catch (e) {}
 
-    // ✅ Si hay docente logueado, primero sincroniza con backend real
-    if (profile && profile.name && !admin) {
-      try {
-        setLoading(true, "Actualizando…", "Consultando estado real del registro.");
-
-        await refreshFromSheet({
-          useCache: false,
-          silent: true,
-          preferRemote: true
-        });
-      } catch (e) {
-        // no bloquea el hard refresh
-      } finally {
-        try { setLoading(false); } catch (e) {}
-      }
-    }
-
-    // ✅ Luego mantiene el comportamiento original
+    // ✅ mantener el comportamiento original
     await hardRefreshPWA();
   } catch (e) {
+    try { setLoading(false); } catch (e) {}
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
@@ -14956,7 +14944,6 @@ btnRefreshSW.addEventListener("click", async () => {
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
-
 
 // ======= SW register + auto refresh por build =======
 if ("serviceWorker" in navigator) {
