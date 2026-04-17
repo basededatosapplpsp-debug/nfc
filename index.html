@@ -460,44 +460,91 @@ h2{font-size:16px; margin:0 0 12px}
 .menu-item.danger:hover{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.25); }
 
 
-/* ===== Botones ENTRADA / SALIDA PRO ===== */
 
-/* ===== Botones ENTRADA / SALIDA (pastel, premium glass, SIN flechas) ===== */
+
+/* ===== Botones ENTRADA / SALIDA (premium glass pro) ===== */
 
 #btnEntrada,
 #btnSalida{
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 
-  font-size: 14.5px;
-  font-weight: 800;
-  letter-spacing: .35px;
-  padding: 14px 16px;
-  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .38px;
+  padding: 15px 18px;
+  border-radius: 18px;
 
-  /* Premium feel */
-  border: 1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  /* micro-animación elegante (easing suave) */
   transition:
     transform .18s cubic-bezier(.2,.8,.2,1),
-    box-shadow .20s cubic-bezier(.2,.8,.2,1),
-    filter .20s cubic-bezier(.2,.8,.2,1);
+    box-shadow .22s cubic-bezier(.2,.8,.2,1),
+    filter .22s cubic-bezier(.2,.8,.2,1),
+    opacity .22s ease,
+    border-color .22s ease;
 }
 
-/* Hover / active premium (sutil) */
+/* brillo superior suave */
+#btnEntrada::before,
+#btnSalida::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.34) 0%,
+    rgba(255,255,255,.16) 34%,
+    rgba(255,255,255,0) 62%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* línea de luz diagonal premium */
+#btnEntrada::after,
+#btnSalida::after{
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -42%;
+  width: 42%;
+  height: 170%;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0),
+    rgba(255,255,255,.22),
+    rgba(255,255,255,0)
+  );
+  transform: rotate(18deg);
+  pointer-events: none;
+  z-index: 1;
+  transition: left .6s ease;
+}
+
+/* Hover / active premium */
 #btnEntrada:hover,
 #btnSalida:hover{
-  filter: brightness(1.03);
+  transform: translateY(-1px);
+  filter: brightness(1.035);
   box-shadow:
-    0 10px 24px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.55);
+    0 14px 28px rgba(0,0,0,.22),
+    0 4px 10px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.58);
+}
+
+#btnEntrada:hover::after,
+#btnSalida:hover::after{
+  left: 118%;
 }
 
 #btnEntrada:active,
 #btnSalida:active{
-  transform: translateY(1px) scale(0.99);
+  transform: translateY(1px) scale(.992);
   filter: brightness(1.01);
   box-shadow:
     0 7px 16px rgba(0,0,0,.18),
@@ -506,51 +553,55 @@ h2{font-size:16px; margin:0 0 12px}
 
 /* ================= ENTRADA ================= */
 #btnEntrada{
-  background: linear-gradient(
-    180deg,
-    rgba(209,250,229,.95),  /* verde pastel */
-    rgba(236,253,245,.88)
-  );
-  color: rgba(6,95,70,.95);
-  border-color: rgba(6,95,70,.22);
-
-  /* sombra ultra suave + highlight interno */
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(
+      180deg,
+      rgba(209,250,229,.98),
+      rgba(187,247,208,.94)
+    );
+  color: #065f46;
+  border-color: rgba(6,95,70,.20);
   box-shadow:
-    0 8px 18px rgba(6,95,70,.12),
+    0 10px 22px rgba(16,185,129,.16),
+    0 3px 8px rgba(6,95,70,.08),
     inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 /* ================= SALIDA ================= */
 #btnSalida{
-  background: linear-gradient(
-    180deg,
-    rgba(237,233,254,.95), /* violeta pastel */
-    rgba(245,243,255,.88)
-  );
-  color: rgba(76,29,149,.95);
-  border-color: rgba(76,29,149,.22);
-
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(
+      180deg,
+      rgba(237,233,254,.98),
+      rgba(221,214,254,.94)
+    );
+  color: #4c1d95;
+  border-color: rgba(76,29,149,.20);
   box-shadow:
-    0 8px 18px rgba(76,29,149,.12),
+    0 10px 22px rgba(124,58,237,.16),
+    0 3px 8px rgba(76,29,149,.08),
     inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 /* ================= Disabled ================= */
 #btnEntrada:disabled,
 #btnSalida:disabled{
-  opacity: .6;
+  opacity: .62;
   box-shadow: none;
-  filter: grayscale(.25);
+  filter: grayscale(.20);
+  transform: none;
 }
 
 /* ===== SALIDA inactiva hasta ENTRADA ===== */
 #btnSalida.is-inactive{
   background: linear-gradient(
     180deg,
-    rgba(241,245,249,.95),
-    rgba(229,231,235,.90)
+    rgba(241,245,249,.96),
+    rgba(226,232,240,.92)
   );
-  color: #9ca3af;
+  color: #94a3b8;
   border-color: rgba(255,255,255,.10);
   box-shadow: none;
   cursor: not-allowed;
@@ -1686,27 +1737,28 @@ body.is-admin #registerActions{
 }
 
 
+
 /* ===== Un solo botón visual, pero en flujo normal (NO flotante) ===== */
 .single-action-wrap{
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 12px;
-  min-height: 56px; /* parecido a la altura visual de antes */
+  margin-top: 14px;
+  min-height: 60px;
 }
 
 .single-action-wrap .action-pill{
-  width: min(100%, 260px);
-  min-height: 52px;
-  border-radius: 16px;
-  padding: 12px 16px;
+  width: min(100%, 280px);
+  min-height: 56px;
+  border-radius: 18px;
+  padding: 14px 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  font-size: 14.5px;
-  font-weight: 800;
-  letter-spacing: .35px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: .38px;
 }
 
 /* ocultar completamente el botón inactivo */
@@ -1725,14 +1777,16 @@ body.is-admin #registerActions{
   opacity: 1 !important;
   pointer-events: none !important;
   filter: none;
-  background: linear-gradient(
-    180deg,
-    rgba(226,232,240,.95),
-    rgba(203,213,225,.92)
-  );
-  color: #334155;
-  border-color: rgba(255,255,255,.14);
-  box-shadow: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(226,232,240,.98),
+      rgba(203,213,225,.94)
+    ) !important;
+  color: #334155 !important;
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55) !important;
 }
 
 
