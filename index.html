@@ -3222,7 +3222,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
-  loadRuntimeConfig_({ silent: true });
+  await loadRuntimeConfig_({ silent: true });
+
+  // ✅ Al abrir, si hay sesión docente, consultar backend real
+  try {
+    const profile = loadProfile();
+    const admin = isAdminMode();
+
+    if (profile && profile.name && !admin) {
+      refreshFromSheet({
+        useCache: true,      // pinta rápido el cache primero
+        silent: true,
+        preferRemote: true   // luego reemplaza con el estado real de Supabase
+      }).catch(() => {});
+    }
+  } catch (e) {}
 });
 
 
@@ -14069,9 +14083,10 @@ function currentLocalViewRecords_() {
 
 async function refreshFromSheet(options = {}) {
   const {
-    useCache = true,         // renderiza caché primero
-    silent = false,          // no cambia el status "Cargando..."
-    showLoadingAfterMs = 450 // solo mostrar "Cargando" si tarda > 450ms
+    useCache = true,          // renderiza caché primero
+    silent = false,           // no cambia el status "Cargando."
+    showLoadingAfterMs = 450, // solo mostrar "Cargando" si tarda > 450ms
+    preferRemote = false      // ✅ si true, usa SOLO backend real
   } = options;
 
   const admin = isAdminMode();
@@ -14135,17 +14150,24 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    // ✅ proteger contra respuesta vieja del backend:
-    // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
-    const localViewRecords = currentLocalViewRecords_();
-    const mergedRecords = mergeRecordsPreferLocal_(records, localViewRecords);
+    let finalRecords;
 
-    // Render final protegido
-    cachedRecords = mergedRecords;
-    render(mergedRecords);
+    if (preferRemote) {
+      // ✅ usar SOLO lo que viene del backend real
+      finalRecords = Array.isArray(records) ? records : [];
+    } else {
+      // ✅ proteger contra respuesta vieja del backend:
+      // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+      const localViewRecords = currentLocalViewRecords_();
+      finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
+    }
 
-    // Guardar caché ya fusionado
-    saveRecordsCache_(cacheKey, mergedRecords);
+    // Render final
+    cachedRecords = finalRecords;
+    render(finalRecords);
+
+    // Guardar caché final
+    saveRecordsCache_(cacheKey, finalRecords);
 
     if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
   } catch (e) {
@@ -14902,7 +14924,32 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+btnRefreshSW.addEventListener("click", async () => {
+  try {
+    const profile = loadProfile();
+    const admin = isAdminMode();
+
+    // ✅ Si hay docente logueado, sincroniza contra backend real
+    if (profile && profile.name && !admin) {
+      setLoading(true, "Actualizando…", "Consultando estado real del registro.");
+
+      await refreshFromSheet({
+        useCache: false,
+        silent: false,
+        preferRemote: true
+      });
+
+      return;
+    }
+
+    // ✅ En otros casos, mantener comportamiento actual
+    await hardRefreshPWA();
+  } catch (e) {
+    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
+  } finally {
+    try { setLoading(false); } catch (e) {}
+  }
+});
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
