@@ -15087,26 +15087,34 @@ const APP_BUILD = "2026-04-10-04";
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
   try {
-    setStatus("warn", "Actualizando…", "Borrando caché y reiniciando la app.");
+    setStatus("warn", "Actualizando…", "Limpiando caché y cargando última versión.");
 
-    // 🔥 orden de suicidio al SW activo
+    // 🔥 1. Desregistrar TODOS los service workers
     if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg && reg.active) {
-        reg.active.postMessage("KILL_SW");
-      }
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
     }
 
-    // 🧹 borrar caches desde la app
+    // 🔥 2. Borrar TODOS los caches
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
 
-    // 🔄 romper caché del navegador
+    // 🔥 3. Limpiar storage (opcional pero recomendado)
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {}
+
+    // 🔥 4. Forzar recarga REAL sin caché
     const url = new URL(location.href);
+
+    // romper caché con timestamp
     url.searchParams.set("v", Date.now().toString());
-    location.replace(url.toString());
+
+    // 💥 IMPORTANTE: usar replace + reload duro
+    window.location.href = url.toString();
 
   } catch (e) {
     setStatus("bad", "No se pudo actualizar", "Cierra la app y ábrela de nuevo.");
