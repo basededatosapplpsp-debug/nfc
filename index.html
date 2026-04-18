@@ -3366,7 +3366,7 @@ try {
 
     setTimeout(() => {
       hideRefreshSpin();
-    }, 1000);
+    }, 500);
   }
 } catch (e) {}
 });
@@ -15134,7 +15134,7 @@ btnRefreshSW.addEventListener("click", async () => {
     // ⏱️ esperar EXACTAMENTE 2 segundos
     await Promise.all([
       updatePromise,
-      new Promise(r => setTimeout(r, 2000))
+      new Promise(r => setTimeout(r, 1000))
     ]);
 
     // 🔵 marcar que al recargar muestre "actualizado"
