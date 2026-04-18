@@ -15122,15 +15122,14 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para continuar la animación después del reload
+    // ✅ guardar flag para mostrar animación después del reload
     sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    // ✅ mostrar spinner ya
+    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
 
-    // ✅ solo dejar que el navegador lo pinte, sin espera larga
-    await new Promise(resolve => requestAnimationFrame(() => resolve()));
-    await new Promise(resolve => setTimeout(resolve, 60));
+    // pequeño delay para que se vea antes del reload
+    await new Promise(r => setTimeout(r, 120));
 
     // ✅ refrescar inmediatamente
     await hardRefreshPWA();
