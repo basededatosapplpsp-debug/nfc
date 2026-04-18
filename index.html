@@ -9838,9 +9838,13 @@ function syncAttendanceOnResume_() {
     clearTimeout(__attendanceResumeSyncTimer);
   }
 
-  __attendanceResumeSyncTimer = setTimeout(() => {
-    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
-  }, 250);
+__attendanceResumeSyncTimer = setTimeout(() => {
+  refreshFromSheet({
+    silent: true,
+    useCache: false,
+    preferRemote: true
+  }).catch(() => {});
+}, 250);
 }
 
 window.addEventListener("focus", syncAttendanceOnResume_);
@@ -14766,7 +14770,11 @@ async function register(type) {
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
-  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+  refreshFromSheet({
+    useCache: false,
+    silent: true,
+    preferRemote: true
+  }).catch(() => {});
 }, 5000);
 
     return;
@@ -15215,8 +15223,11 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: rápido (cache) + refresh silencioso
-refreshFromSheet({ useCache: true, silent: true });
+// Inicial: solo admin refresca aquí.
+// En docente, el estado real ya se sincroniza en DOMContentLoaded con preferRemote:true
+if (isAdminMode()) {
+  refreshFromSheet({ useCache: true, silent: true });
+}
 setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
