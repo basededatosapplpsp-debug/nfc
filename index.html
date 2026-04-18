@@ -15082,39 +15082,31 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-04";
+const APP_BUILD = "2026-04-10-05";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
   try {
-    setStatus("warn", "Actualizando…", "Limpiando caché y cargando última versión.");
+    setStatus("warn", "Actualizando…", "Borrando caché y reiniciando la app.");
 
-    // 🔥 1. Desregistrar TODOS los service workers
+    // 🔥 orden de suicidio al SW activo
     if ("serviceWorker" in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && reg.active) {
+        reg.active.postMessage("KILL_SW");
+      }
     }
 
-    // 🔥 2. Borrar TODOS los caches
+    // 🧹 borrar caches desde la app
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
 
-    // 🔥 3. Limpiar storage (opcional pero recomendado)
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-    } catch (e) {}
-
-    // 🔥 4. Forzar recarga REAL sin caché
+    // 🔄 romper caché del navegador
     const url = new URL(location.href);
-
-    // romper caché con timestamp
     url.searchParams.set("v", Date.now().toString());
-
-    // 💥 IMPORTANTE: usar replace + reload duro
-    window.location.href = url.toString();
+    location.replace(url.toString());
 
   } catch (e) {
     setStatus("bad", "No se pudo actualizar", "Cierra la app y ábrela de nuevo.");
