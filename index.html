@@ -3354,24 +3354,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-// ✅ continuar animación post-refresh sin pausa fea
+// ✅ mostrar solo el check azul después del reload
 try {
   const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
   if (showAfter === "1") {
     sessionStorage.removeItem("showRefreshAfterReload");
 
-    // ✅ mostrar spinner inmediatamente al volver
-    showRefreshSpin("Actualizando…");
+    // ✅ al volver, mostrar de una vez el check azul
+    showRefreshDone("Actualizado");
 
-    // ✅ cambiar rápido al check azul para que parezca una sola secuencia
     setTimeout(() => {
-      showRefreshDone("Actualizado");
-
-      setTimeout(() => {
-        hideRefreshSpin();
-      }, 900);
-    }, 260);
+      hideRefreshSpin();
+    }, 1000);
   }
 } catch (e) {}
 });
@@ -15120,22 +15115,24 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para continuar la animación después del reload
+    showRefreshSpin("Actualizando..."); // 🔄 gira mientras se actualiza
+
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.update();
+      }
+    }
+
+    // ✅ cuando termine la actualización, al recargar muestra el chulito azul
     sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    // ✅ mostrar spinner ya
-    showRefreshSpin("Actualizando…");
-
-    // ✅ solo dejar que el navegador lo pinte, sin espera larga
-    await new Promise(resolve => requestAnimationFrame(() => resolve()));
-    await new Promise(resolve => setTimeout(resolve, 60));
-
-    // ✅ refrescar inmediatamente
-    await hardRefreshPWA();
+    // 🔁 recargar app inmediatamente
+    location.reload();
 
   } catch (e) {
+    console.error(e);
     hideRefreshSpin();
-    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
 
