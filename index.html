@@ -15131,10 +15131,10 @@ btnRefreshSW.addEventListener("click", async () => {
       }
     })();
 
-    // ⏱️ esperar EXACTAMENTE 3 segundos
+    // ⏱️ esperar EXACTAMENTE 2 segundos
     await Promise.all([
       updatePromise,
-      new Promise(r => setTimeout(r, 3000))
+      new Promise(r => setTimeout(r, 2000))
     ]);
 
     // 🔵 marcar que al recargar muestre "actualizado"
