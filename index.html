@@ -15115,22 +15115,37 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para mostrar animación después del reload
+    showRefreshSpin(); // 🔄 empieza a girar
+
+    // 🔥 forzar actualización en paralelo
+    const updatePromise = (async () => {
+      try {
+        if ('serviceWorker' in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            await reg.update();
+          }
+        }
+      } catch (e) {
+        console.warn("SW update error:", e);
+      }
+    })();
+
+    // ⏱️ esperar EXACTAMENTE 3 segundos
+    await Promise.all([
+      updatePromise,
+      new Promise(r => setTimeout(r, 3000))
+    ]);
+
+    // 🔵 marcar que al recargar muestre "actualizado"
     sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    // ✅ mostrar animación actual
-    showRefreshSpin("Actualizando…");
-
-    // pequeño delay para que se vea antes del reload
-    await new Promise(resolve => requestAnimationFrame(() => resolve()));
-    await new Promise(resolve => setTimeout(resolve, 60));
-
-    // ✅ refrescar inmediatamente
-    await hardRefreshPWA();
+    // 🔁 recargar app
+    location.reload();
 
   } catch (e) {
+    console.error(e);
     hideRefreshSpin();
-    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
 
