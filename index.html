@@ -3354,19 +3354,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-// ✅ mostrar solo el check azul después del reload
+// ✅ continuar animación post-refresh sin pausa fea
 try {
   const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
   if (showAfter === "1") {
     sessionStorage.removeItem("showRefreshAfterReload");
 
-    // ✅ al volver, mostrar de una vez el check azul
-    showRefreshDone("Actualizado");
+    // ✅ mostrar spinner inmediatamente al volver
+    showRefreshSpin("Actualizando…");
 
+    // ✅ cambiar rápido al check azul para que parezca una sola secuencia
     setTimeout(() => {
-      hideRefreshSpin();
-    }, 1000);
+      showRefreshDone("Actualizado");
+
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 900);
+    }, 260);
   }
 } catch (e) {}
 });
@@ -15115,13 +15120,13 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para mostrar animación después del reload
+    // ✅ guardar flag para continuar la animación después del reload
     sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    // ✅ mostrar animación actual
+    // ✅ mostrar spinner ya
     showRefreshSpin("Actualizando…");
 
-    // pequeño delay para que se vea antes del reload
+    // ✅ solo dejar que el navegador lo pinte, sin espera larga
     await new Promise(resolve => requestAnimationFrame(() => resolve()));
     await new Promise(resolve => setTimeout(resolve, 60));
 
