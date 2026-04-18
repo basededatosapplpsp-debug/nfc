@@ -3354,28 +3354,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-// ✅ mostrar animación post-refresh
-try {
-  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+  // ✅ mostrar animación post-refresh
+  try {
+    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-  if (showAfter === "1") {
-    sessionStorage.removeItem("showRefreshAfterReload");
+    if (showAfter === "1") {
+      sessionStorage.removeItem("showRefreshAfterReload");
 
-    // 1) mantener un poco más el icono de actualizar después del reload
-    showRefreshSpin("Actualizando…");
-
-    setTimeout(() => {
-      // 2) apenas termina ese tiempo, cambiar inmediato al check azul
       showRefreshDone("Actualizado");
 
       setTimeout(() => {
-        // 3) ocultar suave el check azul
         hideRefreshSpin();
-      }, 950);
-
-    }, 1000); // ⏱️ tiempo que quieres ver el icono girando después del reload
-  }
-} catch (e) {}
+      }, 1200);
+    }
+  } catch (e) {}
 });
 
 
