@@ -1975,6 +1975,7 @@ body.is-admin #registerActions{
 }
 
 .refresh-spin-wrap{
+  position: relative;
   width: min(320px, 86vw);
   min-height: 240px;
   display: flex;
@@ -1982,12 +1983,6 @@ body.is-admin #registerActions{
   align-items: center;
   justify-content: center;
   gap: 18px;
-  opacity: 1;
-  transform: scale(1);
-}
-
-.refresh-spin-wrap.is-hiding{
-  animation: refreshOverlayOut .34s cubic-bezier(.2,.8,.2,1) forwards;
 }
 
 .refresh-spin-icon{
@@ -1997,19 +1992,7 @@ body.is-admin #registerActions{
   text-shadow:
     0 0 18px rgba(96,165,250,.38),
     0 0 42px rgba(96,165,250,.22);
-  transform: scale(1);
-}
-
-.refresh-spin-icon.is-spinning{
   animation: refreshSpinRotate 1s linear infinite;
-}
-
-.refresh-spin-icon.is-done{
-  color: #60a5fa;
-  text-shadow:
-    0 0 18px rgba(96,165,250,.42),
-    0 0 42px rgba(96,165,250,.24);
-  animation: refreshDonePop .36s cubic-bezier(.2,.8,.2,1);
 }
 
 .refresh-spin-text{
@@ -2026,31 +2009,6 @@ body.is-admin #registerActions{
   to{ transform: rotate(360deg); }
 }
 
-@keyframes refreshDonePop{
-  0%{
-    transform: scale(.78);
-    opacity: .4;
-  }
-  65%{
-    transform: scale(1.08);
-    opacity: 1;
-  }
-  100%{
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes refreshOverlayOut{
-  from{
-    opacity: 1;
-    transform: scale(1);
-  }
-  to{
-    opacity: 0;
-    transform: scale(.92);
-  }
-}
 
 
 
@@ -2370,14 +2328,11 @@ body.is-admin #registerActions{
 
 
 <!-- ======= REFRESH SPINNER OVERLAY ======= -->
-<!-- ======= REFRESH SPINNER OVERLAY ======= -->
 <div id="refreshSpin" class="refresh-spin" hidden>
-  <div id="refreshSpinWrap" class="refresh-spin-wrap">
-
-    <div id="refreshSpinIcon" class="refresh-spin-icon is-spinning">
-      <i id="refreshSpinIconInner" class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+  <div class="refresh-spin-wrap">
+    <div class="refresh-spin-icon">
+      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
     </div>
-
     <div id="refreshSpinText" class="refresh-spin-text">Actualizando…</div>
   </div>
 </div>
@@ -3326,7 +3281,6 @@ function initQrUi_() {
 }
 
 // ✅ Ejecutar cuando el DOM ya existe
-// ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
@@ -3354,19 +3308,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-// ✅ mostrar solo el check azul después del reload
+  // ✅ mostrar animación post-refresh
 try {
   const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
   if (showAfter === "1") {
     sessionStorage.removeItem("showRefreshAfterReload");
 
-    // ✅ al volver, mostrar de una vez el check azul
-    showRefreshDone("Actualizado");
+    showRefreshSpin("Actualizado");
 
     setTimeout(() => {
       hideRefreshSpin();
-    }, 1000);
+    }, 1200); // ⏱️ duración después del reload
   }
 } catch (e) {}
 });
@@ -4107,56 +4060,17 @@ function vibrateSuccess_() {
 
 function showRefreshSpin(message = "Actualizando…") {
   const box = document.getElementById("refreshSpin");
-  const wrap = document.getElementById("refreshSpinWrap");
-  const icon = document.getElementById("refreshSpinIcon");
-  const iconInner = document.getElementById("refreshSpinIconInner");
   const text = document.getElementById("refreshSpinText");
-
-  if (!box || !wrap || !icon || !iconInner || !text) return;
+  if (!box || !text) return;
 
   text.textContent = message;
-  iconInner.className = "fa-solid fa-rotate-right";
-  icon.classList.remove("is-done");
-  icon.classList.add("is-spinning");
-  wrap.classList.remove("is-hiding");
-
   box.hidden = false;
-}
-
-function showRefreshDone(message = "Actualizado") {
-  const box = document.getElementById("refreshSpin");
-  const wrap = document.getElementById("refreshSpinWrap");
-  const icon = document.getElementById("refreshSpinIcon");
-  const iconInner = document.getElementById("refreshSpinIconInner");
-  const text = document.getElementById("refreshSpinText");
-
-  if (!box || !wrap || !icon || !iconInner || !text) return;
-
-  box.hidden = false;
-  wrap.classList.remove("is-hiding");
-
-  text.textContent = message;
-  icon.classList.remove("is-spinning");
-  iconInner.className = "fa-solid fa-check";
-  icon.classList.remove("is-done");
-  void icon.offsetWidth; // reinicia animación
-  icon.classList.add("is-done");
 }
 
 function hideRefreshSpin() {
   const box = document.getElementById("refreshSpin");
-  const wrap = document.getElementById("refreshSpinWrap");
-
-  if (!box || !wrap) return;
-
-  wrap.classList.remove("is-hiding");
-  void wrap.offsetWidth;
-  wrap.classList.add("is-hiding");
-
-  setTimeout(() => {
-    box.hidden = true;
-    wrap.classList.remove("is-hiding");
-  }, 340);
+  if (!box) return;
+  box.hidden = true;
 }
 
 
@@ -9838,13 +9752,9 @@ function syncAttendanceOnResume_() {
     clearTimeout(__attendanceResumeSyncTimer);
   }
 
-__attendanceResumeSyncTimer = setTimeout(() => {
-  refreshFromSheet({
-    silent: true,
-    useCache: false,
-    preferRemote: true
-  }).catch(() => {});
-}, 250);
+  __attendanceResumeSyncTimer = setTimeout(() => {
+    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
+  }, 250);
 }
 
 window.addEventListener("focus", syncAttendanceOnResume_);
@@ -14770,11 +14680,7 @@ async function register(type) {
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
-  refreshFromSheet({
-    useCache: false,
-    silent: true,
-    preferRemote: true
-  }).catch(() => {});
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
 }, 5000);
 
     return;
@@ -15090,7 +14996,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-06";
+const APP_BUILD = "2026-04-10-05";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15122,82 +15028,22 @@ async function hardRefreshPWA() {
 }
 
 btnRefreshSW.addEventListener("click", async () => {
-  let synced = false;
-
   try {
+    // ✅ guardar flag para mostrar animación después del reload
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
 
-    const admin = isAdminMode();
-    const profile = loadProfile();
+    // pequeño delay para que se vea antes del reload
+    await new Promise(r => setTimeout(r, 120));
 
-    // 1) Primero sincronizar datos reales antes de cualquier reload
-    if (!admin && profile && profile.name) {
-      try {
-        await refreshFromSheet({
-          useCache: true,
-          silent: true,
-          preferRemote: true,
-          showLoadingAfterMs: 1200
-        });
-        synced = true;
-      } catch (e) {
-        console.warn("No se pudo sincronizar antes del refresh:", e);
-      }
-
-      // 2) Refuerzo extra del estado visual por si el backend respondió raro
-      try {
-        const freshRecords = Array.isArray(cachedRecords) ? cachedRecords : currentLocalViewRecords_();
-        updateDailyButtonsState(freshRecords || []);
-        syncSingleActionUI_();
-      } catch (e) {
-        console.warn("No se pudo reforzar estado de botones:", e);
-      }
-
-      // 3) Abrir registros para que el usuario vea el resultado actualizado
-      try {
-        setRecordsOpen(true);
-      } catch (e) {}
-    }
-
-    // 4) Si además hay update de service worker, aplicarlo
-    if ("serviceWorker" in navigator) {
-      try {
-        const reg = await navigator.serviceWorker.getRegistration();
-        if (reg) {
-          await reg.update();
-
-          if (reg.waiting) {
-            reg.waiting.postMessage({ type: "SKIP_WAITING" });
-          }
-        }
-      } catch (e) {
-        console.warn("No se pudo actualizar service worker:", e);
-      }
-    }
-
-    // 5) Si ya sincronizó datos reales, NO recargues de una:
-    //    deja la app ya actualizada en pantalla.
-    if (synced) {
-      showRefreshDone("Asistencia actualizada");
-      setTimeout(() => {
-        hideRefreshSpin();
-      }, 900);
-      return;
-    }
-
-    // 6) Fallback: si no hubo sync real, sí recarga
-    sessionStorage.setItem("showRefreshAfterReload", "1");
-    location.reload();
+    // ✅ refrescar inmediatamente
+    await hardRefreshPWA();
 
   } catch (e) {
-    console.error(e);
     hideRefreshSpin();
-
-    try {
-      const fallbackRecords = currentLocalViewRecords_();
-      updateDailyButtonsState(fallbackRecords || []);
-      syncSingleActionUI_();
-    } catch (_) {}
+    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
 
@@ -15280,11 +15126,8 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: solo admin refresca aquí.
-// En docente, el estado real ya se sincroniza en DOMContentLoaded con preferRemote:true
-if (isAdminMode()) {
-  refreshFromSheet({ useCache: true, silent: true });
-}
+// Inicial: rápido (cache) + refresh silencioso
+refreshFromSheet({ useCache: true, silent: true });
 setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
