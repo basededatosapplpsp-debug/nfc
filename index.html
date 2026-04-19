@@ -2942,13 +2942,19 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
+  // 1. pintar rápido lo último conocido
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
+  // 2. cargar config
   loadRuntimeConfig_({ silent: true });
-});
 
+  // 3. confirmar SIEMPRE contra Supabase, sin depender del cache
+  try {
+    await refreshFromSheet({ useCache: false, silent: true, showLoadingAfterMs: 0 });
+  } catch (e) {}
+});
 
 
 
@@ -3774,6 +3780,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
+    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -3941,7 +3948,8 @@ function saveAttendanceButtonsState_() {
     localStorage.setItem(attendanceButtonsStateKey_(), JSON.stringify({
       date: todayStr(),
       hasEntradaToday: !!hasEntradaToday,
-      hasSalidaToday: !!hasSalidaToday
+      hasSalidaToday: !!hasSalidaToday,
+      updatedAt: Date.now()
     }));
   } catch {}
 }
@@ -3949,10 +3957,30 @@ function saveAttendanceButtonsState_() {
 function restoreAttendanceButtonsState_() {
   try {
     const raw = localStorage.getItem(attendanceButtonsStateKey_());
-    if (!raw) return false;
+
+    // si no hay nada guardado para hoy, dejar estado base
+    if (!raw) {
+      hasEntradaToday = false;
+      hasSalidaToday = false;
+      btnEntrada.disabled = false;
+      btnSalida.disabled = true;
+      btnSalida.classList.add("is-inactive");
+      syncSingleActionUI_();
+      return false;
+    }
 
     const data = JSON.parse(raw);
-    if (!data || data.date !== todayStr()) return false;
+
+    // si es de otro día, reset
+    if (!data || data.date !== todayStr()) {
+      hasEntradaToday = false;
+      hasSalidaToday = false;
+      btnEntrada.disabled = false;
+      btnSalida.disabled = true;
+      btnSalida.classList.add("is-inactive");
+      syncSingleActionUI_();
+      return false;
+    }
 
     hasEntradaToday = !!data.hasEntradaToday;
     hasSalidaToday = !!data.hasSalidaToday;
@@ -3979,6 +4007,12 @@ function restoreAttendanceButtonsState_() {
     syncSingleActionUI_();
     return true;
   } catch {
+    hasEntradaToday = false;
+    hasSalidaToday = false;
+    btnEntrada.disabled = false;
+    btnSalida.disabled = true;
+    btnSalida.classList.add("is-inactive");
+    syncSingleActionUI_();
     return false;
   }
 }
@@ -13926,6 +13960,7 @@ async function scanQrValidated_() {
 
 
 // ======= Registrar =======
+// ======= Registrar =======
 async function register(type) {
 
   if (type === "ENTRADA" && hasEntradaToday) {
@@ -14001,7 +14036,7 @@ async function register(type) {
     return;
   }
 
-   // ===== 1.5) Configuración ya cargada al abrir la app =====
+  // ===== 1.5) Configuración ya cargada al abrir la app =====
 
   // ===== 2) Verificar ubicación =====
   let geo;
@@ -14040,7 +14075,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-     const resp = await gsRegister({
+    const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -14084,25 +14119,34 @@ async function register(type) {
 
     if (type === "ENTRADA") {
       hasEntradaToday = true;
-      btnEntrada.disabled = true;
+      hasSalidaToday = false;
 
+      btnEntrada.disabled = true;
       btnSalida.disabled = false;
       btnSalida.classList.remove("is-inactive");
     }
 
     if (type === "SALIDA") {
       hasSalidaToday = true;
+
       btnEntrada.disabled = true;
       btnSalida.disabled = true;
       btnSalida.classList.remove("is-inactive");
     }
 
+    // ✅ guardar inmediatamente el estado real del botón
+    saveAttendanceButtonsState_();
+
+    // ✅ actualizar inmediatamente el botón visible
+    syncSingleActionUI_();
+
     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
-    // ✅ sincroniza después, pero sin depender de esto para pintar
-  // ✅ NO refrescar aquí: ya pintamos y bloqueamos localmente.
-// El refresco automático estaba pisando el estado recién actualizado.
+    // ✅ confirmar después contra backend sin depender del cache
+    setTimeout(() => {
+      refreshFromSheet({ useCache: false, silent: true, showLoadingAfterMs: 0 }).catch(() => {});
+    }, 900);
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
@@ -14138,7 +14182,6 @@ async function register(type) {
     setLoading(false);
   }
 }
-
 
 
 // ===== WhatsApp destino (para disciplina NIVEL 4) =====
@@ -14415,7 +14458,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-10";
+const APP_BUILD = "2026-04-10-11";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14527,9 +14570,8 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: rápido (cache) + refresh silencioso
-refreshFromSheet({ useCache: true, silent: true });
-setStatus("warn", "Listo", "Para registrar, activa ubicación.");
+// Inicial: el estado real lo carga DOMContentLoaded con fetch sin cache
+setStatus("warn", "Listo", "Para registrar, activa ubicación y escanea el QR.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
 discBindUI_();
