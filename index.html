@@ -3284,22 +3284,23 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // ✅ pinta rápido el estado local
-  try { restoreAttendanceButtonsState_(); } catch (e) {}
+  // ✅ Solo pinta estado local como respaldo temporal
+  __attendanceStateSource = "unknown";
+  try { restoreAttendanceButtonsState_({ force: true }); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
   // ✅ primero carga configuración real
   await loadRuntimeConfig_({ silent: true });
 
-  // ✅ luego consulta backend real si hay docente logueado
+  // ✅ luego consulta backend real y ESTE debe mandar
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
     if (profile && profile.name && !admin) {
       await refreshFromSheet({
-        useCache: true,
+        useCache: false,
         silent: true,
         preferRemote: true
       });
@@ -3309,19 +3310,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ✅ mostrar animación post-refresh
-try {
-  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+  try {
+    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-  if (showAfter === "1") {
-    sessionStorage.removeItem("showRefreshAfterReload");
+    if (showAfter === "1") {
+      sessionStorage.removeItem("showRefreshAfterReload");
 
-    showRefreshSpin("Actualizado");
+      showRefreshSpin("Actualizado");
 
-    setTimeout(() => {
-      hideRefreshSpin();
-    }, 1200); // ⏱️ duración después del reload
-  }
-} catch (e) {}
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 1200);
+    }
+  } catch (e) {}
 });
 
 
@@ -4213,7 +4214,7 @@ function confirmPro({
 
 let hasEntradaToday = false;
 let hasSalidaToday  = false;
-
+let __attendanceStateSource = "unknown"; // unknown | local | remote
 
 
 function todayStr() {
@@ -4248,6 +4249,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
+    __attendanceStateSource = "remote";
     syncSingleActionUI_();
     return;
   }
@@ -4256,6 +4258,7 @@ function updateDailyButtonsState(records) {
   if (!p) return;
 
   const today = todayStr();
+  const myTeacherKey = normalizeKey(p.name || "");
 
   function recordDate_(r) {
     const raw =
@@ -4290,15 +4293,22 @@ function updateDailyButtonsState(records) {
     return "";
   }
 
-  hasEntradaToday = (records || []).some(r =>
-    String(r?.type || "").trim().toUpperCase() === "ENTRADA" &&
-    recordDate_(r) === today
+  const mineToday = (records || []).filter(r => {
+    const teacherOk = normalizeKey(r?.teacher || "") === myTeacherKey;
+    const dateOk = recordDate_(r) === today;
+    return teacherOk && dateOk;
+  });
+
+  hasEntradaToday = mineToday.some(r =>
+    String(r?.type || "").trim().toUpperCase() === "ENTRADA"
   );
 
-  hasSalidaToday = (records || []).some(r =>
-    String(r?.type || "").trim().toUpperCase() === "SALIDA" &&
-    recordDate_(r) === today
+  hasSalidaToday = mineToday.some(r =>
+    String(r?.type || "").trim().toUpperCase() === "SALIDA"
   );
+
+  // ✅ Desde aquí manda SIEMPRE el estado real calculado
+  __attendanceStateSource = "remote";
 
   // Estado 1: no hay nada hoy
   if (!hasEntradaToday && !hasSalidaToday) {
@@ -4391,8 +4401,15 @@ function saveAttendanceButtonsState_() {
   } catch {}
 }
 
-function restoreAttendanceButtonsState_() {
+function restoreAttendanceButtonsState_(options = {}) {
+  const { force = false } = options;
+
   try {
+    // ✅ Si ya existe estado remoto confiable, el local NO puede pisarlo
+    if (!force && __attendanceStateSource === "remote") {
+      return false;
+    }
+
     const raw = localStorage.getItem(attendanceButtonsStateKey_());
     if (!raw) return false;
 
@@ -4406,6 +4423,7 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = false;
       btnSalida.disabled = true;
       btnSalida.classList.add("is-inactive");
+      __attendanceStateSource = "local";
       syncSingleActionUI_();
       return true;
     }
@@ -4414,6 +4432,7 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = true;
       btnSalida.disabled = false;
       btnSalida.classList.remove("is-inactive");
+      __attendanceStateSource = "local";
       syncSingleActionUI_();
       return true;
     }
@@ -4421,6 +4440,7 @@ function restoreAttendanceButtonsState_() {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
+    __attendanceStateSource = "local";
     syncSingleActionUI_();
     return true;
   } catch {
@@ -4905,22 +4925,32 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
   } else {
     if (btnExport) btnExport.disabled = false;
 
-    // ✅ PRIMERO intenta restaurar desde localStorage del día
-    let restored = false;
-    try {
-      restored = restoreAttendanceButtonsState_();
-    } catch (e) {
-      restored = false;
-    }
+    const hasRealRecords =
+      Array.isArray(cachedRecords) && cachedRecords.length > 0;
 
-    // ✅ Si no había estado local, usa caché de registros
-    if (!restored) {
+    // ✅ Si ya hay registros cargados/calculados, ellos mandan
+    if (hasRealRecords) {
       try {
-        updateDailyButtonsState(cachedRecords || []);
+        updateDailyButtonsState(cachedRecords);
       } catch (e) {}
+    } else {
+      // ✅ Solo usa localStorage como respaldo si aún no hay datos reales
+      let restored = false;
+      try {
+        restored = restoreAttendanceButtonsState_();
+      } catch (e) {
+        restored = false;
+      }
+
+      if (!restored) {
+        hasEntradaToday = false;
+        hasSalidaToday = false;
+        btnEntrada.disabled = false;
+        btnSalida.disabled = true;
+        btnSalida.classList.add("is-inactive");
+      }
     }
 
-    // ✅ Refuerza la UI visual del botón único
     try {
       syncSingleActionUI_();
     } catch (e) {}
@@ -14996,7 +15026,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-08";
+const APP_BUILD = "2026-04-10-09";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
