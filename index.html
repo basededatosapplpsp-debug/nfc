@@ -15090,7 +15090,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-05";
+const APP_BUILD = "2026-04-10-06";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15122,25 +15122,82 @@ async function hardRefreshPWA() {
 }
 
 btnRefreshSW.addEventListener("click", async () => {
-  try {
-    showRefreshSpin("Actualizando..."); // 🔄 gira mientras se actualiza
+  let synced = false;
 
-    if ('serviceWorker' in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        await reg.update();
+  try {
+    showRefreshSpin("Actualizando…");
+
+    const admin = isAdminMode();
+    const profile = loadProfile();
+
+    // 1) Primero sincronizar datos reales antes de cualquier reload
+    if (!admin && profile && profile.name) {
+      try {
+        await refreshFromSheet({
+          useCache: true,
+          silent: true,
+          preferRemote: true,
+          showLoadingAfterMs: 1200
+        });
+        synced = true;
+      } catch (e) {
+        console.warn("No se pudo sincronizar antes del refresh:", e);
+      }
+
+      // 2) Refuerzo extra del estado visual por si el backend respondió raro
+      try {
+        const freshRecords = Array.isArray(cachedRecords) ? cachedRecords : currentLocalViewRecords_();
+        updateDailyButtonsState(freshRecords || []);
+        syncSingleActionUI_();
+      } catch (e) {
+        console.warn("No se pudo reforzar estado de botones:", e);
+      }
+
+      // 3) Abrir registros para que el usuario vea el resultado actualizado
+      try {
+        setRecordsOpen(true);
+      } catch (e) {}
+    }
+
+    // 4) Si además hay update de service worker, aplicarlo
+    if ("serviceWorker" in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg) {
+          await reg.update();
+
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          }
+        }
+      } catch (e) {
+        console.warn("No se pudo actualizar service worker:", e);
       }
     }
 
-    // ✅ cuando termine la actualización, al recargar muestra el chulito azul
-    sessionStorage.setItem("showRefreshAfterReload", "1");
+    // 5) Si ya sincronizó datos reales, NO recargues de una:
+    //    deja la app ya actualizada en pantalla.
+    if (synced) {
+      showRefreshDone("Asistencia actualizada");
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 900);
+      return;
+    }
 
-    // 🔁 recargar app inmediatamente
+    // 6) Fallback: si no hubo sync real, sí recarga
+    sessionStorage.setItem("showRefreshAfterReload", "1");
     location.reload();
 
   } catch (e) {
     console.error(e);
     hideRefreshSpin();
+
+    try {
+      const fallbackRecords = currentLocalViewRecords_();
+      updateDailyButtonsState(fallbackRecords || []);
+      syncSingleActionUI_();
+    } catch (_) {}
   }
 });
 
