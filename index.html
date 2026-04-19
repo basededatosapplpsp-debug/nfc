@@ -3954,6 +3954,12 @@ function saveAttendanceButtonsState_() {
   } catch {}
 }
 
+function clearAttendanceButtonsState_() {
+  try {
+    localStorage.removeItem(attendanceButtonsStateKey_());
+  } catch {}
+}
+
 function restoreAttendanceButtonsState_() {
   try {
     const raw = localStorage.getItem(attendanceButtonsStateKey_());
@@ -13648,7 +13654,7 @@ function render(records) {
 async function refreshFromSheet(options = {}) {
   const {
     useCache = true,         // renderiza caché primero
-    silent = false,          // no cambia el status "Cargando..."
+    silent = false,          // no cambia el status "Cargando."
     showLoadingAfterMs = 450 // solo mostrar "Cargando" si tarda > 450ms
   } = options;
 
@@ -13662,19 +13668,19 @@ async function refreshFromSheet(options = {}) {
   if (admin && typeof recordsMonthSelect !== "undefined" && recordsMonthSelect) {
     month = String(recordsMonthSelect.value || "").trim(); // YYYY-MM
   } else {
-    month = monthKeyFromDate(new Date()); // ✅ docente: mes actual
+    month = monthKeyFromDate(new Date()); // docente: mes actual
   }
 
   // ✅ Docente: pedir solo sus registros
   const teacherFilter = (!admin && p && p.name) ? String(p.name).trim() : "";
 
-  // 1) Render rápido con caché (no se siente "lento al iniciar")
   const cacheKey = cacheKeyForCurrentView_();
+
+  // 1) Render rápido con caché solo si se permite
   if (useCache) {
     const cached = loadRecordsCache_(cacheKey);
-    if (cached && cached.length) {
+    if (cached && Array.isArray(cached)) {
       render(cached);
-      // no ponemos "Listo" aquí: esperamos confirmación de red
     }
   }
 
@@ -13687,12 +13693,15 @@ async function refreshFromSheet(options = {}) {
   }
 
   try {
-    // ✅ Reduce carga en docente: solo mes actual y solo su nombre
     const limit = admin ? 1200 : 300;
 
     let records = await gsGetList(limit, month, teacherFilter);
 
-    // ✅ Seguro extra: docente SOLO mes actual (por si backend devolviera más)
+    if (!Array.isArray(records)) {
+      records = [];
+    }
+
+    // ✅ Seguro extra: docente SOLO mes actual
     if (!admin) {
       records = filterToMonth_(records, month);
     }
@@ -13700,7 +13709,7 @@ async function refreshFromSheet(options = {}) {
     // ✅ Admin: resumen del mes
     updateAdminMonthSummaryFromRecords(records);
 
-    // ✅ Admin: actualizar lista de docentes según lo cargado (sin romper selección)
+    // ✅ Admin: actualizar lista de docentes según lo cargado
     if (admin && typeof recordsTeacherSelect !== "undefined" && recordsTeacherSelect) {
       const current = String(recordsTeacherSelect.value || "__ALL__");
       const teachers = uniqueTeachersFromRecords(records);
@@ -13713,19 +13722,32 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    // Render final
-    render(records);
+    // ✅ FORZAR que lo real del servidor reemplace lo local
+    cachedRecords = Array.isArray(records) ? [...records] : [];
 
-    // Guardar caché (ya filtrado)
-    saveRecordsCache_(cacheKey, records);
+    // Render final con datos reales del backend
+    render(cachedRecords);
 
-    if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
+    // Guardar caché actualizado (aunque venga vacío)
+    saveRecordsCache_(cacheKey, cachedRecords);
+
+    // ✅ Estado del botón SIEMPRE recalculado desde servidor
+    updateDailyButtonsState(cachedRecords);
+
+    // ✅ Si no hay registros del día/mes, limpiar también estado local del botón
+    if (!cachedRecords.length) {
+      clearAttendanceButtonsState_();
+    }
+
+    if (!silent) {
+      setStatus("", "Listo", "Datos de asistencia sincronizados.");
+    }
   } catch (e) {
     if (!silent) {
       setStatus(
         "bad",
-        "Error Google Sheets",
-        String(e && e.message ? e.message : "Revisa URL/clave del Web App y permisos.")
+        "Error de sincronización",
+        String(e && e.message ? e.message : "No se pudo consultar Supabase.")
       );
     }
   } finally {
@@ -14458,7 +14480,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-11";
+const APP_BUILD = "2026-04-10-12";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
