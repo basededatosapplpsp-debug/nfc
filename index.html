@@ -3284,17 +3284,15 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // pinta rápido lo local
+  // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
-  // carga config sin romper si falla
-  try {
-    await loadRuntimeConfig_({ silent: true });
-  } catch (e) {}
+  // ✅ primero carga configuración real
+  await loadRuntimeConfig_({ silent: true });
 
-  // sincroniza SIEMPRE contra backend real si hay docente logueado
+  // ✅ luego consulta backend real si hay docente logueado
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
@@ -3303,31 +3301,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       await refreshFromSheet({
         useCache: true,
         silent: true,
-        preferRemote: true,
-        showLoadingAfterMs: 800
+        preferRemote: true
       });
     }
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
-
-    // fallback: deja al menos la UI local consistente
-    try { restoreAttendanceButtonsState_(); } catch (_) {}
-    try { syncSingleActionUI_(); } catch (_) {}
   }
 
-  try {
-    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+  // ✅ mostrar animación post-refresh
+try {
+  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-    if (showAfter === "1") {
-      sessionStorage.removeItem("showRefreshAfterReload");
+  if (showAfter === "1") {
+    sessionStorage.removeItem("showRefreshAfterReload");
 
-      showRefreshSpin("Actualizado");
+    showRefreshSpin("Actualizado");
 
-      setTimeout(() => {
-        hideRefreshSpin();
-      }, 1200);
-    }
-  } catch (e) {}
+    setTimeout(() => {
+      hideRefreshSpin();
+    }, 1200); // ⏱️ duración después del reload
+  }
+} catch (e) {}
 });
 
 
@@ -14261,21 +14255,15 @@ async function refreshFromSheet(options = {}) {
 
     let finalRecords;
 
-   if (preferRemote) {
-  // ✅ usar SOLO backend real si viene con datos
-  // ✅ pero si backend vino vacío/error lógico, conserva local visible
-  if (Array.isArray(records) && records.length) {
-    finalRecords = records;
-  } else {
-    const localViewRecords = currentLocalViewRecords_();
-    finalRecords = Array.isArray(localViewRecords) ? localViewRecords : [];
-  }
-} else {
-  // ✅ proteger contra respuesta vieja del backend:
-  // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
-  const localViewRecords = currentLocalViewRecords_();
-  finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
-}
+    if (preferRemote) {
+      // ✅ usar SOLO lo que viene del backend real
+      finalRecords = Array.isArray(records) ? records : [];
+    } else {
+      // ✅ proteger contra respuesta vieja del backend:
+      // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+      const localViewRecords = currentLocalViewRecords_();
+      finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
+    }
 
     // Render final
     cachedRecords = finalRecords;
@@ -14692,13 +14680,8 @@ async function register(type) {
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
-  refreshFromSheet({
-    useCache: false,
-    silent: true,
-    preferRemote: true,
-    showLoadingAfterMs: 1200
-  }).catch(() => {});
-}, 2500);
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
 
     return;
 
@@ -15013,7 +14996,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-04";
+const APP_BUILD = "2026-04-10-08";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15046,35 +15029,20 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    const profile = loadProfile();
-    const admin = isAdminMode();
+    // ✅ guardar flag para mostrar animación después del reload
+    sessionStorage.setItem("showRefreshAfterReload", "1");
 
+    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
 
-    if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: true,
-        silent: false,
-        preferRemote: true,
-        showLoadingAfterMs: 700
-      });
-
-      try { setRecordsOpen(true); } catch (e) {}
-
-      setTimeout(() => {
-        try { hideRefreshSpin(); } catch (e) {}
-      }, 700);
-
-      return;
-    }
-
-    // admin o sin perfil: refresh normal de la app
-    sessionStorage.setItem("showRefreshAfterReload", "1");
+    // pequeño delay para que se vea antes del reload
     await new Promise(r => setTimeout(r, 120));
+
+    // ✅ refrescar inmediatamente
     await hardRefreshPWA();
 
   } catch (e) {
-    try { hideRefreshSpin(); } catch (_) {}
+    hideRefreshSpin();
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
@@ -15201,8 +15169,7 @@ if (_p) {
 }
 
 
-refreshFromSheet({ useCache: true, silent: true });
-setStatus("warn", "Listo", "Para registrar, activa ubicación.");
+
 
 
 // ✅ Arranque seguro (si hay un error arriba, esto te ayuda a detectarlo)
@@ -15210,37 +15177,6 @@ window.addEventListener("error", (e) => {
   console.error("❌ Error JS:", e.message, e.filename, e.lineno);
 });
 
-window.addEventListener("pageshow", async () => {
-  try {
-    const profile = loadProfile();
-    const admin = isAdminMode();
-    if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: true,
-        silent: true,
-        preferRemote: true,
-        showLoadingAfterMs: 1000
-      });
-    }
-  } catch (e) {}
-});
-
-document.addEventListener("visibilitychange", async () => {
-  try {
-    if (document.visibilityState !== "visible") return;
-
-    const profile = loadProfile();
-    const admin = isAdminMode();
-    if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: true,
-        silent: true,
-        preferRemote: true,
-        showLoadingAfterMs: 1000
-      });
-    }
-  } catch (e) {}
-});
 
 document.addEventListener("DOMContentLoaded", () => {
   // precarga en segundo plano (no rompe si aún no hay login)
