@@ -3284,44 +3284,46 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // ✅ pinta rápido el estado local
+  // 1) pinta inmediato desde local para no dejar la app vacía
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
-  // ✅ primero carga configuración real
-  await loadRuntimeConfig_({ silent: true });
+  // 2) carga configuración real
+  try {
+    await loadRuntimeConfig_({ silent: true });
+  } catch (e) {}
 
-  // ✅ luego consulta backend real si hay docente logueado
+  // 3) sincronización fuerte real contra backend
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
     if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: true,
+      await forceAttendanceSync_({
         silent: true,
-        preferRemote: true
+        openRecords: false,
+        showSpin: false
       });
     }
   } catch (e) {
-    console.warn("No se pudo refrescar estado inicial:", e);
+    console.warn("No se pudo sincronizar estado inicial:", e);
   }
 
-  // ✅ mostrar animación post-refresh
-try {
-  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+  // 4) animación post-refresh si venía de actualizar
+  try {
+    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-  if (showAfter === "1") {
-    sessionStorage.removeItem("showRefreshAfterReload");
+    if (showAfter === "1") {
+      sessionStorage.removeItem("showRefreshAfterReload");
 
-    showRefreshSpin("Actualizado");
+      showRefreshSpin("Actualizado");
 
-    setTimeout(() => {
-      hideRefreshSpin();
-    }, 1200); // ⏱️ duración después del reload
-  }
-} catch (e) {}
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 1200);
+    }
+  } catch (e) {}
 });
 
 
@@ -14255,15 +14257,21 @@ async function refreshFromSheet(options = {}) {
 
     let finalRecords;
 
-    if (preferRemote) {
-      // ✅ usar SOLO lo que viene del backend real
-      finalRecords = Array.isArray(records) ? records : [];
-    } else {
-      // ✅ proteger contra respuesta vieja del backend:
-      // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
-      const localViewRecords = currentLocalViewRecords_();
-      finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
-    }
+   if (preferRemote) {
+  // ✅ usar SOLO backend real si viene con datos
+  // ✅ pero si backend vino vacío/error lógico, conserva local visible
+  if (Array.isArray(records) && records.length) {
+    finalRecords = records;
+  } else {
+    const localViewRecords = currentLocalViewRecords_();
+    finalRecords = Array.isArray(localViewRecords) ? localViewRecords : [];
+  }
+} else {
+  // ✅ proteger contra respuesta vieja del backend:
+  // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+  const localViewRecords = currentLocalViewRecords_();
+  finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
+}
 
     // Render final
     cachedRecords = finalRecords;
@@ -14287,7 +14295,108 @@ async function refreshFromSheet(options = {}) {
 }
 
 
+async function forceAttendanceSync_(options = {}) {
+  const {
+    silent = false,
+    openRecords = false,
+    showSpin = false
+  } = options || {};
 
+  const profile = loadProfile();
+  const admin = isAdminMode();
+
+  if (!profile || !profile.name || admin) {
+    return false;
+  }
+
+  let spinOpened = false;
+
+  try {
+    if (showSpin) {
+      try {
+        showRefreshSpin("Actualizando…");
+        spinOpened = true;
+      } catch (e) {}
+    }
+
+    // 1) primero pinta algo rápido desde caché local existente
+    try {
+      const cacheKey = cacheKeyForCurrentView_();
+      const localCached = loadRecordsCache_(cacheKey);
+      if (Array.isArray(localCached) && localCached.length) {
+        cachedRecords = localCached;
+        render(localCached);
+      } else {
+        restoreAttendanceButtonsState_();
+        syncSingleActionUI_();
+      }
+    } catch (e) {}
+
+    // 2) ahora SÍ o SÍ consulta backend real
+    await refreshFromSheet({
+      useCache: false,
+      silent: true,
+      preferRemote: true,
+      showLoadingAfterMs: 800
+    });
+
+    // 3) refuerzo extra: si por algo no quedó nada en memoria,
+    // intenta recalcular desde el caché ya guardado
+    try {
+      const cacheKey = cacheKeyForCurrentView_();
+      const latest = loadRecordsCache_(cacheKey) || cachedRecords || [];
+      if (Array.isArray(latest)) {
+        cachedRecords = latest;
+        render(latest);
+        updateDailyButtonsState(latest);
+        saveAttendanceButtonsState_();
+        syncSingleActionUI_();
+      }
+    } catch (e) {}
+
+    if (openRecords) {
+      try { setRecordsOpen(true); } catch (e) {}
+    }
+
+    if (!silent) {
+      setStatus("", "Listo", "Asistencias y botones sincronizados.");
+    }
+
+    return true;
+  } catch (e) {
+    // si falla red, deja lo local visible, pero no rompe la UI
+    try {
+      const cacheKey = cacheKeyForCurrentView_();
+      const fallback = loadRecordsCache_(cacheKey) || cachedRecords || [];
+      if (Array.isArray(fallback)) {
+        cachedRecords = fallback;
+        render(fallback);
+        updateDailyButtonsState(fallback);
+        saveAttendanceButtonsState_();
+        syncSingleActionUI_();
+      } else {
+        restoreAttendanceButtonsState_();
+        syncSingleActionUI_();
+      }
+    } catch (_) {}
+
+    if (!silent) {
+      setStatus(
+        "warn",
+        "Sincronización parcial",
+        "Se mostró el último estado guardado del dispositivo."
+      );
+    }
+
+    return false;
+  } finally {
+    if (spinOpened) {
+      setTimeout(() => {
+        try { hideRefreshSpin(); } catch (e) {}
+      }, 700);
+    }
+  }
+}
 
 
 // ======= QR CONFIG (AJUSTA ESTO) =======
@@ -14680,8 +14789,12 @@ async function register(type) {
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
-  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
-}, 5000);
+  forceAttendanceSync_({
+    silent: true,
+    openRecords: true,
+    showSpin: false
+  }).catch(() => {});
+}, 2500);
 
     return;
 
@@ -14996,7 +15109,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-05";
+const APP_BUILD = "2026-04-10-04";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15029,20 +15142,29 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para mostrar animación después del reload
+    const profile = loadProfile();
+    const admin = isAdminMode();
+
+    // ✅ primero intenta resincronizar datos reales
+    if (profile && profile.name && !admin) {
+      const ok = await forceAttendanceSync_({
+        silent: false,
+        openRecords: true,
+        showSpin: true
+      });
+
+      // si logró sincronizar bien, NO recargues toda la app
+      if (ok) return;
+    }
+
+    // ✅ solo si no hay perfil o algo salió muy mal, usa hard refresh
     sessionStorage.setItem("showRefreshAfterReload", "1");
-
-    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
-
-    // pequeño delay para que se vea antes del reload
     await new Promise(r => setTimeout(r, 120));
-
-    // ✅ refrescar inmediatamente
     await hardRefreshPWA();
 
   } catch (e) {
-    hideRefreshSpin();
+    try { hideRefreshSpin(); } catch (_) {}
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
   }
 });
