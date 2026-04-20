@@ -14796,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-15";
+const APP_BUILD = "2026-04-10-16";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14827,7 +14827,28 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+btnRefreshSW.addEventListener("click", async () => {
+  try {
+    setLoading(true, "Actualizando…", "Consultando estado real en Supabase.");
+
+    await refreshFromSheet({
+      useCache: false,
+      silent: true,
+      showLoadingAfterMs: 0,
+      preferRemote: true
+    });
+
+    setStatus("", "Actualizado", "Se sincronizó el estado real de asistencia.");
+  } catch (e) {
+    setStatus(
+      "bad",
+      "No se pudo actualizar",
+      String(e && e.message ? e.message : e) || "Intenta nuevamente."
+    );
+  } finally {
+    setLoading(false);
+  }
+});
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
