@@ -9526,7 +9526,11 @@ function syncAttendanceOnResume_() {
   }
 
   __attendanceResumeSyncTimer = setTimeout(() => {
-    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
+   refreshFromSheet({
+  silent: true,
+  useCache: false,
+  preferRemote: true
+}).catch(() => {});
   }, 250);
 }
 
@@ -14796,7 +14800,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-21";
+const APP_BUILD = "2026-04-10-22";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14928,11 +14932,21 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
     loadingStarted = true;
 
     // 1) sincronizar datos reales y repintar botones
+const cacheKey = cacheKeyForCurrentView_();
+
+// 🔥 si el usuario tocó "Actualizar", se entiende como verdad remota:
+// limpia caché local de esta vista para respetar borrados en Supabase
+try {
+  localStorage.removeItem(cacheKey);
+} catch (e) {}
+
+cachedRecords = [];
+
 await refreshFromSheet({
   useCache: false,
   silent: false,
   showLoadingAfterMs: 0,
-  preferRemote: false
+  preferRemote: true
 });
 
     try { updateRegisterCardUI_(); } catch (e) {}
