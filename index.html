@@ -14796,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-19";
+const APP_BUILD = "2026-04-10-20";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14915,6 +14915,8 @@ async function activateWaitingSWAndReload_() {
 }
 
 async function refreshAttendanceAndMaybeUpdateApp_() {
+  let loadingStarted = false;
+
   try {
     if (typeof setMenuOpen === "function") {
       setMenuOpen(false);
@@ -14923,6 +14925,7 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
     }
 
     setLoading(true, "Actualizando…", "Sincronizando asistencias.");
+    loadingStarted = true;
 
     // 1) sincronizar datos reales y repintar botones
     await refreshFromSheet({
@@ -14936,8 +14939,10 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
     try { syncSingleActionUI_(); } catch (e) {}
     try { refreshHomeStatus_(); } catch (e) {}
 
-    // 2) revisar si hay nueva versión de la app
-    setLoading(true, "Actualizando…", "Verificando si hay una nueva versión.");
+    // 2) cambiar solo el texto del loader, sin volver a incrementar el contador
+    if (loaderTitleEl) loaderTitleEl.textContent = "Actualizando…";
+    if (loaderMsgEl) loaderMsgEl.textContent = "Verificando si hay una nueva versión.";
+    setStatus("warn", "Actualizando…", "Verificando si hay una nueva versión.");
 
     const swCheck = await checkForNewServiceWorker_();
 
@@ -14948,7 +14953,6 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
       const activated = await activateWaitingSWAndReload_();
 
       if (!activated) {
-        // fallback fuerte solo si algo falló al activar el nuevo SW
         await hardRefreshPWA();
         return;
       }
@@ -14959,13 +14963,16 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
     // 4) si no hay nueva versión, quedarse en la app
     setStatus("", "Listo", "Estados actualizados. No había una versión nueva.");
   } catch (e) {
+    resetLoadingNow_();
     setStatus(
       "bad",
       "No se pudo actualizar",
       String(e && e.message ? e.message : e)
     );
   } finally {
-    setLoading(false);
+    if (loadingStarted) {
+      setLoading(false);
+    }
   }
 }
 
