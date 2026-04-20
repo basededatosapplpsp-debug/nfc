@@ -1,6 +1,6 @@
 /* ===== Service Worker: cache offline + control total ===== */
 
-const CACHE_NAME = "asistencia-v21"; // ⬅️ sube versión cuando cambies algo
+const CACHE_NAME = "asistencia-v22"; // ⬅️ sube versión cuando cambies algo
 const ASSETS = [
   "./",
   "./index.html",
