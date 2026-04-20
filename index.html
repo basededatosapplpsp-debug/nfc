@@ -14796,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-20";
+const APP_BUILD = "2026-04-10-21";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14928,12 +14928,12 @@ async function refreshAttendanceAndMaybeUpdateApp_() {
     loadingStarted = true;
 
     // 1) sincronizar datos reales y repintar botones
-    await refreshFromSheet({
-      useCache: false,
-      silent: false,
-      showLoadingAfterMs: 0,
-      preferRemote: true
-    });
+await refreshFromSheet({
+  useCache: false,
+  silent: false,
+  showLoadingAfterMs: 0,
+  preferRemote: false
+});
 
     try { updateRegisterCardUI_(); } catch (e) {}
     try { syncSingleActionUI_(); } catch (e) {}
