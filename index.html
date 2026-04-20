@@ -3984,6 +3984,57 @@ function restoreAttendanceButtonsState_() {
   }
 }
 
+
+async function forceSyncAttendanceToday_() {
+  try {
+    setLoading(true, "Actualizando…", "Consultando registros reales en Supabase.");
+
+    // 1) limpiar SOLO caché local de registros
+    try {
+      const raw = localStorage.getItem(LS_CACHE_KEY);
+      if (raw) {
+        const obj = JSON.parse(raw) || {};
+        const cacheKey = cacheKeyForCurrentView_();
+        delete obj[cacheKey];
+        localStorage.setItem(LS_CACHE_KEY, JSON.stringify(obj));
+      }
+    } catch (e) {}
+
+    // 2) limpiar estado visual guardado de hoy
+    try {
+      localStorage.removeItem(attendanceButtonsStateKey_());
+    } catch (e) {}
+
+    // 3) reset visual temporal para evitar mostrar estado viejo
+    hasEntradaToday = false;
+    hasSalidaToday = false;
+
+    btnEntrada.disabled = false;
+    btnSalida.disabled = true;
+    btnSalida.classList.add("is-inactive");
+
+    try { syncSingleActionUI_(); } catch (e) {}
+
+    // 4) traer datos REALES del servidor, sin usar cache
+    await refreshFromSheet({
+      useCache: false,
+      silent: false,
+      showLoadingAfterMs: 0
+    });
+
+    setStatus("", "Listo", "Registros actualizados desde Supabase.");
+  } catch (e) {
+    setStatus(
+      "bad",
+      "No se pudo actualizar",
+      String(e && e.message ? e.message : e)
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
+
 // ======= CACHE + TIMEOUT LIST =======
 const LS_CACHE_KEY = "asistencia_cache_records_v1";
 const LIST_TIMEOUT_MS = 12000; // 12s (ajústalo si quieres)
@@ -14416,7 +14467,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-23";
+const APP_BUILD = "2026-04-10-24";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14447,7 +14498,9 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+btnRefreshSW.addEventListener("click", async () => {
+  await forceSyncAttendanceToday_();
+});
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
