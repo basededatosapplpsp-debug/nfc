@@ -3343,7 +3343,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profile = loadProfile();
     const admin = isAdminMode();
 
- if (profile && profile.name && !admin) {
+if (profile && profile.name && !admin) {
   await refreshFromSheet({
     useCache: true,
     silent: true,
@@ -15082,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-30";
+const APP_BUILD = "2026-04-10-31";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
