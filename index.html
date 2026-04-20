@@ -14467,7 +14467,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-24";
+const APP_BUILD = "2026-04-10-25";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14498,9 +14498,39 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", async () => {
-  await forceSyncAttendanceToday_();
-});
+
+async function refreshRealRecordsNow_() {
+  try {
+    setLoading(true, "Actualizando…", "Consultando registros reales del día.");
+
+    // limpiar estado local pegado de hoy
+    try { localStorage.removeItem(attendanceButtonsStateKey_()); } catch (e) {}
+
+    // limpiar caché de esta vista
+    try {
+      const raw = localStorage.getItem(LS_CACHE_KEY);
+      if (raw) {
+        const obj = JSON.parse(raw) || {};
+        delete obj[cacheKeyForCurrentView_()];
+        localStorage.setItem(LS_CACHE_KEY, JSON.stringify(obj));
+      }
+    } catch (e) {}
+
+    // traer datos reales SIN caché
+    await refreshFromSheet({
+      useCache: false,
+      silent: false,
+      showLoadingAfterMs: 0
+    });
+
+  } catch (e) {
+    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+btnRefreshSW.addEventListener("click", refreshRealRecordsNow_);
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
