@@ -14796,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-18";
+const APP_BUILD = "2026-04-10-19";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14827,7 +14827,152 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+// ======= Refresh inteligente: sincroniza datos y solo reinicia si hay nueva versión =======
+async function checkForNewServiceWorker_() {
+  if (!("serviceWorker" in navigator)) {
+    return { hasUpdate: false, reg: null };
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return { hasUpdate: false, reg: null };
+
+    // fuerza consulta del SW
+    try { await reg.update(); } catch (e) {}
+
+    // si ya está esperando, sí hay actualización lista
+    if (reg.waiting) {
+      return { hasUpdate: true, reg };
+    }
+
+    // si está instalando, esperar un poco a ver si queda lista
+    if (reg.installing) {
+      const hasUpdate = await new Promise((resolve) => {
+        const sw = reg.installing;
+        let done = false;
+
+        const finish = (value) => {
+          if (done) return;
+          done = true;
+          resolve(value);
+        };
+
+        const timer = setTimeout(() => finish(false), 4000);
+
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed" && navigator.serviceWorker.controller) {
+            clearTimeout(timer);
+            finish(true);
+          } else if (sw.state === "redundant") {
+            clearTimeout(timer);
+            finish(false);
+          }
+        });
+      });
+
+      return { hasUpdate, reg };
+    }
+
+    return { hasUpdate: false, reg };
+  } catch (e) {
+    return { hasUpdate: false, reg: null };
+  }
+}
+
+async function activateWaitingSWAndReload_() {
+  if (!("serviceWorker" in navigator)) return false;
+
+  const reg = await navigator.serviceWorker.getRegistration();
+  if (!reg || !reg.waiting) return false;
+
+  return await new Promise((resolve) => {
+    let reloaded = false;
+
+    const onControllerChange = () => {
+      if (reloaded) return;
+      reloaded = true;
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      location.reload();
+      resolve(true);
+    };
+
+    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
+
+    try {
+      reg.waiting.postMessage({ type: "SKIP_WAITING" });
+    } catch (e) {
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      resolve(false);
+    }
+
+    // fallback por si no dispara controllerchange
+    setTimeout(() => {
+      if (reloaded) return;
+      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
+      resolve(false);
+    }, 4000);
+  });
+}
+
+async function refreshAttendanceAndMaybeUpdateApp_() {
+  try {
+    if (typeof setMenuOpen === "function") {
+      setMenuOpen(false);
+    } else if (userMenu) {
+      userMenu.hidden = true;
+    }
+
+    setLoading(true, "Actualizando…", "Sincronizando asistencias.");
+
+    // 1) sincronizar datos reales y repintar botones
+    await refreshFromSheet({
+      useCache: false,
+      silent: false,
+      showLoadingAfterMs: 0,
+      preferRemote: true
+    });
+
+    try { updateRegisterCardUI_(); } catch (e) {}
+    try { syncSingleActionUI_(); } catch (e) {}
+    try { refreshHomeStatus_(); } catch (e) {}
+
+    // 2) revisar si hay nueva versión de la app
+    setLoading(true, "Actualizando…", "Verificando si hay una nueva versión.");
+
+    const swCheck = await checkForNewServiceWorker_();
+
+    // 3) si hay actualización real, activarla y recargar
+    if (swCheck.hasUpdate) {
+      setStatus("warn", "Nueva versión encontrada", "Aplicando actualización…");
+
+      const activated = await activateWaitingSWAndReload_();
+
+      if (!activated) {
+        // fallback fuerte solo si algo falló al activar el nuevo SW
+        await hardRefreshPWA();
+        return;
+      }
+
+      return;
+    }
+
+    // 4) si no hay nueva versión, quedarse en la app
+    setStatus("", "Listo", "Estados actualizados. No había una versión nueva.");
+  } catch (e) {
+    setStatus(
+      "bad",
+      "No se pudo actualizar",
+      String(e && e.message ? e.message : e)
+    );
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ⚠️ reemplaza el listener viejo
+if (btnRefreshSW) {
+  btnRefreshSW.addEventListener("click", refreshAttendanceAndMaybeUpdateApp_);
+}
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
