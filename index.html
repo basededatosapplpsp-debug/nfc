@@ -13,6 +13,7 @@
   <link rel="icon" sizes="16x16" href="favicon-16.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap" rel="stylesheet">
   <title>Asistencia Docentes</title>
  <style>
 :root{
@@ -460,44 +461,92 @@ h2{font-size:16px; margin:0 0 12px}
 .menu-item.danger:hover{ background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.25); }
 
 
-/* ===== Botones ENTRADA / SALIDA PRO ===== */
 
-/* ===== Botones ENTRADA / SALIDA (pastel, premium glass, SIN flechas) ===== */
+
+/* ===== Botones ENTRADA / SALIDA (premium glass pro) ===== */
 
 #btnEntrada,
 #btnSalida{
   position: relative;
   overflow: hidden;
+  isolation: isolate;
 
-  font-size: 14.5px;
-  font-weight: 800;
-  letter-spacing: .35px;
-  padding: 14px 16px;
-  border-radius: 16px;
+  font-size: 17px;           /* 🔥 más grande */
+  font-weight: 900;          /* más fuerte (pro) */
+  letter-spacing: .5px;      /* más limpio visualmente */
+ font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 15px 18px;
+  border-radius: 18px;
 
-  /* Premium feel */
-  border: 1px solid rgba(255,255,255,.14);
-  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
-  /* micro-animación elegante (easing suave) */
   transition:
     transform .18s cubic-bezier(.2,.8,.2,1),
-    box-shadow .20s cubic-bezier(.2,.8,.2,1),
-    filter .20s cubic-bezier(.2,.8,.2,1);
+    box-shadow .22s cubic-bezier(.2,.8,.2,1),
+    filter .22s cubic-bezier(.2,.8,.2,1),
+    opacity .22s ease,
+    border-color .22s ease;
 }
 
-/* Hover / active premium (sutil) */
+/* brillo superior suave */
+#btnEntrada::before,
+#btnSalida::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,.34) 0%,
+    rgba(255,255,255,.16) 34%,
+    rgba(255,255,255,0) 62%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* línea de luz diagonal premium */
+#btnEntrada::after,
+#btnSalida::after{
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -42%;
+  width: 42%;
+  height: 170%;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0),
+    rgba(255,255,255,.22),
+    rgba(255,255,255,0)
+  );
+  transform: rotate(18deg);
+  pointer-events: none;
+  z-index: 1;
+  transition: left .6s ease;
+}
+
+/* Hover / active premium */
 #btnEntrada:hover,
 #btnSalida:hover{
-  filter: brightness(1.03);
+  transform: translateY(-1px);
+  filter: brightness(1.035);
   box-shadow:
-    0 10px 24px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.55);
+    0 14px 28px rgba(0,0,0,.22),
+    0 4px 10px rgba(0,0,0,.10),
+    inset 0 1px 0 rgba(255,255,255,.58);
+}
+
+#btnEntrada:hover::after,
+#btnSalida:hover::after{
+  left: 118%;
 }
 
 #btnEntrada:active,
 #btnSalida:active{
-  transform: translateY(1px) scale(0.99);
+  transform: translateY(1px) scale(.992);
   filter: brightness(1.01);
   box-shadow:
     0 7px 16px rgba(0,0,0,.18),
@@ -506,51 +555,55 @@ h2{font-size:16px; margin:0 0 12px}
 
 /* ================= ENTRADA ================= */
 #btnEntrada{
-  background: linear-gradient(
-    180deg,
-    rgba(209,250,229,.95),  /* verde pastel */
-    rgba(236,253,245,.88)
-  );
-  color: rgba(6,95,70,.95);
-  border-color: rgba(6,95,70,.22);
-
-  /* sombra ultra suave + highlight interno */
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(
+      180deg,
+      rgba(209,250,229,.98),
+      rgba(187,247,208,.94)
+    );
+  color: #065f46;
+  border-color: rgba(6,95,70,.20);
   box-shadow:
-    0 8px 18px rgba(6,95,70,.12),
+    0 10px 22px rgba(16,185,129,.16),
+    0 3px 8px rgba(6,95,70,.08),
     inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 /* ================= SALIDA ================= */
 #btnSalida{
-  background: linear-gradient(
-    180deg,
-    rgba(237,233,254,.95), /* violeta pastel */
-    rgba(245,243,255,.88)
-  );
-  color: rgba(76,29,149,.95);
-  border-color: rgba(76,29,149,.22);
-
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(
+      180deg,
+      rgba(237,233,254,.98),
+      rgba(221,214,254,.94)
+    );
+  color: #4c1d95;
+  border-color: rgba(76,29,149,.20);
   box-shadow:
-    0 8px 18px rgba(76,29,149,.12),
+    0 10px 22px rgba(124,58,237,.16),
+    0 3px 8px rgba(76,29,149,.08),
     inset 0 1px 0 rgba(255,255,255,.65);
 }
 
 /* ================= Disabled ================= */
 #btnEntrada:disabled,
 #btnSalida:disabled{
-  opacity: .6;
+  opacity: .62;
   box-shadow: none;
-  filter: grayscale(.25);
+  filter: grayscale(.20);
+  transform: none;
 }
 
 /* ===== SALIDA inactiva hasta ENTRADA ===== */
 #btnSalida.is-inactive{
   background: linear-gradient(
     180deg,
-    rgba(241,245,249,.95),
-    rgba(229,231,235,.90)
+    rgba(241,245,249,.96),
+    rgba(226,232,240,.92)
   );
-  color: #9ca3af;
+  color: #94a3b8;
   border-color: rgba(255,255,255,.10);
   box-shadow: none;
   cursor: not-allowed;
@@ -1118,7 +1171,7 @@ input[list]::-moz-list-dropdown {
 }
 
 #appConfirm {
-  z-index: 10000 !important;
+  z-index: 100001 !important;
 }
 
 
@@ -1685,6 +1738,322 @@ body.is-admin #registerActions{
   display: none !important;
 }
 
+
+
+/* ===== Un solo botón visual, pero en flujo normal (NO flotante) ===== */
+.single-action-wrap{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+  min-height: 60px;
+}
+
+.single-action-wrap .action-pill{
+  width: min(100%, 280px);
+  min-height: 56px;
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+ font-size: 18px;           /* 🔥 más protagonista */
+  font-weight: 900;
+  letter-spacing: .6px;
+ font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ocultar completamente el botón inactivo */
+.single-action-wrap #btnEntrada:disabled,
+.single-action-wrap #btnSalida:disabled{
+  display: none !important;
+}
+
+/* cuando ambos quedan disabled, mostrar mensaje final */
+.single-action-wrap.done #btnEntrada{
+  display: none !important;
+}
+
+.single-action-wrap.done #btnSalida{
+  display: inline-flex !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  filter: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(226,232,240,.98),
+      rgba(203,213,225,.94)
+    ) !important;
+  color: #334155 !important;
+  border-color: rgba(255,255,255,.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55) !important;
+}
+
+/* ======= SUCCESS CHECK PRO ======= */
+.success-check{
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.success-check[hidden]{
+  display: none !important;
+}
+
+.success-check-wrap{
+  position: relative;
+  width: min(320px, 86vw);
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+/* ===== CÍRCULO GIRANDO ===== */
+.success-ring{
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  border: 6px solid transparent;
+  background:
+    conic-gradient(
+      #22c55e 0deg,
+      #22c55e 48deg,
+      rgba(34,197,94,.15) 72deg,
+      rgba(34,197,94,0) 360deg
+    );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+
+  box-shadow:
+    0 0 30px rgba(34,197,94,.14),
+    0 0 60px rgba(34,197,94,.08);
+
+  animation: ringSpin .9s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+/* ===== CHECK ===== */
+.success-check-icon{
+  position: relative;
+  z-index: 2;
+  font-size: 120px;
+  line-height: 1;
+  font-weight: 900;
+  color: #22c55e;
+  opacity: 0;
+  transform: scale(.58);
+
+  text-shadow:
+    0 0 18px rgba(34,197,94,.38),
+    0 0 42px rgba(34,197,94,.22);
+
+  animation: checkPop .42s ease-out .45s forwards;
+}
+
+/* ===== TEXTO ===== */
+.success-check-text{
+  position: relative;
+  z-index: 2;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: #e9eefc;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(10px);
+
+  animation: textFade .36s ease-out .72s forwards;
+}
+
+/* ===== PARTÍCULAS ===== */
+.success-spark{
+  position: absolute;
+  z-index: 1;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #4ade80;
+  box-shadow:
+    0 0 10px rgba(74,222,128,.65),
+    0 0 20px rgba(74,222,128,.35);
+  opacity: 0;
+}
+
+.success-spark.s1{ top: 28px; left: 58px; animation: spark1 .9s ease-out .35s forwards; }
+.success-spark.s2{ top: 54px; right: 52px; animation: spark2 1s ease-out .38s forwards; }
+.success-spark.s3{ top: 94px; left: 16px; animation: spark3 .95s ease-out .42s forwards; }
+.success-spark.s4{ top: 106px; right: 14px; animation: spark4 .95s ease-out .44s forwards; }
+.success-spark.s5{ bottom: 70px; left: 48px; animation: spark5 1s ease-out .46s forwards; }
+.success-spark.s6{ bottom: 82px; right: 44px; animation: spark6 .92s ease-out .48s forwards; }
+
+/* ===== ANIMACIONES ===== */
+@keyframes ringSpin{
+  from{
+    transform: rotate(-220deg) scale(.72);
+    opacity: 0;
+  }
+  to{
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes checkPop{
+  0%{
+    opacity: 0;
+    transform: scale(.58);
+  }
+  60%{
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100%{
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes textFade{
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spark1{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(-18px,-18px) scale(1.15); }
+}
+@keyframes spark2{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(22px,-16px) scale(1.2); }
+}
+@keyframes spark3{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(-26px,4px) scale(1.1); }
+}
+@keyframes spark4{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(24px,2px) scale(1.1); }
+}
+@keyframes spark5{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(-14px,18px) scale(1.1); }
+}
+@keyframes spark6{
+  from{ opacity:0; transform: translate(0,0) scale(.4); }
+  to{ opacity:0; transform: translate(16px,20px) scale(1.15); }
+}
+
+
+
+/* ======= REFRESH SPINNER OVERLAY ======= */
+.refresh-spin{
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.refresh-spin[hidden]{
+  display: none !important;
+}
+
+.refresh-spin-wrap{
+  width: min(320px, 86vw);
+  min-height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.refresh-spin-wrap.is-hiding{
+  animation: refreshOverlayOut .34s cubic-bezier(.2,.8,.2,1) forwards;
+}
+
+.refresh-spin-icon{
+  font-size: 120px;
+  line-height: 1;
+  color: #60a5fa;
+  text-shadow:
+    0 0 18px rgba(96,165,250,.38),
+    0 0 42px rgba(96,165,250,.22);
+  transform: scale(1);
+}
+
+.refresh-spin-icon.is-spinning{
+  animation: refreshSpinRotate 1s linear infinite;
+}
+
+.refresh-spin-icon.is-done{
+  color: #60a5fa;
+  text-shadow:
+    0 0 18px rgba(96,165,250,.42),
+    0 0 42px rgba(96,165,250,.24);
+  animation: refreshDonePop .36s cubic-bezier(.2,.8,.2,1);
+}
+
+.refresh-spin-text{
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .2px;
+  color: #e9eefc;
+  text-align: center;
+  opacity: .96;
+}
+
+@keyframes refreshSpinRotate{
+  from{ transform: rotate(0deg); }
+  to{ transform: rotate(360deg); }
+}
+
+@keyframes refreshDonePop{
+  0%{
+    transform: scale(.78);
+    opacity: .4;
+  }
+  65%{
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100%{
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes refreshOverlayOut{
+  from{
+    opacity: 1;
+    transform: scale(1);
+  }
+  to{
+    opacity: 0;
+    transform: scale(.92);
+  }
+}
+
+
+
 </style>
 </head>
 
@@ -1790,9 +2159,9 @@ body.is-admin #registerActions{
       <label class="label" for="teacherName">Nombre del docente</label>
       <input id="teacherName" class="input" type="text" placeholder="Ej: Ana Pérez" autocomplete="name" />
 
-   <div id="registerActions" class="row">
-  <button id="btnEntrada" class="btn btn-primary">Entrada</button>
-  <button id="btnSalida" class="btn btn-secondary">Salida</button>
+  <div id="registerActions" class="single-action-wrap">
+  <button id="btnEntrada" class="btn btn-primary action-pill">Entrada</button>
+  <button id="btnSalida" class="btn btn-secondary action-pill">Salida</button>
 </div>
 
 <div id="adminWelcomeBox" class="admin-welcome-box" hidden>
@@ -1973,6 +2342,46 @@ body.is-admin #registerActions{
 </div>
 
 
+<!-- ======= SUCCESS CHECK PRO ======= -->
+<div id="successCheck" class="success-check" hidden>
+  <div class="success-check-wrap">
+
+    <!-- partículas -->
+    <span class="success-spark s1"></span>
+    <span class="success-spark s2"></span>
+    <span class="success-spark s3"></span>
+    <span class="success-spark s4"></span>
+    <span class="success-spark s5"></span>
+    <span class="success-spark s6"></span>
+
+    <!-- círculo animado -->
+    <div class="success-ring"></div>
+
+    <!-- check -->
+    <div class="success-check-icon">✓</div>
+
+    <!-- texto -->
+    <div id="successCheckText" class="success-check-text">
+      ¡Registro guardado!
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ======= REFRESH SPINNER OVERLAY ======= -->
+<!-- ======= REFRESH SPINNER OVERLAY ======= -->
+<div id="refreshSpin" class="refresh-spin" hidden>
+  <div id="refreshSpinWrap" class="refresh-spin-wrap">
+
+    <div id="refreshSpinIcon" class="refresh-spin-icon is-spinning">
+      <i id="refreshSpinIconInner" class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+    </div>
+
+    <div id="refreshSpinText" class="refresh-spin-text">Actualizando…</div>
+  </div>
+</div>
+
 <!-- ======= MODAL ADMIN (PIN / CAMBIO / ASISTENCIAS) ======= -->
 <div id="adminModal" class="modal-backdrop" hidden>
   <div class="modal-card">
@@ -1998,7 +2407,7 @@ body.is-admin #registerActions{
 
 <!-- ======= MODAL VER ASISTENCIAS (ADMIN) ======= -->
 <div id="adminAssistModal" class="modal-backdrop" hidden>
-<div class="modal-card">
+  <div class="modal-card" style="width:min(920px,100%); max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); display:flex; flex-direction:column; overflow:hidden;">
     <h2 class="modal-title">Ver asistencias</h2>
     <p class="modal-sub">Selecciona un docente para ver sus registros del mes seleccionado.</p>
 
@@ -2018,9 +2427,10 @@ body.is-admin #registerActions{
       </div>
     </div>
 
-    <div id="adminAssistList" style="
+   <div id="adminAssistList" style="
       margin-top:12px;
-      max-height: min(60vh, 520px);
+      flex:1 1 auto;
+      min-height:160px;
       overflow:auto;
       -webkit-overflow-scrolling:touch;
       border:1px solid var(--line);
@@ -2916,12 +3326,50 @@ function initQrUi_() {
 }
 
 // ✅ Ejecutar cuando el DOM ya existe
+// ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
-  try { updateRegisterCardUI_(); } catch (e) {}
-  loadRuntimeConfig_({ silent: true });
-});
 
+  // ✅ pinta rápido el estado local
+  try { restoreAttendanceButtonsState_(); } catch (e) {}
+  try { syncSingleActionUI_(); } catch (e) {}
+  try { updateRegisterCardUI_(); } catch (e) {}
+
+  // ✅ primero carga configuración real
+  await loadRuntimeConfig_({ silent: true });
+
+  // ✅ luego consulta backend real si hay docente logueado
+  try {
+    const profile = loadProfile();
+    const admin = isAdminMode();
+
+    if (profile && profile.name && !admin) {
+      await refreshFromSheet({
+        useCache: true,
+        silent: true,
+        preferRemote: true
+      });
+    }
+  } catch (e) {
+    console.warn("No se pudo refrescar estado inicial:", e);
+  }
+
+// ✅ mostrar solo el check azul después del reload
+try {
+  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+
+  if (showAfter === "1") {
+    sessionStorage.removeItem("showRefreshAfterReload");
+
+    // ✅ al volver, mostrar de una vez el check azul
+    showRefreshDone("Actualizado");
+
+    setTimeout(() => {
+      hideRefreshSpin();
+    }, 1000);
+  }
+} catch (e) {}
+});
 
 
 
@@ -3608,6 +4056,138 @@ function syncReportesViewerList(items){
 }
 
 
+
+let __successCheckTimer = null;
+let __successAudioCtx = null;
+
+function playSuccessTone_() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    if (!__successAudioCtx) {
+      __successAudioCtx = new AudioCtx();
+    }
+
+    const ctx = __successAudioCtx;
+
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    const now = ctx.currentTime;
+
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+
+    osc1.type = "sine";
+    osc1.frequency.setValueAtTime(740, now);
+    osc1.frequency.exponentialRampToValueAtTime(980, now + 0.16);
+
+    gain1.gain.setValueAtTime(0.0001, now);
+    gain1.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+
+    osc1.start(now);
+    osc1.stop(now + 0.22);
+  } catch (e) {}
+}
+
+function vibrateSuccess_() {
+  try {
+    if (navigator && typeof navigator.vibrate === "function") {
+      navigator.vibrate([70, 30, 110]);
+    }
+  } catch (e) {}
+}
+
+
+function showRefreshSpin(message = "Actualizando…") {
+  const box = document.getElementById("refreshSpin");
+  const wrap = document.getElementById("refreshSpinWrap");
+  const icon = document.getElementById("refreshSpinIcon");
+  const iconInner = document.getElementById("refreshSpinIconInner");
+  const text = document.getElementById("refreshSpinText");
+
+  if (!box || !wrap || !icon || !iconInner || !text) return;
+
+  text.textContent = message;
+  iconInner.className = "fa-solid fa-rotate-right";
+  icon.classList.remove("is-done");
+  icon.classList.add("is-spinning");
+  wrap.classList.remove("is-hiding");
+
+  box.hidden = false;
+}
+
+function showRefreshDone(message = "Actualizado") {
+  const box = document.getElementById("refreshSpin");
+  const wrap = document.getElementById("refreshSpinWrap");
+  const icon = document.getElementById("refreshSpinIcon");
+  const iconInner = document.getElementById("refreshSpinIconInner");
+  const text = document.getElementById("refreshSpinText");
+
+  if (!box || !wrap || !icon || !iconInner || !text) return;
+
+  box.hidden = false;
+  wrap.classList.remove("is-hiding");
+
+  text.textContent = message;
+  icon.classList.remove("is-spinning");
+  iconInner.className = "fa-solid fa-check";
+  icon.classList.remove("is-done");
+  void icon.offsetWidth; // reinicia animación
+  icon.classList.add("is-done");
+}
+
+function hideRefreshSpin() {
+  const box = document.getElementById("refreshSpin");
+  const wrap = document.getElementById("refreshSpinWrap");
+
+  if (!box || !wrap) return;
+
+  wrap.classList.remove("is-hiding");
+  void wrap.offsetWidth;
+  wrap.classList.add("is-hiding");
+
+  setTimeout(() => {
+    box.hidden = true;
+    wrap.classList.remove("is-hiding");
+  }, 340);
+}
+
+
+
+function showSuccessCheck(message = "¡Registro guardado!", ms = 3200) {
+  const box = document.getElementById("successCheck");
+  const text = document.getElementById("successCheckText");
+
+  if (!box || !text) return;
+
+  text.textContent = message;
+
+  if (__successCheckTimer) {
+    clearTimeout(__successCheckTimer);
+    __successCheckTimer = null;
+  }
+
+  // reiniciar animaciones
+  box.hidden = true;
+  void box.offsetWidth;
+  box.hidden = false;
+
+  vibrateSuccess_();
+  playSuccessTone_();
+
+  __successCheckTimer = setTimeout(() => {
+    box.hidden = true;
+    __successCheckTimer = null;
+  }, ms);
+}
+
 /**
  * Alert moderno tipo modal (Promise-based)
  * Uso: await alertPro({title, msg, okText, danger})
@@ -3642,27 +4222,34 @@ function alertPro({
 
     btnOk.textContent = okText;
 
-    // ocultar botón cancelar en modo alert
+    // ocultar cancelar en modo alert
     btnNo.hidden = true;
 
-    // estilos
     btnOk.classList.toggle("btn-danger", !!danger);
     btnOk.classList.toggle("btn-primary", !danger);
 
-    // abrir modal + bloquear fondo (igual que loader)
+    // ✅ por seguridad, si quedó loader prendido lo apagamos
+    try {
+      if (typeof __loadingCount !== "undefined") {
+        __loadingCount = 0;
+      }
+      if (typeof appLoader !== "undefined" && appLoader) {
+        appLoader.hidden = true;
+      }
+    } catch (e) {}
+
     modal.hidden = false;
     document.body.classList.add("is-loading");
 
     const cleanup = () => {
       btnOk.onclick = null;
-      // restaurar botón cancelar para futuras confirmaciones
       btnNo.hidden = false;
+      modal.hidden = true;
+      document.body.classList.remove("is-loading");
     };
 
     btnOk.onclick = () => {
       cleanup();
-      modal.hidden = true;
-      document.body.classList.remove("is-loading");
       resolve(true);
     };
   });
@@ -3747,6 +4334,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
+    syncSingleActionUI_();
     return;
   }
 
@@ -3769,21 +4357,17 @@ function updateDailyButtonsState(records) {
 
     if (!raw) return "";
 
-    // yyyy-mm-dd
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
 
-    // dd/mm/yyyy
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
       const [dd, mm, yyyy] = raw.split("/");
       return `${yyyy}-${mm}-${dd}`;
     }
 
-    // ISO (evita error por zona horaria)
     if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
       return raw.slice(0, 10);
     }
 
-    // fallback
     const d = new Date(raw);
     if (!isNaN(d.getTime())) {
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -3807,8 +4391,8 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = false;
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
-
-    saveAttendanceButtonsState_(); // ✅ AÑADIDO
+    saveAttendanceButtonsState_();
+    syncSingleActionUI_();
     return;
   }
 
@@ -3817,8 +4401,8 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
-
-    saveAttendanceButtonsState_(); // ✅ AÑADIDO
+    saveAttendanceButtonsState_();
+    syncSingleActionUI_();
     return;
   }
 
@@ -3826,12 +4410,32 @@ function updateDailyButtonsState(records) {
   btnEntrada.disabled = true;
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
-
-  saveAttendanceButtonsState_(); // ✅ AÑADIDO
+  saveAttendanceButtonsState_();
+  syncSingleActionUI_();
 }
 
+function syncSingleActionUI_() {
+  const wrap = $("registerActions");
+  if (!wrap || !btnEntrada || !btnSalida) return;
 
+  const entradaDisabled = !!btnEntrada.disabled;
+  const salidaDisabled = !!btnSalida.disabled;
+  const isDone = entradaDisabled && salidaDisabled;
 
+  wrap.classList.toggle("done", isDone);
+
+  if (isDone) {
+    btnSalida.textContent = "Registro completo hoy";
+    btnSalida.setAttribute("aria-label", "Registro completo hoy");
+    return;
+  }
+
+  btnEntrada.textContent = "Entrada";
+  btnEntrada.setAttribute("aria-label", "Entrada");
+
+  btnSalida.textContent = "Salida";
+  btnSalida.setAttribute("aria-label", "Salida");
+}
 
 // ======= Helpers =======
 
@@ -3888,6 +4492,7 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = false;
       btnSalida.disabled = true;
       btnSalida.classList.add("is-inactive");
+      syncSingleActionUI_();
       return true;
     }
 
@@ -3895,15 +4500,80 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = true;
       btnSalida.disabled = false;
       btnSalida.classList.remove("is-inactive");
+      syncSingleActionUI_();
       return true;
     }
 
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
+    syncSingleActionUI_();
     return true;
   } catch {
     return false;
+  }
+}
+
+
+function applyAttendanceState_(type, recordData = {}) {
+  const t = nowParts();
+
+  if (type === "ENTRADA") {
+    hasEntradaToday = true;
+    hasSalidaToday = false;
+  } else if (type === "SALIDA") {
+    hasEntradaToday = true;
+    hasSalidaToday = true;
+  }
+
+  // ✅ persistir flags del día
+  saveAttendanceButtonsState_();
+
+  // ✅ construir registro local aunque el backend no devuelva resp.record
+  const profile = loadProfile() || {};
+  const localRecord = {
+    teacher: String(recordData.teacher || profile.name || teacherNameEl.value || "").trim(),
+    type: String(type || "").trim().toUpperCase(),
+    date: recordData.date || t.date,
+    time: recordData.time || t.time,
+    iso: recordData.iso || t.iso,
+    distance_m: recordData.distance_m ?? recordData.dist ?? "—",
+    accuracy_m: recordData.accuracy_m ?? recordData.acc ?? "—"
+  };
+
+  if (!Array.isArray(cachedRecords)) {
+    cachedRecords = [];
+  }
+
+  const exists = cachedRecords.some(r =>
+    String(r.teacher || "").trim().toLowerCase() === String(localRecord.teacher || "").trim().toLowerCase() &&
+    String(r.type || "").trim().toUpperCase() === String(localRecord.type || "").trim().toUpperCase() &&
+    String(r.date || "").trim() === String(localRecord.date || "").trim()
+  );
+
+  if (!exists) {
+    cachedRecords = [localRecord, ...cachedRecords];
+  }
+
+  try {
+    const cacheKey = cacheKeyForCurrentView_();
+    saveRecordsCache_(cacheKey, cachedRecords);
+  } catch (e) {}
+
+  try {
+    updateDailyButtonsState(cachedRecords);
+  } catch (e) {
+    // fallback directo de UI
+    if (type === "ENTRADA") {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = false;
+      btnSalida.classList.remove("is-inactive");
+    } else {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = true;
+      btnSalida.classList.remove("is-inactive");
+    }
+    syncSingleActionUI_();
   }
 }
 
@@ -4321,9 +4991,24 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
   } else {
     if (btnExport) btnExport.disabled = false;
 
-    // restaurar estado real de los botones del día
+    // ✅ PRIMERO intenta restaurar desde localStorage del día
+    let restored = false;
     try {
-      updateDailyButtonsState(cachedRecords);
+      restored = restoreAttendanceButtonsState_();
+    } catch (e) {
+      restored = false;
+    }
+
+    // ✅ Si no había estado local, usa caché de registros
+    if (!restored) {
+      try {
+        updateDailyButtonsState(cachedRecords || []);
+      } catch (e) {}
+    }
+
+    // ✅ Refuerza la UI visual del botón único
+    try {
+      syncSingleActionUI_();
     } catch (e) {}
   }
 
@@ -4343,11 +5028,10 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
     return;
   }
 
-  // ✅ Cuando termina, recalcular el estado real del bloque Registrar
+  // Cuando termina, recalcular estado general
   try {
     refreshHomeStatus_();
   } catch (e) {
-    // fallback seguro por si todavía no existe geo o algo no cargó
     setStatus("warn", "Listo", "Activa ubicación para registrar en el colegio.");
   }
 }
@@ -13532,14 +14216,66 @@ function render(records) {
   return (records || []).filter(r => String(r.date || "").startsWith(m + "-"));
 }
 
+function sameRecordKey_(r) {
+  return [
+    normalizeKey(r && r.teacher),
+    String((r && r.type) || "").trim().toUpperCase(),
+    String((r && r.date) || "").trim(),
+    String((r && r.time) || "").trim()
+  ].join("|");
+}
 
+function mergeRecordsPreferLocal_(remoteRecords, localRecords) {
+  const out = [];
+  const seen = new Set();
+
+  // 1) primero los locales: si ya los pintaste al registrar, no los pierdas
+  (localRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 2) luego lo remoto que no exista todavía
+  (remoteRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 3) ordenar más nuevo primero
+  out.sort((a, b) => {
+    const aIso = String(a && (a.iso || `${a.date || ""}T${a.time || ""}`) || "");
+    const bIso = String(b && (b.iso || `${b.date || ""}T${b.time || ""}`) || "");
+    return bIso.localeCompare(aIso);
+  });
+
+  return out;
+}
+
+function currentLocalViewRecords_() {
+  try {
+    const cacheKey = cacheKeyForCurrentView_();
+    const saved = loadRecordsCache_(cacheKey);
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch (e) {}
+
+  if (Array.isArray(cachedRecords) && cachedRecords.length) {
+    return cachedRecords;
+  }
+
+  return [];
+}
   
 
 async function refreshFromSheet(options = {}) {
   const {
-    useCache = true,         // renderiza caché primero
-    silent = false,          // no cambia el status "Cargando..."
-    showLoadingAfterMs = 450 // solo mostrar "Cargando" si tarda > 450ms
+    useCache = true,          // renderiza caché primero
+    silent = false,           // no cambia el status "Cargando."
+    showLoadingAfterMs = 450, // solo mostrar "Cargando" si tarda > 450ms
+    preferRemote = false      // ✅ si true, usa SOLO backend real
   } = options;
 
   const admin = isAdminMode();
@@ -13603,11 +14339,24 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    // Render final
-    render(records);
+    let finalRecords;
 
-    // Guardar caché (ya filtrado)
-    saveRecordsCache_(cacheKey, records);
+    if (preferRemote) {
+      // ✅ usar SOLO lo que viene del backend real
+      finalRecords = Array.isArray(records) ? records : [];
+    } else {
+      // ✅ proteger contra respuesta vieja del backend:
+      // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+      const localViewRecords = currentLocalViewRecords_();
+      finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
+    }
+
+    // Render final
+    cachedRecords = finalRecords;
+    render(finalRecords);
+
+    // Guardar caché final
+    saveRecordsCache_(cacheKey, finalRecords);
 
     if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
   } catch (e) {
@@ -13979,54 +14728,48 @@ async function register(type) {
       qr: qrText
     });
 
-    // ✅ pintar de inmediato el registro recién guardado
-    if (resp && resp.record) {
-      const newRecord = {
-        ...resp.record,
-        iso: resp.record.iso || t.iso
-      };
+    // ✅ Aplicar SIEMPRE estado local inmediato
+    applyAttendanceState_(
+      type,
+      resp && resp.record
+        ? {
+            ...resp.record,
+            iso: resp.record.iso || t.iso,
+            teacher: resp.record.teacher || teacher,
+            date: resp.record.date || t.date,
+            time: resp.record.time || t.time,
+            distance_m: resp.record.distance_m ?? Math.round(geo.dist),
+            accuracy_m: resp.record.accuracy_m ?? Math.round(geo.accuracy)
+          }
+        : {
+            teacher,
+            date: t.date,
+            time: t.time,
+            iso: t.iso,
+            distance_m: Math.round(geo.dist),
+            accuracy_m: Math.round(geo.accuracy)
+          }
+    );
 
-      const alreadyExists = Array.isArray(cachedRecords) && cachedRecords.some(r =>
-        String(r.teacher || "").trim().toLowerCase() === String(newRecord.teacher || "").trim().toLowerCase() &&
-        String(r.type || "").trim().toUpperCase() === String(newRecord.type || "").trim().toUpperCase() &&
-        String(r.date || "").trim() === String(newRecord.date || "").trim() &&
-        String(r.time || "").trim() === String(newRecord.time || "").trim()
-      );
-
-      if (!alreadyExists) {
-        cachedRecords = [newRecord].concat(Array.isArray(cachedRecords) ? cachedRecords : []);
-      }
-
-      try {
-        const cacheKey = cacheKeyForCurrentView_();
-        saveRecordsCache_(cacheKey, cachedRecords);
-      } catch (e) {}
-
-      render(cachedRecords);
-      updateDailyButtonsState(cachedRecords);
-    }
-
-    if (type === "ENTRADA") {
-      hasEntradaToday = true;
-      btnEntrada.disabled = true;
-
-      btnSalida.disabled = false;
-      btnSalida.classList.remove("is-inactive");
-    }
-
-    if (type === "SALIDA") {
-      hasSalidaToday = true;
-      btnEntrada.disabled = true;
-      btnSalida.disabled = true;
-      btnSalida.classList.remove("is-inactive");
-    }
+    try {
+      render(cachedRecords || []);
+    } catch (e) {}
 
     setRecordsOpen(true);
     setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
-    // ✅ sincroniza después, pero sin depender de esto para pintar
-  // ✅ NO refrescar aquí: ya pintamos y bloqueamos localmente.
-// El refresco automático estaba pisando el estado recién actualizado.
+    // ✅ apagar loader antes del chulito
+    try { setLoading(false); } catch (e) {}
+
+    // ✅ mostrar chulito grande automático
+    showSuccessCheck(`${type} registrada correctamente`, 3200);
+
+  // ✅ sincronización automática más segura
+setTimeout(() => {
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
+
+    return;
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
@@ -14339,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-27";
+const APP_BUILD = "2026-04-10-28";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14370,11 +15113,30 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", hardRefreshPWA);
+btnRefreshSW.addEventListener("click", async () => {
+  try {
+    // ✅ guardar flag para mostrar animación después del reload
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    // ✅ mostrar animación actual
+    showRefreshSpin("Actualizando…");
+
+    // pequeño delay para que se vea antes del reload
+    await new Promise(resolve => requestAnimationFrame(() => resolve()));
+    await new Promise(resolve => setTimeout(resolve, 60));
+
+    // ✅ refrescar inmediatamente
+    await hardRefreshPWA();
+
+  } catch (e) {
+    hideRefreshSpin();
+    setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
+  }
+});
+
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
-
 
 // ======= SW register + auto refresh por build =======
 if ("serviceWorker" in navigator) {
