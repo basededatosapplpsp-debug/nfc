@@ -1,4 +1,4 @@
-<!doctype html>
+
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -1686,185 +1686,22 @@ body.is-admin #registerActions{
 }
 
 
-/* ===== Un solo botón visible según estado ===== */
-.single-action-wrap{
-  position: relative;
-}
-
-.single-action-wrap #btnEntrada,
-.single-action-wrap #btnSalida{
+#registerActions.done #btnSalida{
   width: 100%;
-}
-
-.single-action-wrap #btnEntrada[hidden],
-.single-action-wrap #btnSalida[hidden]{
-  display: none !important;
-}
-
-/* cuando ya hizo entrada y salida */
-.single-action-wrap.done #btnSalida{
   cursor: default;
-  pointer-events: none;
-}
-
-/* ======= SUCCESS CHECK PRO ======= */
-.success-check{
-  position: fixed;
-  inset: 0;
-  z-index: 100002;
-  display: grid;
-  place-items: center;
-  background: rgba(0,0,0,.35);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.success-check[hidden]{
-  display: none !important;
-}
-
-.success-check-wrap{
-  position: relative;
-  width: min(320px, 86vw);
-  min-height: 260px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-}
-
-.success-ring{
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  border: 6px solid transparent;
-  background:
-    conic-gradient(
-      #22c55e 0deg,
-      #22c55e 48deg,
-      rgba(34,197,94,.15) 72deg,
-      rgba(34,197,94,0) 360deg
-    );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
-
+  background: linear-gradient(
+    180deg,
+    rgba(34,197,94,.95),
+    rgba(22,163,74,.88)
+  );
+  color: #ffffff;
+  border-color: rgba(34,197,94,.35);
   box-shadow:
-    0 0 30px rgba(34,197,94,.14),
-    0 0 60px rgba(34,197,94,.08);
-
-  animation: ringSpin .9s cubic-bezier(.2,.8,.2,1) forwards;
+    0 8px 18px rgba(34,197,94,.18),
+    inset 0 1px 0 rgba(255,255,255,.22);
 }
 
-.success-check-icon{
-  position: relative;
-  z-index: 2;
-  font-size: 120px;
-  line-height: 1;
-  font-weight: 900;
-  color: #22c55e;
-  opacity: 0;
-  transform: scale(.58);
 
-  text-shadow:
-    0 0 18px rgba(34,197,94,.38),
-    0 0 42px rgba(34,197,94,.22);
-
-  animation: checkPop .42s ease-out .45s forwards;
-}
-
-.success-check-text{
-  position: relative;
-  z-index: 2;
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: .2px;
-  color: #e9eefc;
-  text-align: center;
-  opacity: 0;
-  transform: translateY(10px);
-
-  animation: textFade .36s ease-out .72s forwards;
-}
-
-.success-spark{
-  position: absolute;
-  z-index: 1;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #4ade80;
-  box-shadow:
-    0 0 10px rgba(74,222,128,.65),
-    0 0 20px rgba(74,222,128,.35);
-  opacity: 0;
-}
-
-.success-spark.s1{ top: 28px; left: 58px; animation: spark1 .9s ease-out .35s forwards; }
-.success-spark.s2{ top: 54px; right: 52px; animation: spark2 1s ease-out .38s forwards; }
-.success-spark.s3{ top: 94px; left: 16px; animation: spark3 .95s ease-out .42s forwards; }
-.success-spark.s4{ top: 106px; right: 14px; animation: spark4 .95s ease-out .44s forwards; }
-.success-spark.s5{ bottom: 70px; left: 48px; animation: spark5 1s ease-out .46s forwards; }
-.success-spark.s6{ bottom: 82px; right: 44px; animation: spark6 .92s ease-out .48s forwards; }
-
-@keyframes ringSpin{
-  from{
-    transform: rotate(-220deg) scale(.72);
-    opacity: 0;
-  }
-  to{
-    transform: rotate(0deg) scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes checkPop{
-  0%{
-    opacity: 0;
-    transform: scale(.58);
-  }
-  60%{
-    opacity: 1;
-    transform: scale(1.08);
-  }
-  100%{
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes textFade{
-  to{
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes spark1{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(-18px,-18px) scale(1.15); }
-}
-@keyframes spark2{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(22px,-16px) scale(1.2); }
-}
-@keyframes spark3{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(-26px,4px) scale(1.1); }
-}
-@keyframes spark4{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(24px,2px) scale(1.1); }
-}
-@keyframes spark5{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(-14px,18px) scale(1.1); }
-}
-@keyframes spark6{
-  from{ opacity:0; transform: translate(0,0) scale(.4); }
-  to{ opacity:0; transform: translate(16px,20px) scale(1.15); }
-}
 </style>
 </head>
 
@@ -1970,7 +1807,7 @@ body.is-admin #registerActions{
       <label class="label" for="teacherName">Nombre del docente</label>
       <input id="teacherName" class="input" type="text" placeholder="Ej: Ana Pérez" autocomplete="name" />
 
-   <div id="registerActions" class="row single-action-wrap">
+   <div id="registerActions" class="row">
   <button id="btnEntrada" class="btn btn-primary">Entrada</button>
   <button id="btnSalida" class="btn btn-secondary">Salida</button>
 </div>
@@ -2149,29 +1986,6 @@ body.is-admin #registerActions{
       <div id="loaderTitle" class="loader-title">Procesando…</div>
       <div id="loaderMsg" class="loader-msg">Por favor espera…</div>
     </div>
-  </div>
-</div>
-
-
-
-<!-- ======= SUCCESS CHECK PRO ======= -->
-<div id="successCheck" class="success-check" hidden>
-  <div class="success-check-wrap">
-
-    <span class="success-spark s1"></span>
-    <span class="success-spark s2"></span>
-    <span class="success-spark s3"></span>
-    <span class="success-spark s4"></span>
-    <span class="success-spark s5"></span>
-    <span class="success-spark s6"></span>
-
-    <div class="success-ring"></div>
-    <div class="success-check-icon">✓</div>
-
-    <div id="successCheckText" class="success-check-text">
-      ¡Registro guardado!
-    </div>
-
   </div>
 </div>
 
@@ -3122,19 +2936,13 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // 1. pintar rápido lo último conocido
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
-  // 2. cargar config
   loadRuntimeConfig_({ silent: true });
-
-  // 3. confirmar SIEMPRE contra Supabase, sin depender del cache
-  try {
-    await refreshFromSheet({ useCache: false, silent: true, showLoadingAfterMs: 0 });
-  } catch (e) {}
 });
+
 
 
 
@@ -3821,81 +3629,6 @@ function syncReportesViewerList(items){
 }
 
 
-
-let __successCheckTimer = null;
-let __successAudioCtx = null;
-
-function playSuccessTone_() {
-  try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-
-    if (!__successAudioCtx) {
-      __successAudioCtx = new AudioCtx();
-    }
-
-    const ctx = __successAudioCtx;
-
-    if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
-    }
-
-    const now = ctx.currentTime;
-
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(740, now);
-    osc1.frequency.exponentialRampToValueAtTime(980, now + 0.16);
-
-    gain1.gain.setValueAtTime(0.0001, now);
-    gain1.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
-    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.20);
-
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-
-    osc1.start(now);
-    osc1.stop(now + 0.22);
-  } catch (e) {}
-}
-
-function vibrateSuccess_() {
-  try {
-    if (navigator && typeof navigator.vibrate === "function") {
-      navigator.vibrate([70, 30, 110]);
-    }
-  } catch (e) {}
-}
-
-function showSuccessCheck(message = "¡Registro guardado!", ms = 3200) {
-  const box = document.getElementById("successCheck");
-  const text = document.getElementById("successCheckText");
-
-  if (!box || !text) return;
-
-  text.textContent = message;
-
-  if (__successCheckTimer) {
-    clearTimeout(__successCheckTimer);
-    __successCheckTimer = null;
-  }
-
-  box.hidden = true;
-  void box.offsetWidth;
-  box.hidden = false;
-
-  vibrateSuccess_();
-  playSuccessTone_();
-
-  __successCheckTimer = setTimeout(() => {
-    box.hidden = true;
-    __successCheckTimer = null;
-  }, ms);
-}
-
-
 /**
  * Alert moderno tipo modal (Promise-based)
  * Uso: await alertPro({title, msg, okText, danger})
@@ -4035,7 +3768,6 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
-    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -4059,17 +3791,21 @@ function updateDailyButtonsState(records) {
 
     if (!raw) return "";
 
+    // yyyy-mm-dd
     if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
 
+    // dd/mm/yyyy
     if (/^\d{2}\/\d{2}\/\d{4}$/.test(raw)) {
       const [dd, mm, yyyy] = raw.split("/");
       return `${yyyy}-${mm}-${dd}`;
     }
 
+    // ISO
     if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
       return raw.slice(0, 10);
     }
 
+    // fallback
     const d = new Date(raw);
     if (!isNaN(d.getTime())) {
       return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -4093,6 +3829,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = false;
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
+
     saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
@@ -4103,6 +3840,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
+
     saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
@@ -4112,10 +3850,10 @@ function updateDailyButtonsState(records) {
   btnEntrada.disabled = true;
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
+
   saveAttendanceButtonsState_();
   syncSingleActionUI_();
 }
-
 
 function syncSingleActionUI_() {
   const wrap = $("registerActions");
@@ -4130,7 +3868,7 @@ function syncSingleActionUI_() {
   btnEntrada.hidden = false;
   btnSalida.hidden = false;
 
-  // Estado 1: no ha hecho entrada
+  // Estado 1: aún no ha registrado entrada
   if (!entradaDisabled && salidaDisabled) {
     btnEntrada.hidden = false;
     btnSalida.hidden = true;
@@ -4140,7 +3878,7 @@ function syncSingleActionUI_() {
     return;
   }
 
-  // Estado 2: ya hizo entrada, falta salida
+  // Estado 2: ya registró entrada, solo mostrar salida
   if (entradaDisabled && !salidaDisabled) {
     btnEntrada.hidden = true;
     btnSalida.hidden = false;
@@ -4150,14 +3888,14 @@ function syncSingleActionUI_() {
     return;
   }
 
-  // Estado 3: asistencia completada
+  // Estado 3: ya completó ambos registros
   if (isDone) {
     wrap.classList.add("done");
     btnEntrada.hidden = true;
     btnSalida.hidden = false;
 
-    btnSalida.textContent = "Asistencia completada";
-    btnSalida.setAttribute("aria-label", "Asistencia completada");
+    btnSalida.textContent = "Registros completados";
+    btnSalida.setAttribute("aria-label", "Registros completados");
     return;
   }
 
@@ -4167,6 +3905,7 @@ function syncSingleActionUI_() {
   btnEntrada.textContent = "Entrada";
   btnEntrada.setAttribute("aria-label", "Entrada");
 }
+
 
 // ======= Helpers =======
 
@@ -4203,45 +3942,18 @@ function saveAttendanceButtonsState_() {
     localStorage.setItem(attendanceButtonsStateKey_(), JSON.stringify({
       date: todayStr(),
       hasEntradaToday: !!hasEntradaToday,
-      hasSalidaToday: !!hasSalidaToday,
-      updatedAt: Date.now()
+      hasSalidaToday: !!hasSalidaToday
     }));
-  } catch {}
-}
-
-function clearAttendanceButtonsState_() {
-  try {
-    localStorage.removeItem(attendanceButtonsStateKey_());
   } catch {}
 }
 
 function restoreAttendanceButtonsState_() {
   try {
     const raw = localStorage.getItem(attendanceButtonsStateKey_());
-
-    // si no hay nada guardado para hoy, dejar estado base
-    if (!raw) {
-      hasEntradaToday = false;
-      hasSalidaToday = false;
-      btnEntrada.disabled = false;
-      btnSalida.disabled = true;
-      btnSalida.classList.add("is-inactive");
-      syncSingleActionUI_();
-      return false;
-    }
+    if (!raw) return false;
 
     const data = JSON.parse(raw);
-
-    // si es de otro día, reset
-    if (!data || data.date !== todayStr()) {
-      hasEntradaToday = false;
-      hasSalidaToday = false;
-      btnEntrada.disabled = false;
-      btnSalida.disabled = true;
-      btnSalida.classList.add("is-inactive");
-      syncSingleActionUI_();
-      return false;
-    }
+    if (!data || data.date !== todayStr()) return false;
 
     hasEntradaToday = !!data.hasEntradaToday;
     hasSalidaToday = !!data.hasSalidaToday;
@@ -4268,12 +3980,6 @@ function restoreAttendanceButtonsState_() {
     syncSingleActionUI_();
     return true;
   } catch {
-    hasEntradaToday = false;
-    hasSalidaToday = false;
-    btnEntrada.disabled = false;
-    btnSalida.disabled = true;
-    btnSalida.classList.add("is-inactive");
-    syncSingleActionUI_();
     return false;
   }
 }
@@ -9526,11 +9232,7 @@ function syncAttendanceOnResume_() {
   }
 
   __attendanceResumeSyncTimer = setTimeout(() => {
-   refreshFromSheet({
-  silent: true,
-  useCache: false,
-  preferRemote: true
-}).catch(() => {});
+    refreshFromSheet({ silent: true, useCache: false }).catch(() => {});
   }, 250);
 }
 
@@ -13908,88 +13610,38 @@ function render(records) {
 }
 
 
-  function sameRecordKey_(r) {
-  return [
-    normalizeKey(r && r.teacher),
-    String((r && r.type) || "").trim().toUpperCase(),
-    String((r && r.date) || "").trim(),
-    String((r && r.time) || "").trim()
-  ].join("|");
-}
-
-function mergeRecordsPreferLocal_(remoteRecords, localRecords) {
-  const out = [];
-  const seen = new Set();
-
-  // 1) primero los locales: si ya los pintaste al registrar, no los pierdas
-  (localRecords || []).forEach(r => {
-    const key = sameRecordKey_(r);
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push(r);
-  });
-
-  // 2) luego lo remoto que no exista todavía
-  (remoteRecords || []).forEach(r => {
-    const key = sameRecordKey_(r);
-    if (seen.has(key)) return;
-    seen.add(key);
-    out.push(r);
-  });
-
-  // 3) ordenar más nuevo primero
-  out.sort((a, b) => {
-    const aIso = String((a && (a.iso || `${a.date || ""}T${a.time || ""}`)) || "");
-    const bIso = String((b && (b.iso || `${b.date || ""}T${b.time || ""}`)) || "");
-    return bIso.localeCompare(aIso);
-  });
-
-  return out;
-}
-
-function currentLocalViewRecords_() {
-  try {
-    const cacheKey = cacheKeyForCurrentView_();
-    const saved = loadRecordsCache_(cacheKey);
-    if (Array.isArray(saved) && saved.length) return saved;
-  } catch (e) {}
-
-  if (Array.isArray(cachedRecords) && cachedRecords.length) {
-    return cachedRecords;
-  }
-
-  return [];
-}
-
-
-
+  
 
 async function refreshFromSheet(options = {}) {
   const {
     useCache = true,         // renderiza caché primero
-    silent = false,          // no cambia el status "Cargando."
-    showLoadingAfterMs = 450,
-    preferRemote = false
+    silent = false,          // no cambia el status "Cargando..."
+    showLoadingAfterMs = 450 // solo mostrar "Cargando" si tarda > 450ms
   } = options;
 
   const admin = isAdminMode();
   const p = loadProfile();
 
+  // ✅ Mes:
+  // - Admin: selector
+  // - Docente: mes actual SIEMPRE
   let month = "";
   if (admin && typeof recordsMonthSelect !== "undefined" && recordsMonthSelect) {
-    month = String(recordsMonthSelect.value || "").trim();
+    month = String(recordsMonthSelect.value || "").trim(); // YYYY-MM
   } else {
-    month = monthKeyFromDate(new Date());
+    month = monthKeyFromDate(new Date()); // ✅ docente: mes actual
   }
 
+  // ✅ Docente: pedir solo sus registros
   const teacherFilter = (!admin && p && p.name) ? String(p.name).trim() : "";
-  const cacheKey = cacheKeyForCurrentView_();
 
-  // 1) Render rápido con caché solo si se permite
+  // 1) Render rápido con caché (no se siente "lento al iniciar")
+  const cacheKey = cacheKeyForCurrentView_();
   if (useCache) {
     const cached = loadRecordsCache_(cacheKey);
-    if (cached && Array.isArray(cached)) {
+    if (cached && cached.length) {
       render(cached);
+      // no ponemos "Listo" aquí: esperamos confirmación de red
     }
   }
 
@@ -14002,26 +13654,23 @@ async function refreshFromSheet(options = {}) {
   }
 
   try {
+    // ✅ Reduce carga en docente: solo mes actual y solo su nombre
     const limit = admin ? 1200 : 300;
 
-    let remoteRecords = await gsGetList(limit, month, teacherFilter);
+    let records = await gsGetList(limit, month, teacherFilter);
 
-    if (!Array.isArray(remoteRecords)) {
-      remoteRecords = [];
-    }
-
-    // ✅ Seguro extra: docente SOLO mes actual
+    // ✅ Seguro extra: docente SOLO mes actual (por si backend devolviera más)
     if (!admin) {
-      remoteRecords = filterToMonth_(remoteRecords, month);
+      records = filterToMonth_(records, month);
     }
 
     // ✅ Admin: resumen del mes
-    updateAdminMonthSummaryFromRecords(remoteRecords);
+    updateAdminMonthSummaryFromRecords(records);
 
-    // ✅ Admin: actualizar lista de docentes según lo cargado
+    // ✅ Admin: actualizar lista de docentes según lo cargado (sin romper selección)
     if (admin && typeof recordsTeacherSelect !== "undefined" && recordsTeacherSelect) {
       const current = String(recordsTeacherSelect.value || "__ALL__");
-      const teachers = uniqueTeachersFromRecords(remoteRecords);
+      const teachers = uniqueTeachersFromRecords(records);
 
       recordsTeacherSelect.innerHTML =
         `<option value="__ALL__">Todos</option>` +
@@ -14031,32 +13680,19 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    const localRecords = currentLocalViewRecords_();
+    // Render final
+    render(records);
 
-    // ✅ si el backend aún no refleja el nuevo registro, conserva lo local
-    const finalRecords = preferRemote
-      ? remoteRecords
-      : mergeRecordsPreferLocal_(remoteRecords, localRecords);
+    // Guardar caché (ya filtrado)
+    saveRecordsCache_(cacheKey, records);
 
-    cachedRecords = Array.isArray(finalRecords) ? [...finalRecords] : [];
-
-    render(cachedRecords);
-    saveRecordsCache_(cacheKey, cachedRecords);
-    updateDailyButtonsState(cachedRecords);
-
-    if (!cachedRecords.length) {
-      clearAttendanceButtonsState_();
-    }
-
-    if (!silent) {
-      setStatus("", "Listo", "Datos de asistencia sincronizados.");
-    }
+    if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
   } catch (e) {
     if (!silent) {
       setStatus(
         "bad",
-        "Error de sincronización",
-        String(e && e.message ? e.message : "No se pudo consultar Supabase.")
+        "Error Google Sheets",
+        String(e && e.message ? e.message : "Revisa URL/clave del Web App y permisos.")
       );
     }
   } finally {
@@ -14291,7 +13927,6 @@ async function scanQrValidated_() {
 
 
 // ======= Registrar =======
-// ======= Registrar =======
 async function register(type) {
 
   if (type === "ENTRADA" && hasEntradaToday) {
@@ -14367,7 +14002,7 @@ async function register(type) {
     return;
   }
 
-  // ===== 1.5) Configuración ya cargada al abrir la app =====
+   // ===== 1.5) Configuración ya cargada al abrir la app =====
 
   // ===== 2) Verificar ubicación =====
   let geo;
@@ -14406,7 +14041,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-    const resp = await gsRegister({
+     const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -14450,45 +14085,25 @@ async function register(type) {
 
     if (type === "ENTRADA") {
       hasEntradaToday = true;
-      hasSalidaToday = false;
-
       btnEntrada.disabled = true;
+
       btnSalida.disabled = false;
       btnSalida.classList.remove("is-inactive");
     }
 
     if (type === "SALIDA") {
       hasSalidaToday = true;
-
       btnEntrada.disabled = true;
       btnSalida.disabled = true;
       btnSalida.classList.remove("is-inactive");
     }
 
-    // ✅ guardar inmediatamente el estado real del botón
-    saveAttendanceButtonsState_();
-
-    // ✅ actualizar inmediatamente el botón visible
-    syncSingleActionUI_();
-
     setRecordsOpen(true);
-setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
+    setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
-// ✅ apagar loader antes del chulito
-setLoading(false);
-
-// ✅ mostrar chulito verde + vibración + sonido
-showSuccessCheck(`${type} registrada correctamente`, 3200);
-
-// ✅ confirmar después contra backend sin depender del cache
-setTimeout(() => {
-  refreshFromSheet({
-    useCache: false,
-    silent: true,
-    showLoadingAfterMs: 0,
-    preferRemote: false
-  }).catch(() => {});
-}, 900);
+    // ✅ sincroniza después, pero sin depender de esto para pintar
+  // ✅ NO refrescar aquí: ya pintamos y bloqueamos localmente.
+// El refresco automático estaba pisando el estado recién actualizado.
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
@@ -14524,6 +14139,7 @@ setTimeout(() => {
     setLoading(false);
   }
 }
+
 
 
 // ===== WhatsApp destino (para disciplina NIVEL 4) =====
@@ -14800,7 +14416,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-22";
+const APP_BUILD = "2026-04-10-23";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14831,169 +14447,7 @@ async function hardRefreshPWA() {
   }
 }
 
-// ======= Refresh inteligente: sincroniza datos y solo reinicia si hay nueva versión =======
-async function checkForNewServiceWorker_() {
-  if (!("serviceWorker" in navigator)) {
-    return { hasUpdate: false, reg: null };
-  }
-
-  try {
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) return { hasUpdate: false, reg: null };
-
-    // fuerza consulta del SW
-    try { await reg.update(); } catch (e) {}
-
-    // si ya está esperando, sí hay actualización lista
-    if (reg.waiting) {
-      return { hasUpdate: true, reg };
-    }
-
-    // si está instalando, esperar un poco a ver si queda lista
-    if (reg.installing) {
-      const hasUpdate = await new Promise((resolve) => {
-        const sw = reg.installing;
-        let done = false;
-
-        const finish = (value) => {
-          if (done) return;
-          done = true;
-          resolve(value);
-        };
-
-        const timer = setTimeout(() => finish(false), 4000);
-
-        sw.addEventListener("statechange", () => {
-          if (sw.state === "installed" && navigator.serviceWorker.controller) {
-            clearTimeout(timer);
-            finish(true);
-          } else if (sw.state === "redundant") {
-            clearTimeout(timer);
-            finish(false);
-          }
-        });
-      });
-
-      return { hasUpdate, reg };
-    }
-
-    return { hasUpdate: false, reg };
-  } catch (e) {
-    return { hasUpdate: false, reg: null };
-  }
-}
-
-async function activateWaitingSWAndReload_() {
-  if (!("serviceWorker" in navigator)) return false;
-
-  const reg = await navigator.serviceWorker.getRegistration();
-  if (!reg || !reg.waiting) return false;
-
-  return await new Promise((resolve) => {
-    let reloaded = false;
-
-    const onControllerChange = () => {
-      if (reloaded) return;
-      reloaded = true;
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
-      location.reload();
-      resolve(true);
-    };
-
-    navigator.serviceWorker.addEventListener("controllerchange", onControllerChange);
-
-    try {
-      reg.waiting.postMessage({ type: "SKIP_WAITING" });
-    } catch (e) {
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
-      resolve(false);
-    }
-
-    // fallback por si no dispara controllerchange
-    setTimeout(() => {
-      if (reloaded) return;
-      navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange);
-      resolve(false);
-    }, 4000);
-  });
-}
-
-async function refreshAttendanceAndMaybeUpdateApp_() {
-  let loadingStarted = false;
-
-  try {
-    if (typeof setMenuOpen === "function") {
-      setMenuOpen(false);
-    } else if (userMenu) {
-      userMenu.hidden = true;
-    }
-
-    setLoading(true, "Actualizando…", "Sincronizando asistencias.");
-    loadingStarted = true;
-
-    // 1) sincronizar datos reales y repintar botones
-const cacheKey = cacheKeyForCurrentView_();
-
-// 🔥 si el usuario tocó "Actualizar", se entiende como verdad remota:
-// limpia caché local de esta vista para respetar borrados en Supabase
-try {
-  localStorage.removeItem(cacheKey);
-} catch (e) {}
-
-cachedRecords = [];
-
-await refreshFromSheet({
-  useCache: false,
-  silent: false,
-  showLoadingAfterMs: 0,
-  preferRemote: true
-});
-
-    try { updateRegisterCardUI_(); } catch (e) {}
-    try { syncSingleActionUI_(); } catch (e) {}
-    try { refreshHomeStatus_(); } catch (e) {}
-
-    // 2) cambiar solo el texto del loader, sin volver a incrementar el contador
-    if (loaderTitleEl) loaderTitleEl.textContent = "Actualizando…";
-    if (loaderMsgEl) loaderMsgEl.textContent = "Verificando si hay una nueva versión.";
-    setStatus("warn", "Actualizando…", "Verificando si hay una nueva versión.");
-
-    const swCheck = await checkForNewServiceWorker_();
-
-    // 3) si hay actualización real, activarla y recargar
-    if (swCheck.hasUpdate) {
-      setStatus("warn", "Nueva versión encontrada", "Aplicando actualización…");
-
-      const activated = await activateWaitingSWAndReload_();
-
-      if (!activated) {
-        await hardRefreshPWA();
-        return;
-      }
-
-      return;
-    }
-
-    // 4) si no hay nueva versión, quedarse en la app
-    setStatus("", "Listo", "Estados actualizados. No había una versión nueva.");
-  } catch (e) {
-    resetLoadingNow_();
-    setStatus(
-      "bad",
-      "No se pudo actualizar",
-      String(e && e.message ? e.message : e)
-    );
-  } finally {
-    if (loadingStarted) {
-      setLoading(false);
-    }
-  }
-}
-
-// ⚠️ reemplaza el listener viejo
-if (btnRefreshSW) {
-  btnRefreshSW.addEventListener("click", refreshAttendanceAndMaybeUpdateApp_);
-}
+btnRefreshSW.addEventListener("click", hardRefreshPWA);
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
@@ -15074,8 +14528,9 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: el estado real lo carga DOMContentLoaded con fetch sin cache
-setStatus("warn", "Listo", "Para registrar, activa ubicación y escanea el QR.");
+// Inicial: rápido (cache) + refresh silencioso
+refreshFromSheet({ useCache: true, silent: true });
+setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
 discBindUI_();
