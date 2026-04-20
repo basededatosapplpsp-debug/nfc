@@ -13904,31 +13904,81 @@ function render(records) {
 }
 
 
-  
+  function sameRecordKey_(r) {
+  return [
+    normalizeKey(r && r.teacher),
+    String((r && r.type) || "").trim().toUpperCase(),
+    String((r && r.date) || "").trim(),
+    String((r && r.time) || "").trim()
+  ].join("|");
+}
+
+function mergeRecordsPreferLocal_(remoteRecords, localRecords) {
+  const out = [];
+  const seen = new Set();
+
+  // 1) primero los locales: si ya los pintaste al registrar, no los pierdas
+  (localRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 2) luego lo remoto que no exista todavía
+  (remoteRecords || []).forEach(r => {
+    const key = sameRecordKey_(r);
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(r);
+  });
+
+  // 3) ordenar más nuevo primero
+  out.sort((a, b) => {
+    const aIso = String((a && (a.iso || `${a.date || ""}T${a.time || ""}`)) || "");
+    const bIso = String((b && (b.iso || `${b.date || ""}T${b.time || ""}`)) || "");
+    return bIso.localeCompare(aIso);
+  });
+
+  return out;
+}
+
+function currentLocalViewRecords_() {
+  try {
+    const cacheKey = cacheKeyForCurrentView_();
+    const saved = loadRecordsCache_(cacheKey);
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch (e) {}
+
+  if (Array.isArray(cachedRecords) && cachedRecords.length) {
+    return cachedRecords;
+  }
+
+  return [];
+}
+
+
+
 
 async function refreshFromSheet(options = {}) {
   const {
     useCache = true,         // renderiza caché primero
     silent = false,          // no cambia el status "Cargando."
-    showLoadingAfterMs = 450 // solo mostrar "Cargando" si tarda > 450ms
+    showLoadingAfterMs = 450,
+    preferRemote = false
   } = options;
 
   const admin = isAdminMode();
   const p = loadProfile();
 
-  // ✅ Mes:
-  // - Admin: selector
-  // - Docente: mes actual SIEMPRE
   let month = "";
   if (admin && typeof recordsMonthSelect !== "undefined" && recordsMonthSelect) {
-    month = String(recordsMonthSelect.value || "").trim(); // YYYY-MM
+    month = String(recordsMonthSelect.value || "").trim();
   } else {
-    month = monthKeyFromDate(new Date()); // docente: mes actual
+    month = monthKeyFromDate(new Date());
   }
 
-  // ✅ Docente: pedir solo sus registros
   const teacherFilter = (!admin && p && p.name) ? String(p.name).trim() : "";
-
   const cacheKey = cacheKeyForCurrentView_();
 
   // 1) Render rápido con caché solo si se permite
@@ -13950,24 +14000,24 @@ async function refreshFromSheet(options = {}) {
   try {
     const limit = admin ? 1200 : 300;
 
-    let records = await gsGetList(limit, month, teacherFilter);
+    let remoteRecords = await gsGetList(limit, month, teacherFilter);
 
-    if (!Array.isArray(records)) {
-      records = [];
+    if (!Array.isArray(remoteRecords)) {
+      remoteRecords = [];
     }
 
     // ✅ Seguro extra: docente SOLO mes actual
     if (!admin) {
-      records = filterToMonth_(records, month);
+      remoteRecords = filterToMonth_(remoteRecords, month);
     }
 
     // ✅ Admin: resumen del mes
-    updateAdminMonthSummaryFromRecords(records);
+    updateAdminMonthSummaryFromRecords(remoteRecords);
 
     // ✅ Admin: actualizar lista de docentes según lo cargado
     if (admin && typeof recordsTeacherSelect !== "undefined" && recordsTeacherSelect) {
       const current = String(recordsTeacherSelect.value || "__ALL__");
-      const teachers = uniqueTeachersFromRecords(records);
+      const teachers = uniqueTeachersFromRecords(remoteRecords);
 
       recordsTeacherSelect.innerHTML =
         `<option value="__ALL__">Todos</option>` +
@@ -13977,19 +14027,19 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    // ✅ FORZAR que lo real del servidor reemplace lo local
-    cachedRecords = Array.isArray(records) ? [...records] : [];
+    const localRecords = currentLocalViewRecords_();
 
-    // Render final con datos reales del backend
+    // ✅ si el backend aún no refleja el nuevo registro, conserva lo local
+    const finalRecords = preferRemote
+      ? remoteRecords
+      : mergeRecordsPreferLocal_(remoteRecords, localRecords);
+
+    cachedRecords = Array.isArray(finalRecords) ? [...finalRecords] : [];
+
     render(cachedRecords);
-
-    // Guardar caché actualizado (aunque venga vacío)
     saveRecordsCache_(cacheKey, cachedRecords);
-
-    // ✅ Estado del botón SIEMPRE recalculado desde servidor
     updateDailyButtonsState(cachedRecords);
 
-    // ✅ Si no hay registros del día/mes, limpiar también estado local del botón
     if (!cachedRecords.length) {
       clearAttendanceButtonsState_();
     }
@@ -14428,7 +14478,12 @@ showSuccessCheck(`${type} registrada correctamente`, 3200);
 
 // ✅ confirmar después contra backend sin depender del cache
 setTimeout(() => {
-  refreshFromSheet({ useCache: false, silent: true, showLoadingAfterMs: 0 }).catch(() => {});
+  refreshFromSheet({
+    useCache: false,
+    silent: true,
+    showLoadingAfterMs: 0,
+    preferRemote: false
+  }).catch(() => {});
 }, 900);
 
   } catch (e) {
@@ -14741,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-14";
+const APP_BUILD = "2026-04-10-15";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
