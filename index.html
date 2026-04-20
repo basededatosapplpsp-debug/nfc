@@ -15074,7 +15074,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-33";
+const APP_BUILD = "2026-04-10-34";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15205,8 +15205,8 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: rápido (cache) + refresh silencioso
-refreshFromSheet({ useCache: true, silent: true });
+// Inicial: consulta real para no pintar botones viejos
+refreshFromSheet({ useCache: false, silent: true, preferRemote: true }).catch(() => {});
 setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
@@ -15240,8 +15240,8 @@ if (_p) {
   // ✅ FIX: si ya hay sesión guardada, inicializa cursos + estudiantes
   initAllModalCourses_();
 
-  // ✅ NUEVO: al restaurar sesión, sincroniza estado real de asistencia
-  syncAttendanceOnResume_();
+// ✅ al restaurar sesión, sincroniza de una vez contra Supabase
+refreshFromSheet({ useCache: false, silent: true, preferRemote: true }).catch(() => {});
 } else {
   applySessionUI(null);
 }
