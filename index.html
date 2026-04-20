@@ -14796,7 +14796,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-16";
+const APP_BUILD = "2026-04-10-17";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14829,8 +14829,9 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    setLoading(true, "Actualizando…", "Consultando estado real en Supabase.");
+    setLoading(true, "Actualizando…", "Sincronizando estado real y actualizando la app.");
 
+    // 1) traer estado real desde Supabase
     await refreshFromSheet({
       useCache: false,
       silent: true,
@@ -14838,14 +14839,18 @@ btnRefreshSW.addEventListener("click", async () => {
       preferRemote: true
     });
 
-    setStatus("", "Actualizado", "Se sincronizó el estado real de asistencia.");
+    // 2) actualizar UI antes de refrescar la app
+    try { syncSingleActionUI_(); } catch (e) {}
+    try { updateRegisterCardUI_(); } catch (e) {}
+
+    // 3) mantener el comportamiento actual del botón: actualizar la app
+    await hardRefreshPWA();
   } catch (e) {
     setStatus(
       "bad",
       "No se pudo actualizar",
       String(e && e.message ? e.message : e) || "Intenta nuevamente."
     );
-  } finally {
     setLoading(false);
   }
 });
