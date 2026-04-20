@@ -3325,50 +3325,42 @@ function initQrUi_() {
   }
 }
 
-// ✅ Ejecutar cuando el DOM ya existe
-// ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
-  // ✅ primero carga configuración real
   await loadRuntimeConfig_({ silent: true });
 
-  // ✅ luego consulta backend real si hay docente logueado
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
-if (profile && profile.name && !admin) {
-  await refreshFromSheet({
-    useCache: true,
-    silent: true,
-    preferRemote: false
-  });
-}
+    if (profile && profile.name && !admin) {
+      await refreshFromSheet({
+        useCache: false,
+        silent: true,
+        preferRemote: true
+      });
+    }
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-// ✅ mostrar solo el check azul después del reload
-try {
-  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+  try {
+    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-  if (showAfter === "1") {
-    sessionStorage.removeItem("showRefreshAfterReload");
+    if (showAfter === "1") {
+      sessionStorage.removeItem("showRefreshAfterReload");
+      showRefreshDone("Actualizado");
 
-    // ✅ al volver, mostrar de una vez el check azul
-    showRefreshDone("Actualizado");
-
-    setTimeout(() => {
-      hideRefreshSpin();
-    }, 1000);
-  }
-} catch (e) {}
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 1000);
+    }
+  } catch (e) {}
 });
 
 
@@ -14228,44 +14220,19 @@ function sameRecordKey_(r) {
 function mergeRecordsPreferLocal_(remoteRecords, localRecords) {
   const out = [];
   const seen = new Set();
-  const now = Date.now();
-  const LOCAL_GRACE_MS = 2 * 60 * 1000; // 2 minutos
 
-  function recordMs_(r) {
-    const iso = String(r?.iso || "").trim();
-    if (iso) {
-      const ms = Date.parse(iso);
-      if (!isNaN(ms)) return ms;
-    }
-
-    const date = String(r?.date || "").trim();
-    const time = String(r?.time || "").trim();
-    if (date && time) {
-      const ms = Date.parse(`${date}T${time}`);
-      if (!isNaN(ms)) return ms;
-    }
-
-    return 0;
-  }
-
-  // 1) primero lo remoto: es la verdad final
-  (remoteRecords || []).forEach(r => {
+  // 1) primero los locales: si ya los pintaste al registrar, no los pierdas
+  (localRecords || []).forEach(r => {
     const key = sameRecordKey_(r);
     if (seen.has(key)) return;
     seen.add(key);
     out.push(r);
   });
 
-  // 2) luego lo local SOLO si es muy reciente y todavía no aparece en remoto
-  (localRecords || []).forEach(r => {
+  // 2) luego lo remoto que no exista todavía
+  (remoteRecords || []).forEach(r => {
     const key = sameRecordKey_(r);
     if (seen.has(key)) return;
-
-    const ms = recordMs_(r);
-    const isRecent = ms > 0 && (now - ms) <= LOCAL_GRACE_MS;
-
-    if (!isRecent) return;
-
     seen.add(key);
     out.push(r);
   });
@@ -15107,7 +15074,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-32";
+const APP_BUILD = "2026-04-10-33";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
