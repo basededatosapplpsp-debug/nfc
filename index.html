@@ -15082,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-35";
+const APP_BUILD = "2026-04-10-36";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15137,7 +15137,13 @@ btnRefreshSW.addEventListener("click", async () => {
 // ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
 window.addEventListener("load", async () => {
   try {
+    const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
+
+    if (alreadyAutoRefreshed === "1") return;
+
+    sessionStorage.setItem("didAutoRefreshOnOpen", "1");
     sessionStorage.setItem("showRefreshAfterReload", "1");
+
     await hardRefreshPWA();
   } catch (e) {
     console.error(e);
@@ -15145,7 +15151,10 @@ window.addEventListener("load", async () => {
 });
 
 if (btnLogout) {
-  btnLogout.addEventListener("click", logout);
+  btnLogout.addEventListener("click", () => {
+    sessionStorage.removeItem("didAutoRefreshOnOpen");
+    logout();
+  });
 }
 
 // ======= SW register + auto refresh por build =======
