@@ -1,4 +1,4 @@
-
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -1685,23 +1685,6 @@ body.is-admin #registerActions{
   display: none !important;
 }
 
-
-#registerActions.done #btnSalida{
-  width: 100%;
-  cursor: default;
-  background: linear-gradient(
-    180deg,
-    rgba(34,197,94,.95),
-    rgba(22,163,74,.88)
-  );
-  color: #ffffff;
-  border-color: rgba(34,197,94,.35);
-  box-shadow:
-    0 8px 18px rgba(34,197,94,.18),
-    inset 0 1px 0 rgba(255,255,255,.22);
-}
-
-
 </style>
 </head>
 
@@ -2935,11 +2918,7 @@ function initQrUi_() {
 // ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
-
-  try { restoreAttendanceButtonsState_(); } catch (e) {}
-  try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
-
   loadRuntimeConfig_({ silent: true });
 });
 
@@ -3768,7 +3747,6 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
-    syncSingleActionUI_();
     return;
   }
 
@@ -3800,7 +3778,7 @@ function updateDailyButtonsState(records) {
       return `${yyyy}-${mm}-${dd}`;
     }
 
-    // ISO
+    // ISO (evita error por zona horaria)
     if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) {
       return raw.slice(0, 10);
     }
@@ -3830,8 +3808,7 @@ function updateDailyButtonsState(records) {
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
 
-    saveAttendanceButtonsState_();
-    syncSingleActionUI_();
+    saveAttendanceButtonsState_(); // ✅ AÑADIDO
     return;
   }
 
@@ -3841,8 +3818,7 @@ function updateDailyButtonsState(records) {
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
 
-    saveAttendanceButtonsState_();
-    syncSingleActionUI_();
+    saveAttendanceButtonsState_(); // ✅ AÑADIDO
     return;
   }
 
@@ -3851,60 +3827,10 @@ function updateDailyButtonsState(records) {
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
 
-  saveAttendanceButtonsState_();
-  syncSingleActionUI_();
+  saveAttendanceButtonsState_(); // ✅ AÑADIDO
 }
 
-function syncSingleActionUI_() {
-  const wrap = $("registerActions");
-  if (!wrap || !btnEntrada || !btnSalida) return;
 
-  const entradaDisabled = !!btnEntrada.disabled;
-  const salidaDisabled = !!btnSalida.disabled;
-  const isDone = entradaDisabled && salidaDisabled;
-
-  // reset visual
-  wrap.classList.remove("done");
-  btnEntrada.hidden = false;
-  btnSalida.hidden = false;
-
-  // Estado 1: aún no ha registrado entrada
-  if (!entradaDisabled && salidaDisabled) {
-    btnEntrada.hidden = false;
-    btnSalida.hidden = true;
-
-    btnEntrada.textContent = "Entrada";
-    btnEntrada.setAttribute("aria-label", "Entrada");
-    return;
-  }
-
-  // Estado 2: ya registró entrada, solo mostrar salida
-  if (entradaDisabled && !salidaDisabled) {
-    btnEntrada.hidden = true;
-    btnSalida.hidden = false;
-
-    btnSalida.textContent = "Salida";
-    btnSalida.setAttribute("aria-label", "Salida");
-    return;
-  }
-
-  // Estado 3: ya completó ambos registros
-  if (isDone) {
-    wrap.classList.add("done");
-    btnEntrada.hidden = true;
-    btnSalida.hidden = false;
-
-    btnSalida.textContent = "Registros completados";
-    btnSalida.setAttribute("aria-label", "Registros completados");
-    return;
-  }
-
-  // fallback
-  btnEntrada.hidden = false;
-  btnSalida.hidden = true;
-  btnEntrada.textContent = "Entrada";
-  btnEntrada.setAttribute("aria-label", "Entrada");
-}
 
 
 // ======= Helpers =======
@@ -3962,7 +3888,6 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = false;
       btnSalida.disabled = true;
       btnSalida.classList.add("is-inactive");
-      syncSingleActionUI_();
       return true;
     }
 
@@ -3970,70 +3895,17 @@ function restoreAttendanceButtonsState_() {
       btnEntrada.disabled = true;
       btnSalida.disabled = false;
       btnSalida.classList.remove("is-inactive");
-      syncSingleActionUI_();
       return true;
     }
 
     btnEntrada.disabled = true;
     btnSalida.disabled = true;
     btnSalida.classList.remove("is-inactive");
-    syncSingleActionUI_();
     return true;
   } catch {
     return false;
   }
 }
-
-
-async function forceSyncAttendanceToday_() {
-  try {
-    setLoading(true, "Actualizando…", "Consultando registros reales en Supabase.");
-
-    // 1) limpiar SOLO caché local de registros
-    try {
-      const raw = localStorage.getItem(LS_CACHE_KEY);
-      if (raw) {
-        const obj = JSON.parse(raw) || {};
-        const cacheKey = cacheKeyForCurrentView_();
-        delete obj[cacheKey];
-        localStorage.setItem(LS_CACHE_KEY, JSON.stringify(obj));
-      }
-    } catch (e) {}
-
-    // 2) limpiar estado visual guardado de hoy
-    try {
-      localStorage.removeItem(attendanceButtonsStateKey_());
-    } catch (e) {}
-
-    // 3) reset visual temporal para evitar mostrar estado viejo
-    hasEntradaToday = false;
-    hasSalidaToday = false;
-
-    btnEntrada.disabled = false;
-    btnSalida.disabled = true;
-    btnSalida.classList.add("is-inactive");
-
-    try { syncSingleActionUI_(); } catch (e) {}
-
-    // 4) traer datos REALES del servidor, sin usar cache
-    await refreshFromSheet({
-      useCache: false,
-      silent: false,
-      showLoadingAfterMs: 0
-    });
-
-    setStatus("", "Listo", "Registros actualizados desde Supabase.");
-  } catch (e) {
-    setStatus(
-      "bad",
-      "No se pudo actualizar",
-      String(e && e.message ? e.message : e)
-    );
-  } finally {
-    setLoading(false);
-  }
-}
-
 
 // ======= CACHE + TIMEOUT LIST =======
 const LS_CACHE_KEY = "asistencia_cache_records_v1";
@@ -14467,7 +14339,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-26";
+const APP_BUILD = "2026-04-10-27";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -14498,9 +14370,7 @@ async function hardRefreshPWA() {
   }
 }
 
-btnRefreshSW.addEventListener("click", async () => {
-  await forceSyncAttendanceToday_();
-});
+btnRefreshSW.addEventListener("click", hardRefreshPWA);
 if (btnLogout) {
   btnLogout.addEventListener("click", logout);
 }
