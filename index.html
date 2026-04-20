@@ -3330,41 +3330,45 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
-  // ✅ pintura mínima temporal
+  // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
+  // ✅ primero carga configuración real
   await loadRuntimeConfig_({ silent: true });
 
-  // ✅ al iniciar, SIEMPRE confirmar con backend real
+  // ✅ luego consulta backend real si hay docente logueado
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
-    if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: false,
-        silent: true,
-        preferRemote: true
-      });
-    }
+ if (profile && profile.name && !admin) {
+  await refreshFromSheet({
+    useCache: true,
+    silent: true,
+    preferRemote: false
+  });
+}
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-  try {
-    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+// ✅ mostrar solo el check azul después del reload
+try {
+  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-    if (showAfter === "1") {
-      sessionStorage.removeItem("showRefreshAfterReload");
-      showRefreshDone("Actualizado");
+  if (showAfter === "1") {
+    sessionStorage.removeItem("showRefreshAfterReload");
 
-      setTimeout(() => {
-        hideRefreshSpin();
-      }, 1000);
-    }
-  } catch (e) {}
+    // ✅ al volver, mostrar de una vez el check azul
+    showRefreshDone("Actualizado");
+
+    setTimeout(() => {
+      hideRefreshSpin();
+    }, 1000);
+  }
+} catch (e) {}
 });
 
 
@@ -4473,8 +4477,6 @@ function saveAttendanceButtonsState_() {
   } catch {}
 }
 
-
-
 function restoreAttendanceButtonsState_() {
   try {
     const raw = localStorage.getItem(attendanceButtonsStateKey_());
@@ -4981,6 +4983,7 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
 
   const on = __loadingCount > 0;
 
+  // Deshabilitar botones principales para evitar dobles registros
   if (on) {
     if (btnEntrada) btnEntrada.disabled = true;
     if (btnSalida) btnSalida.disabled = true;
@@ -4988,36 +4991,51 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
   } else {
     if (btnExport) btnExport.disabled = false;
 
-    // ✅ NUNCA restaurar desde localStorage al terminar carga
-    // ✅ siempre recalcular desde cachedRecords actuales
+    // ✅ PRIMERO intenta restaurar desde localStorage del día
+    let restored = false;
     try {
-      updateDailyButtonsState(cachedRecords || []);
-    } catch (e) {}
+      restored = restoreAttendanceButtonsState_();
+    } catch (e) {
+      restored = false;
+    }
 
+    // ✅ Si no había estado local, usa caché de registros
+    if (!restored) {
+      try {
+        updateDailyButtonsState(cachedRecords || []);
+      } catch (e) {}
+    }
+
+    // ✅ Refuerza la UI visual del botón único
     try {
       syncSingleActionUI_();
     } catch (e) {}
   }
 
+  // Mostrar overlay loader
   if (appLoader) {
     appLoader.hidden = !on;
     if (loaderTitleEl) loaderTitleEl.textContent = title;
     if (loaderMsgEl) loaderMsgEl.textContent = msg;
   }
 
+  // Evitar scroll/taps detrás
   document.body.classList.toggle("is-loading", on);
 
+  // Mientras carga, mostrar mensaje temporal
   if (on) {
     setStatus("warn", title, msg);
     return;
   }
 
+  // Cuando termina, recalcular estado general
   try {
     refreshHomeStatus_();
   } catch (e) {
     setStatus("warn", "Listo", "Activa ubicación para registrar en el colegio.");
   }
 }
+
 
 function resetLoadingNow_() {
   __loadingCount = 0;
@@ -14254,10 +14272,10 @@ function currentLocalViewRecords_() {
 
 async function refreshFromSheet(options = {}) {
   const {
-    useCache = false,         // ✅ por defecto NO usar caché para estado real
-    silent = false,
-    showLoadingAfterMs = 450,
-    preferRemote = true       // ✅ por defecto SIEMPRE prioriza backend real
+    useCache = true,          // renderiza caché primero
+    silent = false,           // no cambia el status "Cargando."
+    showLoadingAfterMs = 450, // solo mostrar "Cargando" si tarda > 450ms
+    preferRemote = false      // ✅ si true, usa SOLO backend real
   } = options;
 
   const admin = isAdminMode();
@@ -14276,16 +14294,14 @@ async function refreshFromSheet(options = {}) {
   // ✅ Docente: pedir solo sus registros
   const teacherFilter = (!admin && p && p.name) ? String(p.name).trim() : "";
 
+  // 1) Render rápido con caché (no se siente "lento al iniciar")
   const cacheKey = cacheKeyForCurrentView_();
-
-  // ✅ solo usar caché si explícitamente lo piden y NO es consulta real forzada
-  if (useCache && !preferRemote) {
-    try {
-      const cached = loadRecordsCache_(cacheKey);
-      if (Array.isArray(cached) && cached.length) {
-        render(cached);
-      }
-    } catch (e) {}
+  if (useCache) {
+    const cached = loadRecordsCache_(cacheKey);
+    if (cached && cached.length) {
+      render(cached);
+      // no ponemos "Listo" aquí: esperamos confirmación de red
+    }
   }
 
   // 2) “Cargando…” SOLO si realmente tarda
@@ -14302,34 +14318,18 @@ async function refreshFromSheet(options = {}) {
 
     let records = await gsGetList(limit, month, teacherFilter);
 
-    if (!Array.isArray(records)) {
-      records = [];
-    }
-
-    // ✅ Seguro extra: docente SOLO mes actual
+    // ✅ Seguro extra: docente SOLO mes actual (por si backend devolviera más)
     if (!admin) {
       records = filterToMonth_(records, month);
     }
 
-    // ✅ la verdad del backend reemplaza el cache local para esta vista
-    cachedRecords = Array.isArray(records) ? records : [];
-
-    try {
-      saveRecordsCache_(cacheKey, cachedRecords);
-    } catch (e) {}
-
-    // ✅ refresca botones SIEMPRE desde registros reales
-    try {
-      updateDailyButtonsState(cachedRecords);
-    } catch (e) {}
-
     // ✅ Admin: resumen del mes
-    updateAdminMonthSummaryFromRecords(cachedRecords);
+    updateAdminMonthSummaryFromRecords(records);
 
     // ✅ Admin: actualizar lista de docentes según lo cargado (sin romper selección)
     if (admin && typeof recordsTeacherSelect !== "undefined" && recordsTeacherSelect) {
       const current = String(recordsTeacherSelect.value || "__ALL__");
-      const teachers = uniqueTeachersFromRecords(cachedRecords);
+      const teachers = uniqueTeachersFromRecords(records);
 
       recordsTeacherSelect.innerHTML =
         `<option value="__ALL__">Todos</option>` +
@@ -14339,24 +14339,27 @@ async function refreshFromSheet(options = {}) {
       recordsTeacherSelect.value = exists ? current : "__ALL__";
     }
 
-    render(cachedRecords);
+    let finalRecords;
 
-    if (loadingTimer) {
-      clearTimeout(loadingTimer);
-      loadingTimer = null;
+    if (preferRemote) {
+      // ✅ usar SOLO lo que viene del backend real
+      finalRecords = Array.isArray(records) ? records : [];
+    } else {
+      // ✅ proteger contra respuesta vieja del backend:
+      // mezclar lo remoto con lo local ya pintado, prefiriendo lo local
+      const localViewRecords = currentLocalViewRecords_();
+      finalRecords = mergeRecordsPreferLocal_(records, localViewRecords);
     }
 
-    if (!silent) {
-      refreshHomeStatus_();
-    }
+    // Render final
+    cachedRecords = finalRecords;
+    render(finalRecords);
 
-    return cachedRecords;
+    // Guardar caché final
+    saveRecordsCache_(cacheKey, finalRecords);
+
+    if (!silent) setStatus("", "Listo", "Datos de asistencia sincronizados.");
   } catch (e) {
-    if (loadingTimer) {
-      clearTimeout(loadingTimer);
-      loadingTimer = null;
-    }
-
     if (!silent) {
       setStatus(
         "bad",
@@ -14364,37 +14367,13 @@ async function refreshFromSheet(options = {}) {
         String(e && e.message ? e.message : "Revisa URL/clave del Web App y permisos.")
       );
     }
-
-    throw e;
+  } finally {
+    if (loadingTimer) clearTimeout(loadingTimer);
   }
 }
 
-async function forceRealAttendanceSync_(options = {}) {
-  const { silent = true } = options;
 
-  const admin = isAdminMode();
-  const profile = loadProfile();
 
-  if (admin || !profile || !profile.name) return [];
-
-  const records = await refreshFromSheet({
-    useCache: false,
-    silent,
-    preferRemote: true
-  });
-
-  // ✅ forzar de nuevo el estado de botones desde la respuesta real
-  try {
-    updateDailyButtonsState(records || []);
-  } catch (e) {}
-
-  // ✅ forzar escritura de localStorage con el estado real actual
-  try {
-    saveAttendanceButtonsState_();
-  } catch (e) {}
-
-  return records || [];
-}
 
 
 // ======= QR CONFIG (AJUSTA ESTO) =======
@@ -14787,7 +14766,7 @@ async function register(type) {
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
-  forceRealAttendanceSync_({ silent: true }).catch(() => {});
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
 }, 5000);
 
     return;
@@ -15103,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-29";
+const APP_BUILD = "2026-04-10-30";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15136,15 +15115,19 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    showRefreshSpin("Consultando estado real…");
+    // ✅ guardar flag para mostrar animación después del reload
+    sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    await forceRealAttendanceSync_({ silent: true });
+    // ✅ mostrar animación actual
+    showRefreshSpin("Actualizando…");
 
-    showRefreshDone("Estado actualizado");
+    // pequeño delay para que se vea antes del reload
+    await new Promise(resolve => requestAnimationFrame(() => resolve()));
+    await new Promise(resolve => setTimeout(resolve, 60));
 
-    setTimeout(() => {
-      hideRefreshSpin();
-    }, 900);
+    // ✅ refrescar inmediatamente
+    await hardRefreshPWA();
+
   } catch (e) {
     hideRefreshSpin();
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
