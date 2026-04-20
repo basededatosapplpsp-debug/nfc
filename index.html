@@ -3325,22 +3325,27 @@ function initQrUi_() {
   }
 }
 
+// ✅ Ejecutar cuando el DOM ya existe
+// ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
+  // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
+  // ✅ primero carga configuración real
   await loadRuntimeConfig_({ silent: true });
 
+  // ✅ luego consulta backend real si hay docente logueado
   try {
     const profile = loadProfile();
     const admin = isAdminMode();
 
     if (profile && profile.name && !admin) {
       await refreshFromSheet({
-        useCache: false,
+        useCache: true,
         silent: true,
         preferRemote: true
       });
@@ -3349,18 +3354,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
 
-  try {
-    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+// ✅ mostrar solo el check azul después del reload
+try {
+  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
 
-    if (showAfter === "1") {
-      sessionStorage.removeItem("showRefreshAfterReload");
-      showRefreshDone("Actualizado");
+  if (showAfter === "1") {
+    sessionStorage.removeItem("showRefreshAfterReload");
 
-      setTimeout(() => {
-        hideRefreshSpin();
-      }, 1000);
-    }
-  } catch (e) {}
+    // ✅ al volver, mostrar de una vez el check azul
+    showRefreshDone("Actualizado");
+
+    setTimeout(() => {
+      hideRefreshSpin();
+    }, 1000);
+  }
+} catch (e) {}
 });
 
 
@@ -15074,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-34";
+const APP_BUILD = "2026-04-10-35";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15123,6 +15131,16 @@ btnRefreshSW.addEventListener("click", async () => {
   } catch (e) {
     hideRefreshSpin();
     setStatus("bad", "No se pudo actualizar", String(e && e.message ? e.message : e));
+  }
+});
+
+// ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
+window.addEventListener("load", async () => {
+  try {
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+    await hardRefreshPWA();
+  } catch (e) {
+    console.error(e);
   }
 });
 
@@ -15205,8 +15223,8 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 
 
-// Inicial: consulta real para no pintar botones viejos
-refreshFromSheet({ useCache: false, silent: true, preferRemote: true }).catch(() => {});
+// Inicial: rápido (cache) + refresh silencioso
+refreshFromSheet({ useCache: true, silent: true });
 setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
@@ -15240,8 +15258,8 @@ if (_p) {
   // ✅ FIX: si ya hay sesión guardada, inicializa cursos + estudiantes
   initAllModalCourses_();
 
-// ✅ al restaurar sesión, sincroniza de una vez contra Supabase
-refreshFromSheet({ useCache: false, silent: true, preferRemote: true }).catch(() => {});
+  // ✅ NUEVO: al restaurar sesión, sincroniza estado real de asistencia
+  syncAttendanceOnResume_();
 } else {
   applySessionUI(null);
 }
