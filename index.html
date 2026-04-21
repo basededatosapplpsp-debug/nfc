@@ -15121,7 +15121,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-41";
+const APP_BUILD = "2026-04-10-42";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15194,28 +15194,70 @@ function saveAttendanceChangesToken_(token) {
 async function autoRefreshIfAttendanceChanged_() {
   try {
     const remoteToken = await gsAttendanceChangesToken_();
-    if (!remoteToken) return false;
+    if (!remoteToken) {
+      // ✅ si no llegó token, al menos sincroniza estado visual sin reset
+      const p = loadProfile();
+      if (!isAdminMode() && p && p.name) {
+        await refreshFromSheet({
+          useCache: true,
+          silent: true,
+          preferRemote: true
+        });
+      }
+      return false;
+    }
 
     const savedToken = getSavedAttendanceChangesToken_();
 
-    // primera vez: solo guardar token, sin reset
+    // ✅ primera vez: guardar token y sincronizar estado sin hard reset
     if (!savedToken) {
       saveAttendanceChangesToken_(remoteToken);
+
+      const p = loadProfile();
+      if (!isAdminMode() && p && p.name) {
+        await refreshFromSheet({
+          useCache: true,
+          silent: true,
+          preferRemote: true
+        });
+      }
       return false;
     }
 
-    // sin cambios reales: no hacer nada
+    // ✅ sin cambios reales: NO reset, pero sí sincronizar estado actual
     if (savedToken === remoteToken) {
+      const p = loadProfile();
+      if (!isAdminMode() && p && p.name) {
+        await refreshFromSheet({
+          useCache: true,
+          silent: true,
+          preferRemote: true
+        });
+      }
       return false;
     }
 
-    // hubo cambios reales: guardar nuevo token y refrescar app
+    // ✅ hubo cambios reales: guardar nuevo token y refrescar app completa
     saveAttendanceChangesToken_(remoteToken);
     sessionStorage.setItem("showRefreshAfterReload", "1");
     await hardRefreshPWA();
     return true;
+
   } catch (e) {
     console.error("No pude validar cambios de asistencia:", e);
+
+    // ✅ fallback: si falla token, al menos sincroniza registros/botones
+    try {
+      const p = loadProfile();
+      if (!isAdminMode() && p && p.name) {
+        await refreshFromSheet({
+          useCache: true,
+          silent: true,
+          preferRemote: true
+        });
+      }
+    } catch (_) {}
+
     return false;
   }
 }
