@@ -4531,14 +4531,43 @@ function applyAttendanceState_(type, recordData = {}) {
 
   // ✅ construir registro local aunque el backend no devuelva resp.record
   const profile = loadProfile() || {};
+
+  const localType = String(type || "").trim().toUpperCase();
+  const localDate = recordData.date || t.date;
+  const localTime = recordData.time || t.time;
+  const localTeacher = String(
+    recordData.teacher || profile.name || teacherNameEl.value || ""
+  ).trim();
+
+  // ✅ calcular "late" en cliente para que el color salga bien inmediatamente
+  const hhmmFromTime = (value) => String(value || "").trim().slice(0, 5);
+
+  const toMinutes = (hhmm) => {
+    const s = String(hhmm || "").trim();
+    const m = s.match(/^(\d{2}):(\d{2})$/);
+    if (!m) return null;
+    return Number(m[1]) * 60 + Number(m[2]);
+  };
+
+  const entryMinutes = toMinutes(hhmmFromTime(localTime));
+  const onTimeMinutes = toMinutes(ON_TIME_HHMM_CLIENT);
+
+  const localLate =
+    localType === "ENTRADA" &&
+    entryMinutes != null &&
+    onTimeMinutes != null
+      ? entryMinutes > onTimeMinutes
+      : !!recordData.late;
+
   const localRecord = {
-    teacher: String(recordData.teacher || profile.name || teacherNameEl.value || "").trim(),
-    type: String(type || "").trim().toUpperCase(),
-    date: recordData.date || t.date,
-    time: recordData.time || t.time,
+    teacher: localTeacher,
+    type: localType,
+    date: localDate,
+    time: localTime,
     iso: recordData.iso || t.iso,
     distance_m: recordData.distance_m ?? recordData.dist ?? "—",
-    accuracy_m: recordData.accuracy_m ?? recordData.acc ?? "—"
+    accuracy_m: recordData.accuracy_m ?? recordData.acc ?? "—",
+    late: localLate
   };
 
   if (!Array.isArray(cachedRecords)) {
@@ -4552,7 +4581,7 @@ function applyAttendanceState_(type, recordData = {}) {
   );
 
   if (!exists) {
-    cachedRecords = [localRecord, ...cachedRecords];
+    cachedRecords = [localRecord, ...(cachedRecords || [])];
   }
 
   try {
@@ -4573,7 +4602,7 @@ function applyAttendanceState_(type, recordData = {}) {
       btnSalida.disabled = true;
       btnSalida.classList.remove("is-inactive");
     }
-    syncSingleActionUI_();
+    try { syncSingleActionUI_(); } catch (_) {}
   }
 }
 
@@ -15082,7 +15111,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-38";
+const APP_BUILD = "2026-04-10-39";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
