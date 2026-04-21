@@ -14751,25 +14751,25 @@ async function register(type) {
           }
     );
 
-setRecordsOpen(true);
+    try {
+      render(cachedRecords || []);
+    } catch (e) {}
 
-try {
-  await refreshFromSheet({
-    useCache: false,
-    silent: true,
-    preferRemote: true
-  });
-} catch (e) {}
+    setRecordsOpen(true);
+    setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
 
-setStatus("", "Guardado", `${type} registrada para ${teacher}.`);
+    // ✅ apagar loader antes del chulito
+    try { setLoading(false); } catch (e) {}
 
-// ✅ apagar loader antes del chulito
-try { setLoading(false); } catch (e) {}
+    // ✅ mostrar chulito grande automático
+    showSuccessCheck(`${type} registrada correctamente`, 3200);
 
-// ✅ mostrar chulito grande automático
-showSuccessCheck(`${type} registrada correctamente`, 3200);
+  // ✅ sincronización automática más segura
+setTimeout(() => {
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
 
-return;
+    return;
 
   } catch (e) {
     const msg = String(e && e.message ? e.message : e).toLowerCase();
@@ -15082,7 +15082,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-37";
+const APP_BUILD = "2026-04-10-38";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15138,12 +15138,11 @@ btnRefreshSW.addEventListener("click", async () => {
 window.addEventListener("load", async () => {
   try {
     const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
+
     if (alreadyAutoRefreshed === "1") return;
 
     sessionStorage.setItem("didAutoRefreshOnOpen", "1");
-
-    // ✅ NO mostrar check azul ni spinner en auto refresh
-    sessionStorage.removeItem("showRefreshAfterReload");
+    sessionStorage.setItem("showRefreshAfterReload", "1");
 
     await hardRefreshPWA();
   } catch (e) {
