@@ -3343,13 +3343,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profile = loadProfile();
     const admin = isAdminMode();
 
- if (profile && profile.name && !admin) {
-  await refreshFromSheet({
-    useCache: false,
-    silent: true,
-    preferRemote: true
-  });
-}
+    if (profile && profile.name && !admin) {
+      await refreshFromSheet({
+        useCache: true,
+        silent: true,
+        preferRemote: true
+      });
+    }
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
@@ -14751,7 +14751,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-    const resp = await gsRegister({
+     const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -14789,12 +14789,6 @@ async function register(type) {
           }
     );
 
-    // ✅ actualizar token local de cambios para no forzar auto refresh después
-    try {
-      const newToken = await gsAttendanceChangesToken_();
-      if (newToken) saveAttendanceChangesToken_(newToken);
-    } catch (e) {}
-
     try {
       render(cachedRecords || []);
     } catch (e) {}
@@ -14807,6 +14801,11 @@ async function register(type) {
 
     // ✅ mostrar chulito grande automático
     showSuccessCheck(`${type} registrada correctamente`, 3200);
+
+  // ✅ sincronización automática más segura
+setTimeout(() => {
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
 
     return;
 
@@ -15121,7 +15120,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-43";
+const APP_BUILD = "2026-04-10-44";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15152,103 +15151,6 @@ async function hardRefreshPWA() {
   }
 }
 
-const ATTENDANCE_CHANGES_TOKEN_KEY = "attendanceChangesToken_v1";
-
-async function gsAttendanceChangesToken_() {
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "attendance_changes_token",
-      key: GS_API_KEY
-    })
-  });
-
-  let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("Respuesta inválida del servidor");
-  }
-
-  if (!data || data.ok !== true) {
-    throw new Error(data?.msg || data?.error || "attendance_changes_token_failed");
-  }
-
-  return String(data.token || "").trim();
-}
-
-function getSavedAttendanceChangesToken_() {
-  try {
-    return String(localStorage.getItem(ATTENDANCE_CHANGES_TOKEN_KEY) || "").trim();
-  } catch (e) {
-    return "";
-  }
-}
-
-function saveAttendanceChangesToken_(token) {
-  try {
-    localStorage.setItem(ATTENDANCE_CHANGES_TOKEN_KEY, String(token || "").trim());
-  } catch (e) {}
-}
-
-async function autoRefreshIfAttendanceChanged_() {
-  try {
-    const p = loadProfile();
-    const admin = isAdminMode();
-
-    // si no hay usuario docente logueado, no hacemos nada
-    if (admin || !p || !p.name) return false;
-
-    const remoteToken = await gsAttendanceChangesToken_();
-    const savedToken = getSavedAttendanceChangesToken_();
-
-    // ✅ primera vez: guardar token
-    if (!savedToken && remoteToken) {
-      saveAttendanceChangesToken_(remoteToken);
-    }
-
-    // ✅ SIEMPRE sincronizar desde backend real al abrir
-    await refreshFromSheet({
-      useCache: false,
-      silent: true,
-      preferRemote: true
-    });
-
-    // ✅ si hubo cambio externo real, además hacer hard refresh
-    if (remoteToken && savedToken && remoteToken !== savedToken) {
-      saveAttendanceChangesToken_(remoteToken);
-      sessionStorage.setItem("showRefreshAfterReload", "1");
-      await hardRefreshPWA();
-      return true;
-    }
-
-    // ✅ mantener token actualizado aunque no haya hard refresh
-    if (remoteToken) {
-      saveAttendanceChangesToken_(remoteToken);
-    }
-
-    return false;
-  } catch (e) {
-    console.error("No pude validar cambios de asistencia:", e);
-
-    // fallback: al menos sincroniza registros reales
-    try {
-      const p = loadProfile();
-      const admin = isAdminMode();
-
-      if (!admin && p && p.name) {
-        await refreshFromSheet({
-          useCache: false,
-          silent: true,
-          preferRemote: true
-        });
-      }
-    } catch (_) {}
-
-    return false;
-  }
-}
-
 btnRefreshSW.addEventListener("click", async () => {
   try {
     // ✅ guardar flag para mostrar animación después del reload
@@ -15270,10 +15172,17 @@ btnRefreshSW.addEventListener("click", async () => {
   }
 });
 
-// ✅ Auto refresh solo si attendance_records cambió realmente en Supabase
+// ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
 window.addEventListener("load", async () => {
   try {
-    await autoRefreshIfAttendanceChanged_();
+    const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
+
+    if (alreadyAutoRefreshed === "1") return;
+
+    sessionStorage.setItem("didAutoRefreshOnOpen", "1");
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    await hardRefreshPWA();
   } catch (e) {
     console.error(e);
   }
@@ -15281,6 +15190,7 @@ window.addEventListener("load", async () => {
 
 if (btnLogout) {
   btnLogout.addEventListener("click", () => {
+    sessionStorage.removeItem("didAutoRefreshOnOpen");
     logout();
   });
 }
