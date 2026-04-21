@@ -3343,13 +3343,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profile = loadProfile();
     const admin = isAdminMode();
 
-    if (profile && profile.name && !admin) {
-      await refreshFromSheet({
-        useCache: true,
-        silent: true,
-        preferRemote: true
-      });
-    }
+ if (profile && profile.name && !admin) {
+  await refreshFromSheet({
+    useCache: false,
+    silent: true,
+    preferRemote: true
+  });
+}
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
@@ -15121,7 +15121,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-42";
+const APP_BUILD = "2026-04-10-43";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15193,65 +15193,52 @@ function saveAttendanceChangesToken_(token) {
 
 async function autoRefreshIfAttendanceChanged_() {
   try {
-    const remoteToken = await gsAttendanceChangesToken_();
-    if (!remoteToken) {
-      // ✅ si no llegó token, al menos sincroniza estado visual sin reset
-      const p = loadProfile();
-      if (!isAdminMode() && p && p.name) {
-        await refreshFromSheet({
-          useCache: true,
-          silent: true,
-          preferRemote: true
-        });
-      }
-      return false;
-    }
+    const p = loadProfile();
+    const admin = isAdminMode();
 
+    // si no hay usuario docente logueado, no hacemos nada
+    if (admin || !p || !p.name) return false;
+
+    const remoteToken = await gsAttendanceChangesToken_();
     const savedToken = getSavedAttendanceChangesToken_();
 
-    // ✅ primera vez: guardar token y sincronizar estado sin hard reset
-    if (!savedToken) {
+    // ✅ primera vez: guardar token
+    if (!savedToken && remoteToken) {
       saveAttendanceChangesToken_(remoteToken);
-
-      const p = loadProfile();
-      if (!isAdminMode() && p && p.name) {
-        await refreshFromSheet({
-          useCache: true,
-          silent: true,
-          preferRemote: true
-        });
-      }
-      return false;
     }
 
-    // ✅ sin cambios reales: NO reset, pero sí sincronizar estado actual
-    if (savedToken === remoteToken) {
-      const p = loadProfile();
-      if (!isAdminMode() && p && p.name) {
-        await refreshFromSheet({
-          useCache: true,
-          silent: true,
-          preferRemote: true
-        });
-      }
-      return false;
+    // ✅ SIEMPRE sincronizar desde backend real al abrir
+    await refreshFromSheet({
+      useCache: false,
+      silent: true,
+      preferRemote: true
+    });
+
+    // ✅ si hubo cambio externo real, además hacer hard refresh
+    if (remoteToken && savedToken && remoteToken !== savedToken) {
+      saveAttendanceChangesToken_(remoteToken);
+      sessionStorage.setItem("showRefreshAfterReload", "1");
+      await hardRefreshPWA();
+      return true;
     }
 
-    // ✅ hubo cambios reales: guardar nuevo token y refrescar app completa
-    saveAttendanceChangesToken_(remoteToken);
-    sessionStorage.setItem("showRefreshAfterReload", "1");
-    await hardRefreshPWA();
-    return true;
+    // ✅ mantener token actualizado aunque no haya hard refresh
+    if (remoteToken) {
+      saveAttendanceChangesToken_(remoteToken);
+    }
 
+    return false;
   } catch (e) {
     console.error("No pude validar cambios de asistencia:", e);
 
-    // ✅ fallback: si falla token, al menos sincroniza registros/botones
+    // fallback: al menos sincroniza registros reales
     try {
       const p = loadProfile();
-      if (!isAdminMode() && p && p.name) {
+      const admin = isAdminMode();
+
+      if (!admin && p && p.name) {
         await refreshFromSheet({
-          useCache: true,
+          useCache: false,
           silent: true,
           preferRemote: true
         });
@@ -15286,12 +15273,6 @@ btnRefreshSW.addEventListener("click", async () => {
 // ✅ Auto refresh solo si attendance_records cambió realmente en Supabase
 window.addEventListener("load", async () => {
   try {
-    const alreadyAutoChecked = sessionStorage.getItem("didAutoRefreshOnOpen");
-
-    if (alreadyAutoChecked === "1") return;
-
-    sessionStorage.setItem("didAutoRefreshOnOpen", "1");
-
     await autoRefreshIfAttendanceChanged_();
   } catch (e) {
     console.error(e);
@@ -15300,7 +15281,6 @@ window.addEventListener("load", async () => {
 
 if (btnLogout) {
   btnLogout.addEventListener("click", () => {
-    sessionStorage.removeItem("didAutoRefreshOnOpen");
     logout();
   });
 }
