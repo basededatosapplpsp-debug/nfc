@@ -4529,9 +4529,7 @@ function applyAttendanceState_(type, recordData = {}) {
   // ✅ persistir flags del día
   saveAttendanceButtonsState_();
 
-  // ✅ construir registro local aunque el backend no devuelva resp.record
   const profile = loadProfile() || {};
-
   const localType = String(type || "").trim().toUpperCase();
   const localDate = recordData.date || t.date;
   const localTime = recordData.time || t.time;
@@ -4539,7 +4537,7 @@ function applyAttendanceState_(type, recordData = {}) {
     recordData.teacher || profile.name || teacherNameEl.value || ""
   ).trim();
 
-  // ✅ calcular "late" en cliente para que el color salga bien inmediatamente
+  // ✅ calcular TARDE para ENTRADA desde el primer render
   const hhmmFromTime = (value) => String(value || "").trim().slice(0, 5);
 
   const toMinutes = (hhmm) => {
@@ -4574,15 +4572,27 @@ function applyAttendanceState_(type, recordData = {}) {
     cachedRecords = [];
   }
 
-  const exists = cachedRecords.some(r =>
+  // ✅ CLAVE:
+  // si ya existe un registro del mismo docente + tipo + fecha,
+  // lo reemplazamos por el nuevo en vez de dejar el viejo
+  const sameDailyIndex = cachedRecords.findIndex(r =>
     String(r.teacher || "").trim().toLowerCase() === String(localRecord.teacher || "").trim().toLowerCase() &&
     String(r.type || "").trim().toUpperCase() === String(localRecord.type || "").trim().toUpperCase() &&
     String(r.date || "").trim() === String(localRecord.date || "").trim()
   );
 
-  if (!exists) {
+  if (sameDailyIndex >= 0) {
+    cachedRecords[sameDailyIndex] = localRecord;
+  } else {
     cachedRecords = [localRecord, ...(cachedRecords || [])];
   }
+
+  // ✅ ordenar más nuevo primero
+  cachedRecords.sort((a, b) => {
+    const aIso = String(a && (a.iso || `${a.date || ""}T${a.time || ""}`) || "");
+    const bIso = String(b && (b.iso || `${b.date || ""}T${b.time || ""}`) || "");
+    return bIso.localeCompare(aIso);
+  });
 
   try {
     const cacheKey = cacheKeyForCurrentView_();
@@ -4592,7 +4602,6 @@ function applyAttendanceState_(type, recordData = {}) {
   try {
     updateDailyButtonsState(cachedRecords);
   } catch (e) {
-    // fallback directo de UI
     if (type === "ENTRADA") {
       btnEntrada.disabled = true;
       btnSalida.disabled = false;
@@ -15111,7 +15120,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-39";
+const APP_BUILD = "2026-04-10-40";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
