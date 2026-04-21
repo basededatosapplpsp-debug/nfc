@@ -3331,7 +3331,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
   // ✅ pinta rápido el estado local
-  try { restoreAttendanceButtonsState_(); } catch (e) {}
+
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
@@ -4391,7 +4391,6 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = false;
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
-    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -4401,7 +4400,6 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
-    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -4410,7 +4408,6 @@ function updateDailyButtonsState(records) {
   btnEntrada.disabled = true;
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
-  saveAttendanceButtonsState_();
   syncSingleActionUI_();
 }
 
@@ -4461,58 +4458,7 @@ function escapeHtml(s){
 
 
 
-function attendanceButtonsStateKey_() {
-  const p = loadProfile();
-  const teacher = normalizeKey((p && p.name) || "anon");
-  return `attendance_buttons_state_v1|${teacher}|${todayStr()}`;
-}
 
-function saveAttendanceButtonsState_() {
-  try {
-    localStorage.setItem(attendanceButtonsStateKey_(), JSON.stringify({
-      date: todayStr(),
-      hasEntradaToday: !!hasEntradaToday,
-      hasSalidaToday: !!hasSalidaToday
-    }));
-  } catch {}
-}
-
-function restoreAttendanceButtonsState_() {
-  try {
-    const raw = localStorage.getItem(attendanceButtonsStateKey_());
-    if (!raw) return false;
-
-    const data = JSON.parse(raw);
-    if (!data || data.date !== todayStr()) return false;
-
-    hasEntradaToday = !!data.hasEntradaToday;
-    hasSalidaToday = !!data.hasSalidaToday;
-
-    if (!hasEntradaToday && !hasSalidaToday) {
-      btnEntrada.disabled = false;
-      btnSalida.disabled = true;
-      btnSalida.classList.add("is-inactive");
-      syncSingleActionUI_();
-      return true;
-    }
-
-    if (hasEntradaToday && !hasSalidaToday) {
-      btnEntrada.disabled = true;
-      btnSalida.disabled = false;
-      btnSalida.classList.remove("is-inactive");
-      syncSingleActionUI_();
-      return true;
-    }
-
-    btnEntrada.disabled = true;
-    btnSalida.disabled = true;
-    btnSalida.classList.remove("is-inactive");
-    syncSingleActionUI_();
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 
 function applyAttendanceState_(type, recordData = {}) {
@@ -4527,7 +4473,7 @@ function applyAttendanceState_(type, recordData = {}) {
   }
 
   // ✅ persistir flags del día
-  saveAttendanceButtonsState_();
+
 
   const profile = loadProfile() || {};
   const localType = String(type || "").trim().toUpperCase();
@@ -5026,29 +4972,17 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
     if (btnEntrada) btnEntrada.disabled = true;
     if (btnSalida) btnSalida.disabled = true;
     if (btnExport) btnExport.disabled = true;
-  } else {
-    if (btnExport) btnExport.disabled = false;
+ } else {
+  if (btnExport) btnExport.disabled = false;
 
-    // ✅ PRIMERO intenta restaurar desde localStorage del día
-    let restored = false;
-    try {
-      restored = restoreAttendanceButtonsState_();
-    } catch (e) {
-      restored = false;
-    }
+  try {
+    updateDailyButtonsState(cachedRecords || []);
+  } catch (e) {}
 
-    // ✅ Si no había estado local, usa caché de registros
-    if (!restored) {
-      try {
-        updateDailyButtonsState(cachedRecords || []);
-      } catch (e) {}
-    }
-
-    // ✅ Refuerza la UI visual del botón único
-    try {
-      syncSingleActionUI_();
-    } catch (e) {}
-  }
+  try {
+    syncSingleActionUI_();
+  } catch (e) {}
+}
 
   // Mostrar overlay loader
   if (appLoader) {
@@ -15121,7 +15055,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-45";
+const APP_BUILD = "2026-04-10-46";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15456,3 +15390,4 @@ setInterval(async () => {
 
 </body>
 </html>
+Y45
