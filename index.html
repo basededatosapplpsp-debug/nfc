@@ -2113,6 +2113,131 @@ body.is-admin #registerActions{
   }
 }
 
+
+
+
+/* =======================================
+   CONFIG: excepciones desplegable + lista
+======================================= */
+
+.cfg-exceptions-details{
+  margin-top: 6px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  background: rgba(255,255,255,.03);
+  overflow: hidden;
+}
+
+.cfg-exceptions-summary{
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px;
+  font-weight: 900;
+  user-select: none;
+}
+
+.cfg-exceptions-summary::-webkit-details-marker{
+  display: none;
+}
+
+.cfg-exceptions-summary::after{
+  content: "▾";
+  font-size: 18px;
+  opacity: .85;
+  transition: transform .18s ease;
+}
+
+.cfg-exceptions-details[open] .cfg-exceptions-summary::after{
+  transform: rotate(180deg);
+}
+
+.cfg-exceptions-body{
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.cfg-exceptions-list{
+  display: grid;
+  gap: 10px;
+}
+
+.cfg-exception-item{
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,.05);
+}
+
+.cfg-exception-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.cfg-exception-name{
+  font-weight: 900;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cfg-exception-times{
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cfg-exception-actions{
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cfg-mini-btn{
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cfg-mini-btn:hover{
+  background: rgba(255,255,255,.08);
+}
+
+.cfg-mini-btn.danger{
+  color: #ffb4b4;
+  border-color: rgba(239,68,68,.22);
+  background: rgba(239,68,68,.08);
+}
+
+@media (max-width: 699px){
+  .cfg-exception-top{
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cfg-exception-actions{
+    flex-direction: column;
+  }
+
+  .cfg-exception-actions .cfg-mini-btn{
+    width: 100%;
+  }
+}
+
+
+
 </style>
 </head>
 
@@ -2558,21 +2683,37 @@ body.is-admin #registerActions{
 
 <hr style="border:none;border-top:1px solid rgba(255,255,255,.10);margin:14px 0;">
 
-<label class="modal-label">Excepción por docente</label>
-<select id="cfgTeacherSelect" class="modal-input">
-  <option value="">Selecciona un docente</option>
-</select>
+<details id="cfgExceptionsSection" class="cfg-exceptions-details">
+  <summary class="cfg-exceptions-summary">
+    <span>Excepciones por docente</span>
+    <span id="cfgExceptionsCount" class="badge badge-neutral">0</span>
+  </summary>
 
-<label class="modal-label">Hora límite ENTRADA excepción (HH:MM)</label>
-<input id="cfgTeacherOnTime" class="modal-input" type="text" placeholder="Ej: 07:00" />
+  <div class="cfg-exceptions-body">
+    <label class="modal-label">Selecciona docente</label>
+    <select id="cfgTeacherSelect" class="modal-input">
+      <option value="">Selecciona un docente</option>
+    </select>
 
-<label class="modal-label">Hora mínima SALIDA OK excepción (HH:MM)</label>
-<input id="cfgTeacherExitOk" class="modal-input" type="text" placeholder="Ej: 13:00" />
+    <label class="modal-label">Hora límite ENTRADA excepción (HH:MM)</label>
+    <input id="cfgTeacherOnTime" class="modal-input" type="text" placeholder="Ej: 07:00" />
 
-<div class="row" style="margin-top:10px;">
-  <button id="btnCfgTeacherSaveException" type="button" class="btn btn-ghost">Guardar excepción</button>
-  <button id="btnCfgTeacherClearException" type="button" class="btn btn-ghost">Quitar excepción</button>
-</div>
+    <label class="modal-label">Hora mínima SALIDA OK excepción (HH:MM)</label>
+    <input id="cfgTeacherExitOk" class="modal-input" type="text" placeholder="Ej: 13:00" />
+
+    <div class="row" style="margin-top:10px;">
+      <button id="btnCfgTeacherSaveException" type="button" class="btn btn-ghost">Guardar / actualizar</button>
+      <button id="btnCfgTeacherClearException" type="button" class="btn btn-ghost">Quitar seleccionada</button>
+    </div>
+
+    <div style="margin-top:14px;">
+      <div class="muted small" style="margin-bottom:8px;">Docentes con excepción</div>
+      <div id="cfgExceptionsList" class="cfg-exceptions-list">
+        <div class="muted small">No hay excepciones guardadas.</div>
+      </div>
+    </div>
+  </div>
+</details>
 
 <label class="modal-label">Radio del colegio (m)</label>
 <input id="cfgRadius" class="modal-input" type="number" min="1" placeholder="120" />
@@ -3366,6 +3507,11 @@ const cfgTeacherOnTime = $("cfgTeacherOnTime");
 const cfgTeacherExitOk = $("cfgTeacherExitOk");
 const btnCfgTeacherSaveException = $("btnCfgTeacherSaveException");
 const btnCfgTeacherClearException = $("btnCfgTeacherClearException");
+
+
+const cfgExceptionsSection = $("cfgExceptionsSection");
+const cfgExceptionsCount = $("cfgExceptionsCount");
+const cfgExceptionsList = $("cfgExceptionsList");
 
 const cfgRadius = $("cfgRadius");
 const cfgAccuracy = $("cfgAccuracy");
@@ -5042,6 +5188,7 @@ function saveTeacherExceptionInMemory_() {
     exitOk
   };
 
+  renderTeacherExceptionsList_();
   cfgHint.textContent = `Excepción preparada para ${teacher}. Ahora pulsa "Guardar".`;
   return true;
 }
@@ -5057,7 +5204,93 @@ function clearTeacherExceptionInMemory_() {
   delete TEACHER_EXCEPTIONS_MAP[key];
   cfgTeacherOnTime.value = "";
   cfgTeacherExitOk.value = "";
+
+  renderTeacherExceptionsList_();
   cfgHint.textContent = `Excepción eliminada para ${teacher}. Ahora pulsa "Guardar".`;
+  return true;
+}
+
+function getTeacherExceptionsEntries_() {
+  return Object.values(TEACHER_EXCEPTIONS_MAP || {})
+    .filter(x => x && x.teacher)
+    .sort((a, b) => String(a.teacher || "").localeCompare(String(b.teacher || ""), "es"));
+}
+
+function renderTeacherExceptionsList_() {
+  const items = getTeacherExceptionsEntries_();
+
+  if (cfgExceptionsCount) {
+    cfgExceptionsCount.textContent = String(items.length);
+  }
+
+  if (!cfgExceptionsList) return;
+
+  if (!items.length) {
+    cfgExceptionsList.innerHTML = `<div class="muted small">No hay excepciones guardadas.</div>`;
+    return;
+  }
+
+  cfgExceptionsList.innerHTML = items.map(item => {
+    const teacher = String(item.teacher || "").trim();
+    const onTime = String(item.onTime || "").trim();
+    const exitOk = String(item.exitOk || "").trim();
+
+    return `
+      <div class="cfg-exception-item" data-teacher="${escapeHtml(teacher)}">
+        <div class="cfg-exception-top">
+          <div class="cfg-exception-name">${escapeHtml(teacher)}</div>
+          <span class="badge badge-neutral">Excepción</span>
+        </div>
+
+        <div class="cfg-exception-times">
+          <span class="badge badge-neutral">Entrada: ${escapeHtml(onTime || "-")}</span>
+          <span class="badge badge-neutral">Salida: ${escapeHtml(exitOk || "-")}</span>
+        </div>
+
+        <div class="cfg-exception-actions">
+          <button type="button" class="cfg-mini-btn" data-action="edit" data-teacher="${escapeHtml(teacher)}">
+            Editar
+          </button>
+          <button type="button" class="cfg-mini-btn danger" data-action="delete" data-teacher="${escapeHtml(teacher)}">
+            Quitar
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+function loadTeacherExceptionIntoForm_(teacher) {
+  const teacherName = String(teacher || "").trim();
+  if (!teacherName) return;
+
+  if (cfgTeacherSelect) {
+    cfgTeacherSelect.value = teacherName;
+  }
+
+  fillTeacherExceptionsUI_(teacherName);
+
+  if (cfgExceptionsSection && !cfgExceptionsSection.open) {
+    cfgExceptionsSection.open = true;
+  }
+}
+
+function deleteTeacherExceptionByName_(teacher) {
+  const teacherName = String(teacher || "").trim();
+  if (!teacherName) return false;
+
+  const key = getTeacherExceptionKey_(teacherName);
+  if (!TEACHER_EXCEPTIONS_MAP[key]) return false;
+
+  delete TEACHER_EXCEPTIONS_MAP[key];
+
+  if (cfgTeacherSelect && cfgTeacherSelect.value === teacherName) {
+    cfgTeacherOnTime.value = "";
+    cfgTeacherExitOk.value = "";
+  }
+
+  renderTeacherExceptionsList_();
+  cfgHint.textContent = `Excepción eliminada para ${teacherName}. Ahora pulsa "Guardar".`;
   return true;
 }
 
@@ -5358,6 +5591,8 @@ async function loadAdminConfigIntoUI() {
   if (cfgTeacherSelect) cfgTeacherSelect.value = "";
   if (cfgTeacherOnTime) cfgTeacherOnTime.value = "";
   if (cfgTeacherExitOk) cfgTeacherExitOk.value = "";
+
+  renderTeacherExceptionsList_();
 
   ON_TIME_HHMM_CLIENT = cfgOnTime.value;
   EXIT_OK_HHMM_CLIENT = cfgExitOk.value;
@@ -10204,6 +10439,30 @@ if (btnCfgTeacherSaveException) {
 if (btnCfgTeacherClearException) {
   btnCfgTeacherClearException.addEventListener("click", () => {
     clearTeacherExceptionInMemory_();
+  });
+}
+
+
+if (cfgExceptionsList) {
+  cfgExceptionsList.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const action = String(btn.getAttribute("data-action") || "").trim();
+    const teacher = String(btn.getAttribute("data-teacher") || "").trim();
+
+    if (!teacher) return;
+
+    if (action === "edit") {
+      loadTeacherExceptionIntoForm_(teacher);
+      cfgHint.textContent = `Editando excepción de ${teacher}.`;
+      return;
+    }
+
+    if (action === "delete") {
+      deleteTeacherExceptionByName_(teacher);
+      return;
+    }
   });
 }
 
@@ -15325,7 +15584,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-49";
+const APP_BUILD = "2026-04-10-50";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
