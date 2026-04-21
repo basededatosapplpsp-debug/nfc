@@ -2491,17 +2491,34 @@ body.is-admin #registerActions{
   <div class="modal-card" style="width:min(520px,100%);">
     <h2 class="modal-title">Configuración</h2>
     <p class="modal-sub">Ajustes del sistema. Se guardan en la hoja CONFIG.</p>
+<label class="modal-label">Hora límite ENTRADA general (HH:MM)</label>
+<input id="cfgOnTime" class="modal-input" type="text" placeholder="06:30" />
 
-    <label class="modal-label">Hora límite ENTRADA (HH:MM)</label>
-    <input id="cfgOnTime" class="modal-input" type="text" placeholder="06:30" />
+<label class="modal-label">Hora mínima SALIDA OK general (HH:MM)</label>
+<input id="cfgExitOk" class="modal-input" type="text" placeholder="14:00" />
 
-    <label class="modal-label">Hora mínima SALIDA OK (HH:MM)</label>
-    <input id="cfgExitOk" class="modal-input" type="text" placeholder="14:00" />
+<hr style="border:none;border-top:1px solid rgba(255,255,255,.10);margin:14px 0;">
 
-    <label class="modal-label">Radio del colegio (m)</label>
-    <input id="cfgRadius" class="modal-input" type="number" min="1" placeholder="120" />
+<label class="modal-label">Excepción por docente</label>
+<select id="cfgTeacherSelect" class="modal-input">
+  <option value="">Selecciona un docente</option>
+</select>
 
-  <label class="modal-label">Precisión requerida (m)</label>
+<label class="modal-label">Hora límite ENTRADA excepción (HH:MM)</label>
+<input id="cfgTeacherOnTime" class="modal-input" type="text" placeholder="Ej: 07:00" />
+
+<label class="modal-label">Hora mínima SALIDA OK excepción (HH:MM)</label>
+<input id="cfgTeacherExitOk" class="modal-input" type="text" placeholder="Ej: 13:00" />
+
+<div class="row" style="margin-top:10px;">
+  <button id="btnCfgTeacherSaveException" type="button" class="btn btn-ghost">Guardar excepción</button>
+  <button id="btnCfgTeacherClearException" type="button" class="btn btn-ghost">Quitar excepción</button>
+</div>
+
+<label class="modal-label">Radio del colegio (m)</label>
+<input id="cfgRadius" class="modal-input" type="number" min="1" placeholder="120" />
+
+<label class="modal-label">Precisión requerida (m)</label>
 <input id="cfgAccuracy" class="modal-input" type="number" min="1" placeholder="50" />
 
 <label class="modal-label">Latitud del colegio</label>
@@ -3285,6 +3302,12 @@ const btnAdminConfig = $("btnAdminConfig");
 const adminConfigModal = $("adminConfigModal");
 const cfgOnTime = $("cfgOnTime");
 const cfgExitOk = $("cfgExitOk");
+const cfgTeacherSelect = $("cfgTeacherSelect");
+const cfgTeacherOnTime = $("cfgTeacherOnTime");
+const cfgTeacherExitOk = $("cfgTeacherExitOk");
+const btnCfgTeacherSaveException = $("btnCfgTeacherSaveException");
+const btnCfgTeacherClearException = $("btnCfgTeacherClearException");
+
 const cfgRadius = $("cfgRadius");
 const cfgAccuracy = $("cfgAccuracy");
 const cfgLat = $("cfgLat");
@@ -3331,7 +3354,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
   // ✅ pinta rápido el estado local
-
+  try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
   try { updateRegisterCardUI_(); } catch (e) {}
 
@@ -3343,13 +3366,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const profile = loadProfile();
     const admin = isAdminMode();
 
- if (profile && profile.name && !admin) {
-  await refreshFromSheet({
-    useCache: false,
-    silent: true,
-    preferRemote: true
-  });
-}
+    if (profile && profile.name && !admin) {
+      await refreshFromSheet({
+        useCache: true,
+        silent: true,
+        preferRemote: true
+      });
+    }
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
@@ -4391,6 +4414,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = false;
     btnSalida.disabled = true;
     btnSalida.classList.add("is-inactive");
+    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -4400,6 +4424,7 @@ function updateDailyButtonsState(records) {
     btnEntrada.disabled = true;
     btnSalida.disabled = false;
     btnSalida.classList.remove("is-inactive");
+    saveAttendanceButtonsState_();
     syncSingleActionUI_();
     return;
   }
@@ -4408,6 +4433,7 @@ function updateDailyButtonsState(records) {
   btnEntrada.disabled = true;
   btnSalida.disabled = true;
   btnSalida.classList.remove("is-inactive");
+  saveAttendanceButtonsState_();
   syncSingleActionUI_();
 }
 
@@ -4458,7 +4484,58 @@ function escapeHtml(s){
 
 
 
+function attendanceButtonsStateKey_() {
+  const p = loadProfile();
+  const teacher = normalizeKey((p && p.name) || "anon");
+  return `attendance_buttons_state_v1|${teacher}|${todayStr()}`;
+}
 
+function saveAttendanceButtonsState_() {
+  try {
+    localStorage.setItem(attendanceButtonsStateKey_(), JSON.stringify({
+      date: todayStr(),
+      hasEntradaToday: !!hasEntradaToday,
+      hasSalidaToday: !!hasSalidaToday
+    }));
+  } catch {}
+}
+
+function restoreAttendanceButtonsState_() {
+  try {
+    const raw = localStorage.getItem(attendanceButtonsStateKey_());
+    if (!raw) return false;
+
+    const data = JSON.parse(raw);
+    if (!data || data.date !== todayStr()) return false;
+
+    hasEntradaToday = !!data.hasEntradaToday;
+    hasSalidaToday = !!data.hasSalidaToday;
+
+    if (!hasEntradaToday && !hasSalidaToday) {
+      btnEntrada.disabled = false;
+      btnSalida.disabled = true;
+      btnSalida.classList.add("is-inactive");
+      syncSingleActionUI_();
+      return true;
+    }
+
+    if (hasEntradaToday && !hasSalidaToday) {
+      btnEntrada.disabled = true;
+      btnSalida.disabled = false;
+      btnSalida.classList.remove("is-inactive");
+      syncSingleActionUI_();
+      return true;
+    }
+
+    btnEntrada.disabled = true;
+    btnSalida.disabled = true;
+    btnSalida.classList.remove("is-inactive");
+    syncSingleActionUI_();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 
 function applyAttendanceState_(type, recordData = {}) {
@@ -4473,7 +4550,7 @@ function applyAttendanceState_(type, recordData = {}) {
   }
 
   // ✅ persistir flags del día
-
+  saveAttendanceButtonsState_();
 
   const profile = loadProfile() || {};
   const localType = String(type || "").trim().toUpperCase();
@@ -4493,15 +4570,16 @@ function applyAttendanceState_(type, recordData = {}) {
     return Number(m[1]) * 60 + Number(m[2]);
   };
 
-  const entryMinutes = toMinutes(hhmmFromTime(localTime));
-  const onTimeMinutes = toMinutes(ON_TIME_HHMM_CLIENT);
+ const entryMinutes = toMinutes(hhmmFromTime(localTime));
+const teacherSchedule = getEffectiveScheduleForTeacher_(localTeacher);
+const onTimeMinutes = toMinutes(teacherSchedule.onTime);
 
-  const localLate =
-    localType === "ENTRADA" &&
-    entryMinutes != null &&
-    onTimeMinutes != null
-      ? entryMinutes > onTimeMinutes
-      : !!recordData.late;
+const localLate =
+  localType === "ENTRADA" &&
+  entryMinutes != null &&
+  onTimeMinutes != null
+    ? entryMinutes > onTimeMinutes
+    : !!recordData.late;
 
   const localRecord = {
     teacher: localTeacher,
@@ -4834,6 +4912,96 @@ async function gsAdminDeleteDevice(id) {
 let EXIT_OK_HHMM_CLIENT = "14:00";
 let ON_TIME_HHMM_CLIENT = "06:30";
 
+let TEACHER_EXCEPTIONS_MAP = {};
+
+function getTeacherExceptionKey_(teacher) {
+  return normalizeKey(teacher || "");
+}
+
+function parseTeacherExceptions_(raw) {
+  if (!raw) return {};
+  if (typeof raw === "object") return raw;
+
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getEffectiveScheduleForTeacher_(teacher) {
+  const key = getTeacherExceptionKey_(teacher);
+  const ex = TEACHER_EXCEPTIONS_MAP[key] || null;
+
+  return {
+    onTime: String(ex && ex.onTime ? ex.onTime : ON_TIME_HHMM_CLIENT || "06:30").trim(),
+    exitOk: String(ex && ex.exitOk ? ex.exitOk : EXIT_OK_HHMM_CLIENT || "14:00").trim()
+  };
+}
+
+function fillTeacherExceptionsUI_(teacher) {
+  const key = getTeacherExceptionKey_(teacher);
+  const ex = TEACHER_EXCEPTIONS_MAP[key] || null;
+
+  cfgTeacherOnTime.value = ex && ex.onTime ? ex.onTime : "";
+  cfgTeacherExitOk.value = ex && ex.exitOk ? ex.exitOk : "";
+}
+
+async function loadTeachersIntoConfigSelect_() {
+  const teachers = await gsAdminListTeachers();
+
+  cfgTeacherSelect.innerHTML =
+    `<option value="">Selecciona un docente</option>` +
+    (teachers || []).map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+}
+
+function saveTeacherExceptionInMemory_() {
+  const teacher = String(cfgTeacherSelect.value || "").trim();
+  if (!teacher) {
+    cfgHint.textContent = "Selecciona un docente.";
+    return false;
+  }
+
+  const onTime = String(cfgTeacherOnTime.value || "").trim();
+  const exitOk = String(cfgTeacherExitOk.value || "").trim();
+
+  if (!onTime || !exitOk) {
+    cfgHint.textContent = "Debes escribir entrada y salida de excepción.";
+    return false;
+  }
+
+  if (!isValidHHMM(onTime) || !isValidHHMM(exitOk)) {
+    cfgHint.textContent = "Horas de excepción inválidas. Usa HH:MM.";
+    return false;
+  }
+
+  const key = getTeacherExceptionKey_(teacher);
+  TEACHER_EXCEPTIONS_MAP[key] = {
+    teacher,
+    onTime,
+    exitOk
+  };
+
+  cfgHint.textContent = `Excepción preparada para ${teacher}. Ahora pulsa "Guardar".`;
+  return true;
+}
+
+function clearTeacherExceptionInMemory_() {
+  const teacher = String(cfgTeacherSelect.value || "").trim();
+  if (!teacher) {
+    cfgHint.textContent = "Selecciona un docente.";
+    return false;
+  }
+
+  const key = getTeacherExceptionKey_(teacher);
+  delete TEACHER_EXCEPTIONS_MAP[key];
+  cfgTeacherOnTime.value = "";
+  cfgTeacherExitOk.value = "";
+  cfgHint.textContent = `Excepción eliminada para ${teacher}. Ahora pulsa "Guardar".`;
+  return true;
+}
+
 function timeToMinutes(hhmmss) {
   const s = String(hhmmss || "").trim();
   const m = s.match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
@@ -4847,21 +5015,16 @@ function getExitVisualState_(r) {
   if (!r || String(r.type || "").toUpperCase() !== "SALIDA") return "normal";
 
   const t = timeToMinutes(r.time);
-  const limit = timeToMinutes(EXIT_OK_HHMM_CLIENT); // hora configurada
-  const extraStart = timeToMinutes("16:30");        // 4:30 PM
+  const schedule = getEffectiveScheduleForTeacher_(r.teacher);
+  const limit = timeToMinutes(schedule.exitOk);
+  const extraStart = timeToMinutes("16:30");
 
   if (t == null || limit == null) return "normal";
 
-  // antes de la hora configurada
   if (t < limit) return "early";
-
-  // hasta 5 minutos después de la hora configurada => verde
   if (t <= (limit + 5)) return "ontime";
-
-  // desde las 4:30 PM en adelante => azul + EXTRA
   if (extraStart != null && t >= extraStart) return "extra";
 
-  // después de los 5 min y antes de 4:30 => naranja, sigue diciendo A TIEMPO
   return "soft";
 }
 
@@ -4972,17 +5135,29 @@ function setLoading(isLoading, title = "Procesando…", msg = "Por favor espera�
     if (btnEntrada) btnEntrada.disabled = true;
     if (btnSalida) btnSalida.disabled = true;
     if (btnExport) btnExport.disabled = true;
- } else {
-  if (btnExport) btnExport.disabled = false;
+  } else {
+    if (btnExport) btnExport.disabled = false;
 
-  try {
-    updateDailyButtonsState(cachedRecords || []);
-  } catch (e) {}
+    // ✅ PRIMERO intenta restaurar desde localStorage del día
+    let restored = false;
+    try {
+      restored = restoreAttendanceButtonsState_();
+    } catch (e) {
+      restored = false;
+    }
 
-  try {
-    syncSingleActionUI_();
-  } catch (e) {}
-}
+    // ✅ Si no había estado local, usa caché de registros
+    if (!restored) {
+      try {
+        updateDailyButtonsState(cachedRecords || []);
+      } catch (e) {}
+    }
+
+    // ✅ Refuerza la UI visual del botón único
+    try {
+      syncSingleActionUI_();
+    } catch (e) {}
+  }
 
   // Mostrar overlay loader
   if (appLoader) {
@@ -5110,7 +5285,6 @@ function closeAdminConfigModal() {
 async function loadAdminConfigIntoUI() {
   const cfg = await gsAdminGetConfig();
 
-  // set inputs
   cfgOnTime.value = cfg.ON_TIME_HHMM || "06:30";
   cfgExitOk.value = cfg.EXIT_OK_HHMM || "14:00";
   cfgRadius.value = String(cfg.SCHOOL_RADIUS_METERS ?? 120);
@@ -5118,7 +5292,14 @@ async function loadAdminConfigIntoUI() {
   cfgLat.value = String(cfg.SCHOOL_LAT ?? SCHOOL_LAT ?? 4.55445);
   cfgLng.value = String(cfg.SCHOOL_LNG ?? SCHOOL_LNG ?? -74.11165);
 
-  // aplicar en runtime (impacta ubicación + contadores)
+  TEACHER_EXCEPTIONS_MAP = parseTeacherExceptions_(cfg.TEACHER_EXCEPTIONS_JSON);
+
+  await loadTeachersIntoConfigSelect_();
+
+  if (cfgTeacherSelect) cfgTeacherSelect.value = "";
+  if (cfgTeacherOnTime) cfgTeacherOnTime.value = "";
+  if (cfgTeacherExitOk) cfgTeacherExitOk.value = "";
+
   ON_TIME_HHMM_CLIENT = cfgOnTime.value;
   EXIT_OK_HHMM_CLIENT = cfgExitOk.value;
   SCHOOL_RADIUS_METERS = Number(cfgRadius.value) || 120;
@@ -5141,33 +5322,35 @@ async function loadRuntimeConfig_({ silent = false } = {}) {
 
     const cfg = await gsAdminGetConfig();
 
-     if (cfg && typeof cfg === "object") {
-      const radius = Number(cfg.SCHOOL_RADIUS_METERS);
-      const acc = Number(cfg.REQUIRED_ACCURACY_METERS);
-      const lat = Number(cfg.SCHOOL_LAT);
-      const lng = Number(cfg.SCHOOL_LNG);
-      const onTime = String(cfg.ON_TIME_HHMM || "").trim();
-      const exitOk = String(cfg.EXIT_OK_HHMM || "").trim();
+   if (cfg && typeof cfg === "object") {
+  const radius = Number(cfg.SCHOOL_RADIUS_METERS);
+  const acc = Number(cfg.REQUIRED_ACCURACY_METERS);
+  const lat = Number(cfg.SCHOOL_LAT);
+  const lng = Number(cfg.SCHOOL_LNG);
+  const onTime = String(cfg.ON_TIME_HHMM || "").trim();
+  const exitOk = String(cfg.EXIT_OK_HHMM || "").trim();
 
-      if (Number.isFinite(radius) && radius > 0) {
-        SCHOOL_RADIUS_METERS = radius;
-      }
+  TEACHER_EXCEPTIONS_MAP = parseTeacherExceptions_(cfg.TEACHER_EXCEPTIONS_JSON);
 
-      if (Number.isFinite(acc) && acc > 0) {
-        REQUIRED_ACCURACY_METERS = acc;
-      }
+  if (Number.isFinite(radius) && radius > 0) {
+    SCHOOL_RADIUS_METERS = radius;
+  }
 
-      if (Number.isFinite(lat)) {
-        SCHOOL_LAT = lat;
-      }
+  if (Number.isFinite(acc) && acc > 0) {
+    REQUIRED_ACCURACY_METERS = acc;
+  }
 
-      if (Number.isFinite(lng)) {
-        SCHOOL_LNG = lng;
-      }
+  if (Number.isFinite(lat)) {
+    SCHOOL_LAT = lat;
+  }
 
-      if (onTime) ON_TIME_HHMM_CLIENT = onTime;
-      if (exitOk) EXIT_OK_HHMM_CLIENT = exitOk;
-    }
+  if (Number.isFinite(lng)) {
+    SCHOOL_LNG = lng;
+  }
+
+  if (onTime) ON_TIME_HHMM_CLIENT = onTime;
+  if (exitOk) EXIT_OK_HHMM_CLIENT = exitOk;
+}
 
     return true;
   } catch (e) {
@@ -9947,7 +10130,23 @@ if (btnCfgUseCurrentLocation) {
   });
 }
 
+if (cfgTeacherSelect) {
+  cfgTeacherSelect.addEventListener("change", () => {
+    fillTeacherExceptionsUI_(cfgTeacherSelect.value);
+  });
+}
 
+if (btnCfgTeacherSaveException) {
+  btnCfgTeacherSaveException.addEventListener("click", () => {
+    saveTeacherExceptionInMemory_();
+  });
+}
+
+if (btnCfgTeacherClearException) {
+  btnCfgTeacherClearException.addEventListener("click", () => {
+    clearTeacherExceptionInMemory_();
+  });
+}
 
 if (btnCfgSave) {
   btnCfgSave.addEventListener("click", async () => {
@@ -9984,14 +10183,15 @@ if (btnCfgSave) {
    try {
   setLoading(true, "Guardando…", "Actualizando CONFIG.");
 
-  const resp = await gsAdminSetConfig({
-    ON_TIME_HHMM: onTime,
-    EXIT_OK_HHMM: exitOk,
-    SCHOOL_RADIUS_METERS: r,
-    REQUIRED_ACCURACY_METERS: a,
-    SCHOOL_LAT: lat,
-    SCHOOL_LNG: lng
-  });
+const resp = await gsAdminSetConfig({
+  ON_TIME_HHMM: onTime,
+  EXIT_OK_HHMM: exitOk,
+  TEACHER_EXCEPTIONS_JSON: JSON.stringify(TEACHER_EXCEPTIONS_MAP || {}),
+  SCHOOL_RADIUS_METERS: r,
+  REQUIRED_ACCURACY_METERS: a,
+  SCHOOL_LAT: lat,
+  SCHOOL_LNG: lng
+});
 
   // aplicar runtime
   ON_TIME_HHMM_CLIENT = onTime;
@@ -10146,7 +10346,19 @@ btnLoginSave.addEventListener("click", async () => {
   }
 });
 
+function isLateEntryByConfig_(r) {
+  if (!r || String(r.type || "").toUpperCase() !== "ENTRADA") return false;
 
+  const schedule = getEffectiveScheduleForTeacher_(r.teacher);
+  const entryMinutes = timeToMinutes(r.time);
+  const limit = timeToMinutes(schedule.onTime);
+
+  if (entryMinutes == null || limit == null) {
+    return !!r.late;
+  }
+
+  return entryMinutes > limit;
+}
 
 function openAdminModal() {
   if (!adminModal) return;
@@ -10343,7 +10555,7 @@ function renderAdminTeacherRecords(teacher, records) {
   adminTeacherTitle.textContent = teacher || "—";
 
   const lateCount = list.filter(r =>
-    String(r.type || "").toUpperCase() === "ENTRADA" && !!r.late
+String(r.type || "").toUpperCase() === "ENTRADA" && isLateEntryByConfig_(r)
   ).length;
 
   const earlyExitCount = list.filter(isEarlyExitRecord).length;
@@ -10363,7 +10575,7 @@ function renderAdminTeacherRecords(teacher, records) {
     const exitState = getExitVisualState_(r);
 
     const cls = (type === "ENTRADA")
-      ? (r.late ? "record-card late" : "record-card ontime")
+      ? (isLateEntryByConfig_(r) ? "record-card late" : "record-card ontime")
       : (type === "SALIDA")
           ? (
               exitState === "early" ? "record-card late" :
@@ -13901,7 +14113,7 @@ function render(records) {
 
     // ======= CONTADORES =======
     const lateCount = filtered.filter(r =>
-      String(r.type || "").toUpperCase() === "ENTRADA" && !!r.late
+     String(r.type || "").toUpperCase() === "ENTRADA" && isLateEntryByConfig_(r)
     ).length;
 
     const earlyExitCount = filtered.filter(isEarlyExitRecord).length;
@@ -13996,7 +14208,7 @@ function render(records) {
 
       const rowClass =
         (type === "ENTRADA")
-          ? (r.late ? "record-card late" : "record-card ontime")
+          ? (isLateEntryByConfig_(r) ? "record-card late" : "record-card ontime")
           : (type === "SALIDA")
               ? (
                   exitState === "early" ? "record-card late" :
@@ -14009,7 +14221,7 @@ function render(records) {
 
       const badgeText =
         (type === "ENTRADA")
-          ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
+          ? `${type}${isLateEntryByConfig_(r) ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
           : (type === "SALIDA")
               ? (
                   exitState === "early"
@@ -14046,7 +14258,7 @@ function render(records) {
 
   // ======= CONTADORES =======
   const lateCount = filtered.filter(r =>
-    String(r.type || "").toUpperCase() === "ENTRADA" && !!r.late
+   String(r.type || "").toUpperCase() === "ENTRADA" && isLateEntryByConfig_(r)
   ).length;
 
   const earlyExitCount = filtered.filter(isEarlyExitRecord).length;
@@ -14142,7 +14354,7 @@ function render(records) {
 
     const rowClass =
       (type === "ENTRADA")
-        ? (r.late ? "record-card late" : "record-card ontime")
+        ? (isLateEntryByConfig_(r) ? "record-card late" : "record-card ontime")
         : (type === "SALIDA")
             ? (
                 exitState === "early" ? "record-card late" :
@@ -14155,7 +14367,7 @@ function render(records) {
 
     const badgeText =
       (type === "ENTRADA")
-        ? `${type}${r.late ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
+        ? `${type}${isLateEntryByConfig_(r) ? " • TARDE" : " • A TIEMPO"}${ntcTxt}`
         : (type === "SALIDA")
             ? (
                 exitState === "early"
@@ -14685,7 +14897,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-    const resp = await gsRegister({
+     const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -14723,12 +14935,6 @@ async function register(type) {
           }
     );
 
-    // ✅ actualizar token local de cambios para no forzar auto refresh después
-    try {
-      const newToken = await gsAttendanceChangesToken_();
-      if (newToken) saveAttendanceChangesToken_(newToken);
-    } catch (e) {}
-
     try {
       render(cachedRecords || []);
     } catch (e) {}
@@ -14741,6 +14947,11 @@ async function register(type) {
 
     // ✅ mostrar chulito grande automático
     showSuccessCheck(`${type} registrada correctamente`, 3200);
+
+  // ✅ sincronización automática más segura
+setTimeout(() => {
+  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
+}, 5000);
 
     return;
 
@@ -15055,7 +15266,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-46";
+const APP_BUILD = "2026-04-10-48";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15086,103 +15297,6 @@ async function hardRefreshPWA() {
   }
 }
 
-const ATTENDANCE_CHANGES_TOKEN_KEY = "attendanceChangesToken_v1";
-
-async function gsAttendanceChangesToken_() {
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "attendance_changes_token",
-      key: GS_API_KEY
-    })
-  });
-
-  let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("Respuesta inválida del servidor");
-  }
-
-  if (!data || data.ok !== true) {
-    throw new Error(data?.msg || data?.error || "attendance_changes_token_failed");
-  }
-
-  return String(data.token || "").trim();
-}
-
-function getSavedAttendanceChangesToken_() {
-  try {
-    return String(localStorage.getItem(ATTENDANCE_CHANGES_TOKEN_KEY) || "").trim();
-  } catch (e) {
-    return "";
-  }
-}
-
-function saveAttendanceChangesToken_(token) {
-  try {
-    localStorage.setItem(ATTENDANCE_CHANGES_TOKEN_KEY, String(token || "").trim());
-  } catch (e) {}
-}
-
-async function autoRefreshIfAttendanceChanged_() {
-  try {
-    const p = loadProfile();
-    const admin = isAdminMode();
-
-    // si no hay usuario docente logueado, no hacemos nada
-    if (admin || !p || !p.name) return false;
-
-    const remoteToken = await gsAttendanceChangesToken_();
-    const savedToken = getSavedAttendanceChangesToken_();
-
-    // ✅ primera vez: guardar token
-    if (!savedToken && remoteToken) {
-      saveAttendanceChangesToken_(remoteToken);
-    }
-
-    // ✅ SIEMPRE sincronizar desde backend real al abrir
-    await refreshFromSheet({
-      useCache: false,
-      silent: true,
-      preferRemote: true
-    });
-
-    // ✅ si hubo cambio externo real, además hacer hard refresh
-    if (remoteToken && savedToken && remoteToken !== savedToken) {
-      saveAttendanceChangesToken_(remoteToken);
-      sessionStorage.setItem("showRefreshAfterReload", "1");
-      await hardRefreshPWA();
-      return true;
-    }
-
-    // ✅ mantener token actualizado aunque no haya hard refresh
-    if (remoteToken) {
-      saveAttendanceChangesToken_(remoteToken);
-    }
-
-    return false;
-  } catch (e) {
-    console.error("No pude validar cambios de asistencia:", e);
-
-    // fallback: al menos sincroniza registros reales
-    try {
-      const p = loadProfile();
-      const admin = isAdminMode();
-
-      if (!admin && p && p.name) {
-        await refreshFromSheet({
-          useCache: false,
-          silent: true,
-          preferRemote: true
-        });
-      }
-    } catch (_) {}
-
-    return false;
-  }
-}
-
 btnRefreshSW.addEventListener("click", async () => {
   try {
     // ✅ guardar flag para mostrar animación después del reload
@@ -15204,10 +15318,17 @@ btnRefreshSW.addEventListener("click", async () => {
   }
 });
 
-// ✅ Auto refresh solo si attendance_records cambió realmente en Supabase
+// ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
 window.addEventListener("load", async () => {
   try {
-    await autoRefreshIfAttendanceChanged_();
+    const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
+
+    if (alreadyAutoRefreshed === "1") return;
+
+    sessionStorage.setItem("didAutoRefreshOnOpen", "1");
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    await hardRefreshPWA();
   } catch (e) {
     console.error(e);
   }
@@ -15215,6 +15336,7 @@ window.addEventListener("load", async () => {
 
 if (btnLogout) {
   btnLogout.addEventListener("click", () => {
+    sessionStorage.removeItem("didAutoRefreshOnOpen");
     logout();
   });
 }
@@ -15390,4 +15512,3 @@ setInterval(async () => {
 
 </body>
 </html>
-Y45
