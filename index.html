@@ -14751,7 +14751,7 @@ async function register(type) {
   try {
     setLoading(true, "Guardando…", "Enviando registro (QR + ubicación).");
 
-     const resp = await gsRegister({
+    const resp = await gsRegister({
       action: "register",
       teacher,
       type,
@@ -14789,6 +14789,12 @@ async function register(type) {
           }
     );
 
+    // ✅ actualizar token local de cambios para no forzar auto refresh después
+    try {
+      const newToken = await gsAttendanceChangesToken_();
+      if (newToken) saveAttendanceChangesToken_(newToken);
+    } catch (e) {}
+
     try {
       render(cachedRecords || []);
     } catch (e) {}
@@ -14801,11 +14807,6 @@ async function register(type) {
 
     // ✅ mostrar chulito grande automático
     showSuccessCheck(`${type} registrada correctamente`, 3200);
-
-  // ✅ sincronización automática más segura
-setTimeout(() => {
-  refreshFromSheet({ useCache: false, silent: true }).catch(() => {});
-}, 5000);
 
     return;
 
@@ -15120,7 +15121,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-40";
+const APP_BUILD = "2026-04-10-41";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15151,6 +15152,74 @@ async function hardRefreshPWA() {
   }
 }
 
+const ATTENDANCE_CHANGES_TOKEN_KEY = "attendanceChangesToken_v1";
+
+async function gsAttendanceChangesToken_() {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "attendance_changes_token",
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data || data.ok !== true) {
+    throw new Error(data?.msg || data?.error || "attendance_changes_token_failed");
+  }
+
+  return String(data.token || "").trim();
+}
+
+function getSavedAttendanceChangesToken_() {
+  try {
+    return String(localStorage.getItem(ATTENDANCE_CHANGES_TOKEN_KEY) || "").trim();
+  } catch (e) {
+    return "";
+  }
+}
+
+function saveAttendanceChangesToken_(token) {
+  try {
+    localStorage.setItem(ATTENDANCE_CHANGES_TOKEN_KEY, String(token || "").trim());
+  } catch (e) {}
+}
+
+async function autoRefreshIfAttendanceChanged_() {
+  try {
+    const remoteToken = await gsAttendanceChangesToken_();
+    if (!remoteToken) return false;
+
+    const savedToken = getSavedAttendanceChangesToken_();
+
+    // primera vez: solo guardar token, sin reset
+    if (!savedToken) {
+      saveAttendanceChangesToken_(remoteToken);
+      return false;
+    }
+
+    // sin cambios reales: no hacer nada
+    if (savedToken === remoteToken) {
+      return false;
+    }
+
+    // hubo cambios reales: guardar nuevo token y refrescar app
+    saveAttendanceChangesToken_(remoteToken);
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+    await hardRefreshPWA();
+    return true;
+  } catch (e) {
+    console.error("No pude validar cambios de asistencia:", e);
+    return false;
+  }
+}
+
 btnRefreshSW.addEventListener("click", async () => {
   try {
     // ✅ guardar flag para mostrar animación después del reload
@@ -15172,17 +15241,16 @@ btnRefreshSW.addEventListener("click", async () => {
   }
 });
 
-// ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
+// ✅ Auto refresh solo si attendance_records cambió realmente en Supabase
 window.addEventListener("load", async () => {
   try {
-    const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
+    const alreadyAutoChecked = sessionStorage.getItem("didAutoRefreshOnOpen");
 
-    if (alreadyAutoRefreshed === "1") return;
+    if (alreadyAutoChecked === "1") return;
 
     sessionStorage.setItem("didAutoRefreshOnOpen", "1");
-    sessionStorage.setItem("showRefreshAfterReload", "1");
 
-    await hardRefreshPWA();
+    await autoRefreshIfAttendanceChanged_();
   } catch (e) {
     console.error(e);
   }
