@@ -2053,6 +2053,65 @@ body.is-admin #registerActions{
 }
 
 
+/* ================================
+   FIX MODAL CONFIG ADMIN RESPONSIVE
+================================ */
+
+/* En móvil: que el modal no quede cortado */
+#adminConfigModal{
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  align-items: flex-start;   /* en vez de centrar verticalmente */
+  overflow-y: auto;          /* si hace falta, scrollea el backdrop */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* La tarjeta hace scroll interno y nunca se sale de la pantalla */
+#adminConfigModal .modal-card{
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 auto;
+}
+
+/* Botones inferiores siempre visibles y mejor acomodados */
+#adminConfigModal .modal-actions{
+  position: sticky;
+  bottom: 0;
+  background: #0b1220;
+  padding-top: 12px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+/* En escritorio sí puede verse centrado */
+@media (min-width: 700px){
+  #adminConfigModal{
+    align-items: center;
+  }
+
+  #adminConfigModal .modal-card{
+    max-height: calc(100dvh - 40px);
+  }
+}
+
+
+@media (max-width: 699px){
+  #adminConfigModal .row{
+    flex-direction: column;
+  }
+
+  #adminConfigModal .row .btn{
+    width: 100%;
+  }
+
+  #adminConfigModal .modal-actions{
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+}
 
 </style>
 </head>
@@ -15266,7 +15325,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-48";
+const APP_BUILD = "2026-04-10-49";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
