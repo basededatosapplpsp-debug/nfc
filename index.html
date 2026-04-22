@@ -5593,6 +5593,7 @@ async function loadAdminConfigIntoUI() {
   if (cfgTeacherExitOk) cfgTeacherExitOk.value = "";
 
   renderTeacherExceptionsList_();
+  if (cfgExceptionsSection) cfgExceptionsSection.open = false;
 
   ON_TIME_HHMM_CLIENT = cfgOnTime.value;
   EXIT_OK_HHMM_CLIENT = cfgExitOk.value;
@@ -15584,7 +15585,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-50";
+const APP_BUILD = "2026-04-10-51";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
