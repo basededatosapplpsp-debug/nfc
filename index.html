@@ -12656,11 +12656,15 @@ async function discEditOne_(studentName, row){
   if (!student || !row) return;
 
   const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
 
-  if (newObs === null) return;
+  const observation = await openObservationModal_({
+    title: "Editar observación · Uso del celular",
+    sub: `${student} • ${String(row.teacher || "—").trim()}`,
+    placeholder: "Ej: Uso del celular durante la explicación, no acató el llamado, etc.",
+    initialValue: currentObs
+  });
 
-  const observation = String(newObs || "").trim();
+  if (observation === null) return;
 
   try {
     setLoading(true, "Guardando…", "Actualizando observación del reporte.");
@@ -13667,11 +13671,15 @@ async function piercEditOne_(studentName, row){
   if (!student || !row) return;
 
   const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
 
-  if (newObs === null) return;
+  const observation = await openObservationModal_({
+    title: "Editar observación · Piercing y perforaciones",
+    sub: `${student} • ${String(row.teacher || "—").trim()}`,
+    placeholder: "Ej: Tiene piercing visible en la ceja, arete no permitido, etc.",
+    initialValue: currentObs
+  });
 
-  const observation = String(newObs || "").trim();
+  if (observation === null) return;
 
   try {
     setLoading(true, "Guardando…", "Actualizando observación del reporte.");
@@ -14693,11 +14701,15 @@ async function uniEditOne_(studentName, row){
   if (!student || !row) return;
 
   const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
 
-  if (newObs === null) return;
+  const observation = await openObservationModal_({
+    title: "Editar observación · Porte del uniforme",
+    sub: `${student} • ${String(row.teacher || "—").trim()}`,
+    placeholder: "Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc.",
+    initialValue: currentObs
+  });
 
-  const observation = String(newObs || "").trim();
+  if (observation === null) return;
 
   try {
     setLoading(true, "Guardando…", "Actualizando observación del reporte.");
@@ -16823,7 +16835,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-62";
+const APP_BUILD = "2026-04-10-63";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
