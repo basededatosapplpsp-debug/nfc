@@ -2843,13 +2843,7 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-<label class="modal-label" for="discObservation">Observación</label>
-<textarea
-  id="discObservation"
-  class="modal-input"
-  rows="3"
-  placeholder="Ej: Uso del celular durante la explicación, no acató el llamado, etc."
-></textarea>
+
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2913,13 +2907,7 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-  <label class="modal-label" for="piercObservation">Observación</label>
-<textarea
-  id="piercObservation"
-  class="modal-input"
-  rows="3"
-  placeholder="Ej: Tiene piercing visible en la ceja, arete no permitido, etc."
-></textarea>
+
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2982,13 +2970,7 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
- <label class="modal-label" for="uniObservation">Observación</label>
-<textarea
-  id="uniObservation"
-  class="modal-input"
-  rows="3"
-  placeholder="Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc."
-></textarea>
+
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -3158,6 +3140,31 @@ body.is-admin #registerActions{
       <button id="confirmOk" class="btn btn-danger">
         Confirmar
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= MODAL OBSERVACIÓN LLAMADO ======= -->
+<div id="obsModal" class="modal-backdrop" hidden>
+  <div class="modal-card" style="width:min(520px,100%);">
+    <h3 id="obsModalTitle" class="modal-title">Observación</h3>
+    <p id="obsModalSub" class="modal-sub">
+      Escribe la observación para guardar el reporte.
+    </p>
+
+    <label class="modal-label" for="obsModalInput">Observación</label>
+    <textarea
+      id="obsModalInput"
+      class="modal-input"
+      rows="4"
+      placeholder="Escribe la observación..."
+    ></textarea>
+
+    <div id="obsModalHint" class="modal-hint muted small"></div>
+
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button id="btnObsCancel" type="button" class="btn btn-ghost">Cancelar</button>
+      <button id="btnObsSave" type="button" class="btn btn-primary">Guardar</button>
     </div>
   </div>
 </div>
@@ -3587,6 +3594,14 @@ const btnExport  = $("btnExport");
 const btnInstall = $("btnInstall");
 const btnRefreshSW = $("btnRefreshSW");
 const btnLogout = $("btnLogout");
+
+const obsModal = $("obsModal");
+const obsModalTitle = $("obsModalTitle");
+const obsModalSub = $("obsModalSub");
+const obsModalInput = $("obsModalInput");
+const obsModalHint = $("obsModalHint");
+const btnObsCancel = $("btnObsCancel");
+const btnObsSave = $("btnObsSave");
 
 // ======= QR SCAN UI (NO tocar hasta init) =======
 let qrModal = null;
@@ -4586,7 +4601,66 @@ function confirmPro({
 let hasEntradaToday = false;
 let hasSalidaToday  = false;
 
+let __obsModalResolver = null;
 
+function openObservationModal_({
+  title = "Observación",
+  sub = "Escribe la observación para guardar el reporte.",
+  placeholder = "Escribe la observación...",
+  initialValue = ""
+} = {}) {
+  return new Promise((resolve) => {
+    __obsModalResolver = resolve;
+
+    if (obsModalTitle) obsModalTitle.textContent = title;
+    if (obsModalSub) obsModalSub.textContent = sub;
+    if (obsModalInput) {
+      obsModalInput.value = String(initialValue || "");
+      obsModalInput.placeholder = placeholder;
+    }
+    if (obsModalHint) obsModalHint.textContent = "";
+
+    if (obsModal) obsModal.hidden = false;
+
+    setTimeout(() => {
+      try { obsModalInput && obsModalInput.focus(); } catch {}
+    }, 20);
+  });
+}
+
+function closeObservationModal_(result = null) {
+  if (obsModal) obsModal.hidden = true;
+
+  const resolve = __obsModalResolver;
+  __obsModalResolver = null;
+
+  if (resolve) resolve(result);
+}
+
+function bindObservationModal_() {
+  if (obsModal) {
+    obsModal.addEventListener("click", (e) => {
+      if (e.target === obsModal) closeObservationModal_(null);
+    });
+  }
+
+  if (btnObsCancel) {
+    btnObsCancel.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      closeObservationModal_(null);
+    });
+  }
+
+  if (btnObsSave) {
+    btnObsSave.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const value = normalizeObservation_(obsModalInput ? obsModalInput.value : "");
+      closeObservationModal_(value);
+    });
+  }
+}
 
 function todayStr() {
   const d = new Date();
@@ -12875,8 +12949,6 @@ async function discDoMarkLevel(level) {
     return;
   }
 
-  const observation = normalizeObservation_(discObservationEl ? discObservationEl.value : "");
-
   const item = discFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
@@ -12886,8 +12958,21 @@ async function discDoMarkLevel(level) {
     return;
   }
 
+  const observation = await openObservationModal_({
+    title: "Observación · Uso del celular",
+    sub: `Nivel ${lvl} para ${student}`,
+    placeholder: "Ej: Uso del celular durante la explicación, no acató el llamado, etc.",
+    initialValue: ""
+  });
+
+  if (observation === null) {
+    discSetHint_("Registro cancelado.");
+    discApplyLevelUI_(currentMax);
+    return;
+  }
+
   try {
-    setLoading(true, "Guardando…", "Registrando llamado de atención.");
+    setLoading(true, "Guardando…", "Registrando reporte de uso del celular.");
 
     const resp = await gsDisciplineMark({
       month: discMonthKey_(),
@@ -12900,37 +12985,27 @@ async function discDoMarkLevel(level) {
       date: new Date().toISOString()
     });
 
-    if (resp && Array.isArray(resp.list)) {
-      __discCacheList = resp.list;
-    } else {
-      await discReloadReportedList(false);
-    }
+    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
+    else await discReloadReportedList(false);
 
     discUpdateSelectedBox_(student);
     __discView = "list";
     discRenderReportedList_(__discCacheList);
-
     if (btnDiscBack) btnDiscBack.hidden = true;
-    if (discObservationEl) discObservationEl.value = "";
-
-    let openedShare = false;
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
-
-      const out = await confirmAndShareReport_({
+      await confirmAndShareReport_({
         student,
         msg,
-        title: "Compartir reporte (Celular)"
+        title: "Compartir reporte (Uso del celular)"
       });
-
-      openedShare = !!(out && out.opened);
     }
 
     discSetHint_(
       observation
-        ? `Registrado ✅ Observación guardada.${openedShare ? " Compartido." : ""}`
-        : `Registrado ✅${openedShare ? " Compartido." : ""}`
+        ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
+        : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
     );
 
   } catch (e) {
@@ -12939,7 +13014,6 @@ async function discDoMarkLevel(level) {
     setLoading(false);
   }
 }
-
 
 
 
@@ -13779,13 +13853,24 @@ async function piercDoMarkLevel(level) {
     return;
   }
 
-  const observation = normalizeObservation_(piercObservationEl ? piercObservationEl.value : "");
-
   const item = piercFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
   if (lvl > currentMax + 1) {
     piercSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+    piercApplyLevelUI_(currentMax);
+    return;
+  }
+
+  const observation = await openObservationModal_({
+    title: "Observación · Piercing y perforaciones",
+    sub: `Nivel ${lvl} para ${student}`,
+    placeholder: "Ej: Tiene piercing visible en la ceja, arete no permitido, etc.",
+    initialValue: ""
+  });
+
+  if (observation === null) {
+    piercSetHint_("Registro cancelado.");
     piercApplyLevelUI_(currentMax);
     return;
   }
@@ -13811,7 +13896,6 @@ async function piercDoMarkLevel(level) {
     __piercView = "list";
     piercRenderReportedList_(__piercCacheList);
     if (btnPiercBack) btnPiercBack.hidden = true;
-    if (piercObservationEl) piercObservationEl.value = "";
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -14796,13 +14880,24 @@ async function uniDoMarkLevel(level) {
     return;
   }
 
-  const observation = normalizeObservation_(uniObservationEl ? uniObservationEl.value : "");
-
   const item = uniFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
   if (lvl > currentMax + 1) {
     uniSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+    uniApplyLevelUI_(currentMax);
+    return;
+  }
+
+  const observation = await openObservationModal_({
+    title: "Observación · Porte del uniforme",
+    sub: `Nivel ${lvl} para ${student}`,
+    placeholder: "Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc.",
+    initialValue: ""
+  });
+
+  if (observation === null) {
+    uniSetHint_("Registro cancelado.");
     uniApplyLevelUI_(currentMax);
     return;
   }
@@ -14828,7 +14923,6 @@ async function uniDoMarkLevel(level) {
     __uniView = "list";
     uniRenderReportedList_(__uniCacheList);
     if (btnUniBack) btnUniBack.hidden = true;
-    if (uniObservationEl) uniObservationEl.value = "";
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -16729,7 +16823,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-60";
+const APP_BUILD = "2026-04-10-62";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -16892,7 +16986,7 @@ piercStartPolling_();
 uniBindUI_();
 uniStartPolling_();
 
-
+bindObservationModal_();
 
 document.body.classList.toggle("is-admin", isAdminMode());
 
