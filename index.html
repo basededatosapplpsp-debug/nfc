@@ -3558,6 +3558,20 @@ function initQrUi_() {
 document.addEventListener("DOMContentLoaded", async () => {
   initQrUi_();
 
+  // ✅ mostrar el check azul INMEDIATAMENTE al volver del reload
+  try {
+    const showAfter = sessionStorage.getItem("showRefreshAfterReload");
+
+    if (showAfter === "1") {
+      sessionStorage.removeItem("showRefreshAfterReload");
+      showRefreshDone("Actualizado");
+
+      setTimeout(() => {
+        hideRefreshSpin();
+      }, 1000);
+    }
+  } catch (e) {}
+
   // ✅ pinta rápido el estado local
   try { restoreAttendanceButtonsState_(); } catch (e) {}
   try { syncSingleActionUI_(); } catch (e) {}
@@ -3581,22 +3595,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (e) {
     console.warn("No se pudo refrescar estado inicial:", e);
   }
-
-// ✅ mostrar solo el check azul después del reload
-try {
-  const showAfter = sessionStorage.getItem("showRefreshAfterReload");
-
-  if (showAfter === "1") {
-    sessionStorage.removeItem("showRefreshAfterReload");
-
-    // ✅ al volver, mostrar de una vez el check azul
-    showRefreshDone("Actualizado");
-
-    setTimeout(() => {
-      hideRefreshSpin();
-    }, 1000);
-  }
-} catch (e) {}
 });
 
 
@@ -15588,7 +15586,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-52";
+const APP_BUILD = "2026-04-10-53";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
