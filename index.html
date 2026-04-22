@@ -2803,7 +2803,13 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-
+<label class="modal-label" for="discObservation">Observación</label>
+<textarea
+  id="discObservation"
+  class="modal-input"
+  rows="3"
+  placeholder="Ej: Uso del celular durante la explicación, no acató el llamado, etc."
+></textarea>
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2867,7 +2873,13 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
-  
+  <label class="modal-label" for="piercObservation">Observación</label>
+<textarea
+  id="piercObservation"
+  class="modal-input"
+  rows="3"
+  placeholder="Ej: Tiene piercing visible en la ceja, arete no permitido, etc."
+></textarea>
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -2930,7 +2942,13 @@ body.is-admin #registerActions{
       <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
     </div>
 
- 
+ <label class="modal-label" for="uniObservation">Observación</label>
+<textarea
+  id="uniObservation"
+  class="modal-input"
+  rows="3"
+  placeholder="Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc."
+></textarea>
 
     <div class="disc-reported">
       <div class="row row-between" style="margin-top:12px;">
@@ -3615,7 +3633,8 @@ const btnDiscReload = $("btnDiscReload");
 const discSelectedNameEl = $("discSelectedName");
 const discSelectedMetaEl = $("discSelectedMeta");
 const discLevelDotEl = $("discLevelDot");
-const discStudentEl = $("discStudent"); // ✅ input para escribir estudiante
+const discStudentEl = $("discStudent");
+const discObservationEl = $("discObservation");
 // ======= PIERCING (LLAMADO DE ATENCIÓN) =======
 const btnPiercing = $("btnPiercing");
 const piercingModal = $("piercingModal");
@@ -3632,6 +3651,7 @@ const piercSelectedNameEl = $("piercSelectedName");
 const piercSelectedMetaEl = $("piercSelectedMeta");
 const piercLevelDotEl = $("piercLevelDot");
 const piercStudentEl = $("piercStudent");
+const piercObservationEl = $("piercObservation");
 
 
 
@@ -11571,16 +11591,21 @@ const sorted = [...list].sort((a, b) => {
       const isSelected = selectedKey && normalizeKey(student) === selectedKey;
       const selectedCls = isSelected ? " selected" : "";
 
+      const lastObservation = String(it.lastObservation || it.observation || "").trim();
+
       return `
         <div class="disc-item${selectedCls}"
              role="button"
              tabindex="0"
              data-student="${escapeHtml(student)}">
 
-          <div class="left">
-            <span class="${dotCls}"></span>
-            <span class="name">${escapeHtml(student)}</span>
-          </div>
+         <div class="left">
+  <span class="${dotCls}"></span>
+  <div style="min-width:0; flex:1;">
+    <div class="name">${escapeHtml(student)}</div>
+    ${lastObservation ? `<div class="muted small" style="margin-top:4px;">${escapeHtml(lastObservation)}</div>` : ""}
+  </div>
+</div>
 
           <div class="right" style="gap:10px;">
             <button type="button"
@@ -12356,6 +12381,8 @@ async function discDoMarkLevel(level) {
     return;
   }
 
+  const observation = normalizeObservation_(discObservationEl ? discObservationEl.value : "");
+
   const item = discFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
@@ -12372,6 +12399,7 @@ async function discDoMarkLevel(level) {
       month: discMonthKey_(),
       student,
       level: lvl,
+      observation,
       teacher: profile.name,
       email: profile.email,
       device_id: getDeviceId(),
@@ -12384,36 +12412,32 @@ async function discDoMarkLevel(level) {
       await discReloadReportedList(false);
     }
 
-    // ✅ actualizar seleccionado (arriba) + volver a lista actualizada
     discUpdateSelectedBox_(student);
-
     __discView = "list";
     discRenderReportedList_(__discCacheList);
 
-    // ocultar Atrás porque estamos en lista
     if (btnDiscBack) btnDiscBack.hidden = true;
+    if (discObservationEl) discObservationEl.value = "";
 
- let openedShare = false;
+    let openedShare = false;
 
-// ✅ Solo cuando es reporte por primera vez (nivel 4)
-if (resp && resp.ok && resp.justReported && lvl >= 4) {
-  const msg = String(resp.wa_msg || "").trim();
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+      const msg = String(resp.wa_msg || "").trim();
 
-  const out = await confirmAndShareReport_({
-    student,
-    msg,
-    title: "Compartir reporte (Celular)"
-  });
+      const out = await confirmAndShareReport_({
+        student,
+        msg,
+        title: "Compartir reporte (Celular)"
+      });
 
-  openedShare = !!out.didShare;
-}
-
-
-    if (lvl >= 4) {
-      discSetHint_(openedShare ? "Nivel 4 registrado. Compartir abierto ✅" : "Nivel 4 registrado ✅");
-    } else {
-      discSetHint_("Registrado ✅");
+      openedShare = !!(out && out.opened);
     }
+
+    discSetHint_(
+      observation
+        ? `Registrado ✅ Observación guardada.${openedShare ? " Compartido." : ""}`
+        : `Registrado ✅${openedShare ? " Compartido." : ""}`
+    );
 
   } catch (e) {
     discSetHint_(String(e && e.message ? e.message : e));
@@ -12732,13 +12756,17 @@ function piercRenderReportedList_(items) {
     const dotCls = maxLevel ? `lvl-dot lvl-${maxLevel}` : "lvl-dot";
     const isSelected = selectedKey && normalizeKey(student) === selectedKey;
     const selectedCls = isSelected ? " selected" : "";
+    const lastObservation = String(it.lastObservation || it.observation || "").trim();
 
     return `
       <div class="disc-item${selectedCls}" role="button" tabindex="0" data-student="${escapeHtml(student)}">
-        <div class="left">
-          <span class="${dotCls}"></span>
-          <span class="name">${escapeHtml(student)}</span>
-        </div>
+       <div class="left">
+  <span class="${dotCls}"></span>
+  <div style="min-width:0; flex:1;">
+    <div class="name">${escapeHtml(student)}</div>
+    ${lastObservation ? `<div class="muted small" style="margin-top:4px;">${escapeHtml(lastObservation)}</div>` : ""}
+  </div>
+</div>
         <div class="right" style="gap:10px;">
           <button type="button" class="disc-trash" title="Eliminar estudiante" aria-label="Eliminar estudiante" data-del="${escapeHtml(student)}">
             ${trashSvg}
@@ -12956,7 +12984,12 @@ async function piercDoMarkLevel(level) {
   if (lvl < 1 || lvl > 4) return;
 
   const student = piercNormalizeStudent_(__piercCurrentStudent);
-  if (!student) { piercSetHint_("Primero selecciona un estudiante de la lista."); return; }
+  if (!student) {
+    piercSetHint_("Primero selecciona un estudiante de la lista.");
+    return;
+  }
+
+  const observation = normalizeObservation_(piercObservationEl ? piercObservationEl.value : "");
 
   const item = piercFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
@@ -12974,6 +13007,7 @@ async function piercDoMarkLevel(level) {
       month: piercMonthKey_(),
       student,
       level: lvl,
+      observation,
       teacher: profile.name,
       email: profile.email,
       device_id: getDeviceId(),
@@ -12987,19 +13021,22 @@ async function piercDoMarkLevel(level) {
     __piercView = "list";
     piercRenderReportedList_(__piercCacheList);
     if (btnPiercBack) btnPiercBack.hidden = true;
+    if (piercObservationEl) piercObservationEl.value = "";
 
-    // ✅ Solo cuando es reporte por primera vez (nivel 4)
-if (resp && resp.ok && resp.justReported && lvl >= 4) {
-  const msg = String(resp.wa_msg || "").trim();
-  await confirmAndShareReport_({
-    student,
-    msg,
-    title: "Compartir reporte (Piercing)"
-  });
-}
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+      const msg = String(resp.wa_msg || "").trim();
+      await confirmAndShareReport_({
+        student,
+        msg,
+        title: "Compartir reporte (Piercing)"
+      });
+    }
 
-
-    piercSetHint_(lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅");
+    piercSetHint_(
+      observation
+        ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
+        : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
+    );
 
   } catch (e) {
     piercSetHint_(String(e && e.message ? e.message : e));
@@ -13242,6 +13279,7 @@ const uniSelectedMetaEl = document.getElementById("uniSelectedMeta");
 const uniLevelDot = document.getElementById("uniLevelDot");
 const uniWhoList = document.getElementById("uniWhoList");
 const uniStudentEl = document.getElementById("uniStudent");
+const uniObservationEl = document.getElementById("uniObservation");
 const uniReportedList = document.getElementById("uniReportedList");
 const uniHintEl = document.getElementById("uniHint");
 
@@ -13422,6 +13460,7 @@ function uniRenderReportedList_(items){
 
     const isSelected = selectedKey && normalizeKey(student) === selectedKey;
     const selectedCls = isSelected ? " selected" : "";
+    const lastObservation = String(it.lastObservation || it.observation || "").trim();
 
     return `
       <div class="disc-item${selectedCls}"
@@ -13429,10 +13468,13 @@ function uniRenderReportedList_(items){
            tabindex="0"
            data-student="${escapeHtml(student)}">
 
-        <div class="left">
-          <span class="${dotCls}"></span>
-          <span class="name">${escapeHtml(student)}</span>
-        </div>
+      <div class="left">
+  <span class="${dotCls}"></span>
+  <div style="min-width:0; flex:1;">
+    <div class="name">${escapeHtml(student)}</div>
+    ${lastObservation ? `<div class="muted small" style="margin-top:4px;">${escapeHtml(lastObservation)}</div>` : ""}
+  </div>
+</div>
 
         <div class="right" style="gap:10px;">
           <button type="button"
@@ -13472,6 +13514,12 @@ function uniRenderReportedList_(items){
     });
   });
 }
+
+
+function normalizeObservation_(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
 
 // ✅ Reusar el mismo ícono de basura en Disciplina / Piercing / Uniforme
 window.trashSvg = `
@@ -13657,7 +13705,12 @@ async function uniDoMarkLevel(level) {
   if (lvl < 1 || lvl > 4) return;
 
   const student = uniNormalizeStudent_(__uniCurrentStudent);
-  if (!student) { uniSetHint_("Primero selecciona un estudiante de la lista."); return; }
+  if (!student) {
+    uniSetHint_("Primero selecciona un estudiante de la lista.");
+    return;
+  }
+
+  const observation = normalizeObservation_(uniObservationEl ? uniObservationEl.value : "");
 
   const item = uniFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
@@ -13675,6 +13728,7 @@ async function uniDoMarkLevel(level) {
       month: uniMonthKey_(),
       student,
       level: lvl,
+      observation,
       teacher: profile.name,
       email: profile.email,
       device_id: getDeviceId(),
@@ -13688,19 +13742,22 @@ async function uniDoMarkLevel(level) {
     __uniView = "list";
     uniRenderReportedList_(__uniCacheList);
     if (btnUniBack) btnUniBack.hidden = true;
+    if (uniObservationEl) uniObservationEl.value = "";
 
-    // ✅ Solo cuando es reporte por primera vez (nivel 4)
- if (resp && resp.ok && resp.justReported && lvl >= 4) {
-  const msg = String(resp.wa_msg || "").trim();
-  await confirmAndShareReport_({
-    student,
-    msg,
-    title: "Compartir reporte (Uniforme)"
-  });
-}
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+      const msg = String(resp.wa_msg || "").trim();
+      await confirmAndShareReport_({
+        student,
+        msg,
+        title: "Compartir reporte (Uniforme)"
+      });
+    }
 
-
-    uniSetHint_(lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅");
+    uniSetHint_(
+      observation
+        ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
+        : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
+    );
   } catch (e) {
     uniSetHint_(String(e && e.message ? e.message : e));
   } finally {
@@ -15586,7 +15643,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-53";
+const APP_BUILD = "2026-04-10-54";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
@@ -15832,3 +15889,4 @@ setInterval(async () => {
 
 </body>
 </html>
+g
