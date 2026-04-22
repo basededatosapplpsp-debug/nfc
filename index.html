@@ -4726,7 +4726,25 @@ function syncSingleActionUI_() {
 // ======= Helpers =======
 
 
+function reportObservationOf_(x){
+  return String(
+    x?.observacion ||
+    x?.observation ||
+    x?.obs ||
+    x?.motivo ||
+    ""
+  ).trim();
+}
 
+function reportDtOf_(x){
+  return String(
+    x?.dt ||
+    x?.date ||
+    x?.created_at ||
+    x?.createdAt ||
+    ""
+  ).trim();
+}
   
 function pad(n){ return String(n).padStart(2,"0"); }
 function nowParts() {
@@ -11885,6 +11903,133 @@ ${item.who.map((x, idx) => `
   else if (discWhoList) discWhoList.textContent = "—";
 }
 
+async function gsDisciplineUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "discipline_update_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "discipline_update_one_failed");
+  return data;
+}
+
+async function gsDisciplineDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "discipline_delete_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "discipline_delete_one_failed");
+  return data;
+}
+
+
+async function gsPiercingUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "piercing_update_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "piercing_update_one_failed");
+  return data;
+}
+
+async function gsPiercingDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "piercing_delete_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "piercing_delete_one_failed");
+  return data;
+}
+
+async function gsUniformUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "uniform_update_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "uniform_update_one_failed");
+  return data;
+}
+
+async function gsUniformDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "uniform_delete_one",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "uniform_delete_one_failed");
+  return data;
+}
+
 
 /* ======= Google Sheets API (acciones) ======= */
 async function gsDisciplineMark(payload) {
@@ -12424,6 +12569,102 @@ async function discDeleteStudent_(studentName){
 
   } catch (e) {
     discSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function discEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = normalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = String(newObs || "").trim();
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsDisciplineUpdateOne({
+      month: discMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __discCacheList = resp.list;
+    } else if (typeof discReloadReportedList === "function") {
+      await discReloadReportedList(false);
+    }
+
+    if (typeof discUpdateSelectedBox_ === "function") discUpdateSelectedBox_(student);
+    if (typeof discRenderDetailView_ === "function") discRenderDetailView_();
+
+    if (typeof discSetHint_ === "function") discSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    if (typeof discSetHint_ === "function") {
+      discSetHint_(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function discDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = normalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsDisciplineDeleteOne({
+      month: discMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __discCacheList = resp.list;
+    } else if (typeof discReloadReportedList === "function") {
+      await discReloadReportedList(false);
+    }
+
+    if (typeof discUpdateSelectedBox_ === "function") discUpdateSelectedBox_(student);
+    if (typeof discRenderDetailView_ === "function") discRenderDetailView_();
+
+    if (typeof discSetHint_ === "function") discSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    if (typeof discSetHint_ === "function") {
+      discSetHint_(String(e && e.message ? e.message : e));
+    }
   } finally {
     setLoading(false);
   }
@@ -13344,6 +13585,101 @@ async function piercDeleteStudent_(studentName){
   }
 }
 
+async function piercEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = piercNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = String(newObs || "").trim();
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsPiercingUpdateOne({
+      month: piercMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __piercCacheList = resp.list;
+    } else if (typeof piercReloadReportedList === "function") {
+      await piercReloadReportedList(false);
+    }
+
+    if (typeof piercUpdateSelectedBox_ === "function") piercUpdateSelectedBox_(student);
+    if (typeof piercRenderDetailView_ === "function") piercRenderDetailView_();
+
+    if (typeof piercSetHint_ === "function") piercSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    if (typeof piercSetHint_ === "function") {
+      piercSetHint_(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function piercDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = piercNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsPiercingDeleteOne({
+      month: piercMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __piercCacheList = resp.list;
+    } else if (typeof piercReloadReportedList === "function") {
+      await piercReloadReportedList(false);
+    }
+
+    if (typeof piercUpdateSelectedBox_ === "function") piercUpdateSelectedBox_(student);
+    if (typeof piercRenderDetailView_ === "function") piercRenderDetailView_();
+
+    if (typeof piercSetHint_ === "function") piercSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    if (typeof piercSetHint_ === "function") {
+      piercSetHint_(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setLoading(false);
+  }
+}
 
 async function piercEditOne_(studentName, row){
   const profile = requireLogin();
@@ -14259,6 +14595,103 @@ async function uniDeleteStudent_(studentName){
     uniSetHint_("Estudiante eliminado ✅");
   } catch (e) {
     uniSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+async function uniEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = uniNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = String(newObs || "").trim();
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsUniformUpdateOne({
+      month: uniMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __uniCacheList = resp.list;
+    } else if (typeof uniReloadReportedList === "function") {
+      await uniReloadReportedList(false);
+    }
+
+    if (typeof uniUpdateSelectedBox_ === "function") uniUpdateSelectedBox_(student);
+    if (typeof uniRenderDetailView_ === "function") uniRenderDetailView_();
+
+    if (typeof uniSetHint_ === "function") uniSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    if (typeof uniSetHint_ === "function") {
+      uniSetHint_(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function uniDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = uniNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsUniformDeleteOne({
+      month: uniMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      __uniCacheList = resp.list;
+    } else if (typeof uniReloadReportedList === "function") {
+      await uniReloadReportedList(false);
+    }
+
+    if (typeof uniUpdateSelectedBox_ === "function") uniUpdateSelectedBox_(student);
+    if (typeof uniRenderDetailView_ === "function") uniRenderDetailView_();
+
+    if (typeof uniSetHint_ === "function") uniSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    if (typeof uniSetHint_ === "function") {
+      uniSetHint_(String(e && e.message ? e.message : e));
+    }
   } finally {
     setLoading(false);
   }
@@ -16296,7 +16729,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-59";
+const APP_BUILD = "2026-04-10-60";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
