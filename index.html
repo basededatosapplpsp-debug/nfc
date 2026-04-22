@@ -1035,6 +1035,46 @@ body:not(.is-admin) #adminMonthSummary{
 }
 
 
+.disc-actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:10px;
+}
+
+.disc-icon-btn{
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: transform .15s ease, filter .15s ease, background .15s ease, border-color .15s ease;
+}
+
+.disc-icon-btn:hover{
+  filter: brightness(1.08);
+}
+
+.disc-icon-btn:active{
+  transform: translateY(1px) scale(.99);
+}
+
+.disc-icon-btn.edit{
+  color:#93c5fd;
+  border-color: rgba(59,130,246,.22);
+  background: rgba(59,130,246,.10);
+}
+
+.disc-icon-btn.delete{
+  color:#ffb4b4;
+  border-color: rgba(239,68,68,.22);
+  background: rgba(239,68,68,.10);
+}
+
 /* =========================================================
    ✅ FIX: Nombre con "..." SIN mover/tapar el bote (Reportados)
    ========================================================= */
@@ -6053,6 +6093,26 @@ document.addEventListener("click", (e) => {
   if (!inside) closeFaltasTiposSubMenu_();
 });
 
+
+function reportObservationOf_(x){
+  return String(
+    x?.observacion ||
+    x?.observation ||
+    x?.obs ||
+    x?.motivo ||
+    ""
+  ).trim();
+}
+
+function reportDtOf_(x){
+  return String(
+    x?.dt ||
+    x?.date ||
+    x?.created_at ||
+    x?.createdAt ||
+    ""
+  ).trim();
+}
 /***********************
  * FALTAS (TIPO 1/2/3) - MODAL
  * Requiere: gsPost({action:"courses_list"}) y gsPost({action:"course_students", course})
@@ -11682,7 +11742,7 @@ function discBackToList_(){
 }
 
 
-  function discRenderDetailView_(){
+function discRenderDetailView_(){
   if (!discReportedList) return;
 
   const s = normalizeStudent_(__discCurrentStudent);
@@ -11697,31 +11757,77 @@ function discBackToList_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-${item.who.map(x => `
+${item.who.map((x, idx) => `
   <div style="
     border:1px solid rgba(255,255,255,.10);
     border-radius:12px;
     padding:10px;
     background:rgba(255,255,255,.04);
   ">
-    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+      <div style="min-width:0; flex:1 1 auto;">
+        <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
 
-    <div class="muted small" style="margin-top:4px;">
-      Nivel ${Number(x.level || 0)}
-      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        <div class="muted small" style="margin-top:4px;">
+          Nivel ${Number(x.level || 0)}
+          ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        </div>
+
+        ${
+          (x.observacion || x.observation || x.obs || x.motivo)
+            ? `
+              <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
+                Obs: ${escapeHtml(
+                  x.observacion || x.observation || x.obs || x.motivo
+                )}
+              </div>
+            `
+            : ""
+        }
+      </div>
+
+      <div style="display:flex; gap:8px; flex:0 0 auto;">
+        <button
+          type="button"
+          title="Editar observación"
+          aria-label="Editar observación"
+          data-disc-edit="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(59,130,246,.22);
+            background:rgba(59,130,246,.10);
+            color:#93c5fd;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-pen"></i>
+        </button>
+
+        <button
+          type="button"
+          title="Eliminar reporte"
+          aria-label="Eliminar reporte"
+          data-disc-del-one="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(239,68,68,.22);
+            background:rgba(239,68,68,.10);
+            color:#ffb4b4;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
     </div>
-
-    ${
-      (x.observacion || x.observation || x.obs || x.motivo)
-        ? `
-          <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
-            Obs: ${escapeHtml(
-              x.observacion || x.observation || x.obs || x.motivo
-            )}
-          </div>
-        `
-        : ""
-    }
   </div>
 `).join("")}
         </div>
@@ -11745,10 +11851,33 @@ ${item.who.map(x => `
     <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
   `;
 
+  if (item && Array.isArray(item.who) && item.who.length) {
+    discReportedList.querySelectorAll("[data-disc-edit]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-disc-edit"));
+        const row = item.who[idx];
+        if (typeof discEditOne_ === "function") {
+          await discEditOne_(s, row);
+        }
+      });
+    });
+
+    discReportedList.querySelectorAll("[data-disc-del-one]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-disc-del-one"));
+        const row = item.who[idx];
+        if (typeof discDeleteOne_ === "function") {
+          await discDeleteOne_(s, row);
+        }
+      });
+    });
+  }
+
   discApplyLevelUI_(maxLevel);
-
-
-
 
   // ✅ repinta UI de niveles y “who” usando lo que ya tienes
   discApplyLevelUI_(maxLevel);
@@ -11783,6 +11912,35 @@ async function gsDisciplineDeleteStudent(payload) {
   catch { throw new Error("Respuesta inválida del servidor"); }
 
   if (!data.ok) throw new Error(data.msg || data.error || "discipline_delete_failed");
+  return data;
+}
+
+
+async function gsDisciplineUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "discipline_update_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "discipline_update_one_failed");
+  return data;
+}
+
+async function gsDisciplineDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "discipline_delete_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "discipline_delete_one_failed");
   return data;
 }
 
@@ -12271,7 +12429,90 @@ async function discDeleteStudent_(studentName){
   }
 }
 
+async function discEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
 
+  const student = normalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = normalizeObservation_(newObs);
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsDisciplineUpdateOne({
+      month: discMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
+    else await discReloadReportedList(false);
+
+    discUpdateSelectedBox_(student);
+    if (__discView === "detail") discRenderDetailView_();
+
+    discSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    discSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function discDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = normalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsDisciplineDeleteOne({
+      month: discMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
+    else await discReloadReportedList(false);
+
+    discUpdateSelectedBox_(student);
+    if (__discView === "detail") discRenderDetailView_();
+
+    discSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    discSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
 
 
 async function shareTextNative_(text) {
@@ -12819,42 +13060,90 @@ function piercRenderReportedList_(items) {
 
 function piercRenderDetailView_(){
   if (!piercReportedList) return;
+
   const s = piercNormalizeStudent_(__piercCurrentStudent);
   const item = s ? piercFindInCache_(s) : null;
 
   const maxLevel = item ? Number(item.maxLevel || 0) : 0;
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
+
   const docentesHtml = (item && Array.isArray(item.who) && item.who.length)
     ? `
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-${item.who.map(x => `
+${item.who.map((x, idx) => `
   <div style="
     border:1px solid rgba(255,255,255,.10);
     border-radius:12px;
     padding:10px;
     background:rgba(255,255,255,.04);
   ">
-    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+      <div style="min-width:0; flex:1 1 auto;">
+        <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
 
-    <div class="muted small" style="margin-top:4px;">
-      Nivel ${Number(x.level || 0)}
-      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        <div class="muted small" style="margin-top:4px;">
+          Nivel ${Number(x.level || 0)}
+          ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        </div>
+
+        ${
+          (x.observacion || x.observation || x.obs || x.motivo)
+            ? `
+              <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
+                Obs: ${escapeHtml(
+                  x.observacion || x.observation || x.obs || x.motivo
+                )}
+              </div>
+            `
+            : ""
+        }
+      </div>
+
+      <div style="display:flex; gap:8px; flex:0 0 auto;">
+        <button
+          type="button"
+          title="Editar observación"
+          aria-label="Editar observación"
+          data-pierc-edit="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(59,130,246,.22);
+            background:rgba(59,130,246,.10);
+            color:#93c5fd;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-pen"></i>
+        </button>
+
+        <button
+          type="button"
+          title="Eliminar reporte"
+          aria-label="Eliminar reporte"
+          data-pierc-del-one="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(239,68,68,.22);
+            background:rgba(239,68,68,.10);
+            color:#ffb4b4;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
     </div>
-
-    ${
-      (x.observacion || x.observation || x.obs || x.motivo)
-        ? `
-          <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
-            Obs: ${escapeHtml(
-              x.observacion || x.observation || x.obs || x.motivo
-            )}
-          </div>
-        `
-        : ""
-    }
   </div>
 `).join("")}
         </div>
@@ -12877,6 +13166,32 @@ ${item.who.map(x => `
     </div>
     <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
   `;
+
+  if (item && Array.isArray(item.who) && item.who.length) {
+    piercReportedList.querySelectorAll("[data-pierc-edit]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-pierc-edit"));
+        const row = item.who[idx];
+        if (typeof piercEditOne_ === "function") {
+          await piercEditOne_(s, row);
+        }
+      });
+    });
+
+    piercReportedList.querySelectorAll("[data-pierc-del-one]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-pierc-del-one"));
+        const row = item.who[idx];
+        if (typeof piercDeleteOne_ === "function") {
+          await piercDeleteOne_(s, row);
+        }
+      });
+    });
+  }
 
   piercApplyLevelUI_(maxLevel);
 }
@@ -12934,6 +13249,36 @@ async function gsPiercingDeleteStudent(payload) {
   if (!data.ok) throw new Error(data.msg || data.error || "piercing_delete_failed");
   return data;
 }
+
+
+async function gsPiercingUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "piercing_update_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "piercing_update_one_failed");
+  return data;
+}
+
+async function gsPiercingDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "piercing_delete_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "piercing_delete_one_failed");
+  return data;
+}
+
 
 /* ======= UI actions ======= */
 async function piercReloadReportedList(showHint=false) {
@@ -12999,6 +13344,91 @@ async function piercDeleteStudent_(studentName){
   }
 }
 
+
+async function piercEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = piercNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = normalizeObservation_(newObs);
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsPiercingUpdateOne({
+      month: piercMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
+    else await piercReloadReportedList(false);
+
+    piercUpdateSelectedBox_(student);
+    if (__piercView === "detail") piercRenderDetailView_();
+
+    piercSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    piercSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function piercDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = piercNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsPiercingDeleteOne({
+      month: piercMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
+    else await piercReloadReportedList(false);
+
+    piercUpdateSelectedBox_(student);
+    if (__piercView === "detail") piercRenderDetailView_();
+
+    piercSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    piercSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
 
 async function piercDoMarkLevel(level) {
   const profile = requireLogin();
@@ -13346,6 +13776,34 @@ async function gsUniformDeleteStudent(payload) {
   return data;
 }
 
+async function gsUniformUpdateOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "uniform_update_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "uniform_update_one_failed");
+  return data;
+}
+
+async function gsUniformDeleteOne(payload) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({ action: "uniform_delete_one", ...payload, key: GS_API_KEY })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "uniform_delete_one_failed");
+  return data;
+}
+
 /* ======= helpers ======= */
 function uniMonthKey_() {
   // usa la misma lógica del mes actual que ya usas en disciplina/piercing
@@ -13606,6 +14064,7 @@ function uniRenderDetailView_(){
   // igual que disciplina: deja arriba el box y debajo info
   // aquí simplemente reusamos la lista, pero mostrando “seleccionado”
   if (!uniReportedList) return;
+
   const s = uniNormalizeStudent_(__uniCurrentStudent);
   const item = s ? uniFindInCache_(s) : null;
 
@@ -13618,31 +14077,77 @@ function uniRenderDetailView_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-${item.who.map(x => `
+${item.who.map((x, idx) => `
   <div style="
     border:1px solid rgba(255,255,255,.10);
     border-radius:12px;
     padding:10px;
     background:rgba(255,255,255,.04);
   ">
-    <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+    <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+      <div style="min-width:0; flex:1 1 auto;">
+        <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
 
-    <div class="muted small" style="margin-top:4px;">
-      Nivel ${Number(x.level || 0)}
-      ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        <div class="muted small" style="margin-top:4px;">
+          Nivel ${Number(x.level || 0)}
+          ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
+        </div>
+
+        ${
+          (x.observacion || x.observation || x.obs || x.motivo)
+            ? `
+              <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
+                Obs: ${escapeHtml(
+                  x.observacion || x.observation || x.obs || x.motivo
+                )}
+              </div>
+            `
+            : ""
+        }
+      </div>
+
+      <div style="display:flex; gap:8px; flex:0 0 auto;">
+        <button
+          type="button"
+          title="Editar observación"
+          aria-label="Editar observación"
+          data-uni-edit="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(59,130,246,.22);
+            background:rgba(59,130,246,.10);
+            color:#93c5fd;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-pen"></i>
+        </button>
+
+        <button
+          type="button"
+          title="Eliminar reporte"
+          aria-label="Eliminar reporte"
+          data-uni-del-one="${idx}"
+          style="
+            width:38px;
+            height:38px;
+            border-radius:12px;
+            border:1px solid rgba(239,68,68,.22);
+            background:rgba(239,68,68,.10);
+            color:#ffb4b4;
+            display:grid;
+            place-items:center;
+            cursor:pointer;
+          "
+        >
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
     </div>
-
-    ${
-      (x.observacion || x.observation || x.obs || x.motivo)
-        ? `
-          <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
-            Obs: ${escapeHtml(
-              x.observacion || x.observation || x.obs || x.motivo
-            )}
-          </div>
-        `
-        : ""
-    }
   </div>
 `).join("")}
         </div>
@@ -13665,6 +14170,32 @@ ${item.who.map(x => `
     </div>
     <div class="muted small" style="margin-bottom:6px;">(Usa los botones de nivel arriba para registrar)</div>
   `;
+
+  if (item && Array.isArray(item.who) && item.who.length) {
+    uniReportedList.querySelectorAll("[data-uni-edit]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-uni-edit"));
+        const row = item.who[idx];
+        if (typeof uniEditOne_ === "function") {
+          await uniEditOne_(s, row);
+        }
+      });
+    });
+
+    uniReportedList.querySelectorAll("[data-uni-del-one]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const idx = Number(btn.getAttribute("data-uni-del-one"));
+        const row = item.who[idx];
+        if (typeof uniDeleteOne_ === "function") {
+          await uniDeleteOne_(s, row);
+        }
+      });
+    });
+  }
 
   uniApplyLevelUI_(maxLevel);
 }
@@ -13733,6 +14264,91 @@ async function uniDeleteStudent_(studentName){
   }
 }
 
+
+async function uniEditOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = uniNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const currentObs = reportObservationOf_(row);
+  const newObs = window.prompt("Editar observación:", currentObs);
+
+  if (newObs === null) return;
+
+  const observation = normalizeObservation_(newObs);
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsUniformUpdateOne({
+      month: uniMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
+    else await uniReloadReportedList(false);
+
+    uniUpdateSelectedBox_(student);
+    if (__uniView === "detail") uniRenderDetailView_();
+
+    uniSetHint_("Reporte actualizado ✅");
+  } catch (e) {
+    uniSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function uniDeleteOne_(studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = uniNormalizeStudent_(studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsUniformDeleteOne({
+      month: uniMonthKey_(),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
+    else await uniReloadReportedList(false);
+
+    uniUpdateSelectedBox_(student);
+    if (__uniView === "detail") uniRenderDetailView_();
+
+    uniSetHint_("Reporte eliminado ✅");
+  } catch (e) {
+    uniSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
 
 async function uniDoMarkLevel(level) {
   const profile = requireLogin();
@@ -15680,7 +16296,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-58";
+const APP_BUILD = "2026-04-10-59";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
