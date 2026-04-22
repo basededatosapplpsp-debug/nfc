@@ -11455,9 +11455,7 @@ function discUpdateSelectedBox_(studentName){
   const s = normalizeStudent_(studentName);
   __discCurrentStudent = s;
 
-  // ✅ mantener input sincronizado
   if (discStudentEl) discStudentEl.value = s || "";
-
   if (!discSelectedNameEl || !discSelectedMetaEl) return;
 
   if (!s) {
@@ -11474,10 +11472,25 @@ function discUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
+  const lastObservation =
+    item
+      ? String(
+          item.lastObservation ||
+          item.observation ||
+          (
+            Array.isArray(item.who) && item.who.length
+              ? (item.who[0]?.observation || "")
+              : ""
+          )
+        ).trim()
+      : "";
+
   discSelectedNameEl.textContent = s;
 
   if (item) {
-    discSelectedMetaEl.textContent = `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`;
+    discSelectedMetaEl.textContent =
+      `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
+      (lastObservation ? ` • Obs: ${lastObservation}` : "");
   } else {
     discSelectedMetaEl.textContent = `Nuevo (sin reportes este mes aún)`;
   }
@@ -12692,7 +12705,6 @@ function piercUpdateSelectedBox_(studentName){
   __piercCurrentStudent = s;
 
   if (piercStudentEl) piercStudentEl.value = s || "";
-
   if (!piercSelectedNameEl || !piercSelectedMetaEl) return;
 
   if (!s) {
@@ -12709,10 +12721,24 @@ function piercUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
+  const lastObservation =
+    item
+      ? String(
+          item.lastObservation ||
+          item.observation ||
+          (
+            Array.isArray(item.who) && item.who.length
+              ? (item.who[0]?.observation || "")
+              : ""
+          )
+        ).trim()
+      : "";
+
   piercSelectedNameEl.textContent = s;
 
   piercSelectedMetaEl.textContent = item
-    ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+    ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
+      (lastObservation ? ` • Obs: ${lastObservation}` : "")
     : `Nuevo (sin reportes este mes aún)`;
 
   piercSetDotByLevel_(maxLevel);
@@ -13551,10 +13577,24 @@ function uniUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
+  const lastObservation =
+    item
+      ? String(
+          item.lastObservation ||
+          item.observation ||
+          (
+            Array.isArray(item.who) && item.who.length
+              ? (item.who[0]?.observation || "")
+              : ""
+          )
+        ).trim()
+      : "";
+
   if (uniSelectedNameEl) uniSelectedNameEl.textContent = s;
   if (uniSelectedMetaEl) {
     uniSelectedMetaEl.textContent = item
-      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
+        (lastObservation ? ` • Obs: ${lastObservation}` : "")
       : `Nuevo (sin reportes este mes aún)`;
   }
 
@@ -15643,7 +15683,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-54";
+const APP_BUILD = "2026-04-10-56";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
