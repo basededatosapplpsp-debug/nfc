@@ -5168,13 +5168,12 @@ function saveTeacherExceptionInMemory_() {
     return false;
   }
 
-  const onTime = String(cfgTeacherOnTime.value || "").trim();
-  const exitOk = String(cfgTeacherExitOk.value || "").trim();
+  let onTime = String(cfgTeacherOnTime.value || "").trim();
+  let exitOk = String(cfgTeacherExitOk.value || "").trim();
 
-  if (!onTime || !exitOk) {
-    cfgHint.textContent = "Debes escribir entrada y salida de excepción.";
-    return false;
-  }
+  // ✅ Si deja una vacía, toma la general
+  if (!onTime) onTime = String(cfgOnTime.value || ON_TIME_HHMM_CLIENT || "06:30").trim();
+  if (!exitOk) exitOk = String(cfgExitOk.value || EXIT_OK_HHMM_CLIENT || "14:00").trim();
 
   if (!isValidHHMM(onTime) || !isValidHHMM(exitOk)) {
     cfgHint.textContent = "Horas de excepción inválidas. Usa HH:MM.";
@@ -5187,6 +5186,10 @@ function saveTeacherExceptionInMemory_() {
     onTime,
     exitOk
   };
+
+  // opcional: reflejar en los inputs el valor final guardado
+  cfgTeacherOnTime.value = onTime;
+  cfgTeacherExitOk.value = exitOk;
 
   renderTeacherExceptionsList_();
   cfgHint.textContent = `Excepción preparada para ${teacher}. Ahora pulsa "Guardar".`;
@@ -15585,7 +15588,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-51";
+const APP_BUILD = "2026-04-10-52";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
