@@ -12680,20 +12680,15 @@ async function discEditOne_(studentName, row){
       device_id: getDeviceId()
     });
 
-    if (resp && Array.isArray(resp.list)) {
-      __discCacheList = resp.list;
-    } else if (typeof discReloadReportedList === "function") {
-      await discReloadReportedList(false);
-    }
+    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
+    else await discReloadReportedList(false);
 
-    if (typeof discUpdateSelectedBox_ === "function") discUpdateSelectedBox_(student);
-    if (typeof discRenderDetailView_ === "function") discRenderDetailView_();
+    discUpdateSelectedBox_(student);
+    if (__discView === "detail") discRenderDetailView_();
 
-    if (typeof discSetHint_ === "function") discSetHint_("Reporte actualizado ✅");
+    discSetHint_("Reporte actualizado ✅");
   } catch (e) {
-    if (typeof discSetHint_ === "function") {
-      discSetHint_(String(e && e.message ? e.message : e));
-    }
+    discSetHint_(String(e && e.message ? e.message : e));
   } finally {
     setLoading(false);
   }
@@ -13695,20 +13690,15 @@ async function piercEditOne_(studentName, row){
       device_id: getDeviceId()
     });
 
-    if (resp && Array.isArray(resp.list)) {
-      __piercCacheList = resp.list;
-    } else if (typeof piercReloadReportedList === "function") {
-      await piercReloadReportedList(false);
-    }
+    if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
+    else await piercReloadReportedList(false);
 
-    if (typeof piercUpdateSelectedBox_ === "function") piercUpdateSelectedBox_(student);
-    if (typeof piercRenderDetailView_ === "function") piercRenderDetailView_();
+    piercUpdateSelectedBox_(student);
+    if (__piercView === "detail") piercRenderDetailView_();
 
-    if (typeof piercSetHint_ === "function") piercSetHint_("Reporte actualizado ✅");
+    piercSetHint_("Reporte actualizado ✅");
   } catch (e) {
-    if (typeof piercSetHint_ === "function") {
-      piercSetHint_(String(e && e.message ? e.message : e));
-    }
+    piercSetHint_(String(e && e.message ? e.message : e));
   } finally {
     setLoading(false);
   }
@@ -14725,20 +14715,15 @@ async function uniEditOne_(studentName, row){
       device_id: getDeviceId()
     });
 
-    if (resp && Array.isArray(resp.list)) {
-      __uniCacheList = resp.list;
-    } else if (typeof uniReloadReportedList === "function") {
-      await uniReloadReportedList(false);
-    }
+    if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
+    else await uniReloadReportedList(false);
 
-    if (typeof uniUpdateSelectedBox_ === "function") uniUpdateSelectedBox_(student);
-    if (typeof uniRenderDetailView_ === "function") uniRenderDetailView_();
+    uniUpdateSelectedBox_(student);
+    if (__uniView === "detail") uniRenderDetailView_();
 
-    if (typeof uniSetHint_ === "function") uniSetHint_("Reporte actualizado ✅");
+    uniSetHint_("Reporte actualizado ✅");
   } catch (e) {
-    if (typeof uniSetHint_ === "function") {
-      uniSetHint_(String(e && e.message ? e.message : e));
-    }
+    uniSetHint_(String(e && e.message ? e.message : e));
   } finally {
     setLoading(false);
   }
@@ -16835,7 +16820,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-63";
+const APP_BUILD = "2026-04-10-64";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
