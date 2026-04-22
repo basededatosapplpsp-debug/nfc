@@ -12743,47 +12743,7 @@ async function discDeleteOne_(studentName, row){
   }
 }
 
-async function discEditOne_(studentName, row){
-  const profile = requireLogin();
-  if (!profile) return;
 
-  const student = normalizeStudent_(studentName);
-  if (!student || !row) return;
-
-  const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
-
-  if (newObs === null) return;
-
-  const observation = normalizeObservation_(newObs);
-
-  try {
-    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
-
-    const resp = await gsDisciplineUpdateOne({
-      month: discMonthKey_(),
-      student,
-      teacher: String(row.teacher || "").trim(),
-      dt: reportDtOf_(row),
-      level: Number(row.level || 0),
-      observation,
-      email: profile.email,
-      device_id: getDeviceId()
-    });
-
-    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
-    else await discReloadReportedList(false);
-
-    discUpdateSelectedBox_(student);
-    if (__discView === "detail") discRenderDetailView_();
-
-    discSetHint_("Reporte actualizado ✅");
-  } catch (e) {
-    discSetHint_(String(e && e.message ? e.message : e));
-  } finally {
-    setLoading(false);
-  }
-}
 
 async function discDeleteOne_(studentName, row){
   const profile = requireLogin();
@@ -13753,47 +13713,7 @@ async function piercDeleteOne_(studentName, row){
   }
 }
 
-async function piercEditOne_(studentName, row){
-  const profile = requireLogin();
-  if (!profile) return;
 
-  const student = piercNormalizeStudent_(studentName);
-  if (!student || !row) return;
-
-  const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
-
-  if (newObs === null) return;
-
-  const observation = normalizeObservation_(newObs);
-
-  try {
-    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
-
-    const resp = await gsPiercingUpdateOne({
-      month: piercMonthKey_(),
-      student,
-      teacher: String(row.teacher || "").trim(),
-      dt: reportDtOf_(row),
-      level: Number(row.level || 0),
-      observation,
-      email: profile.email,
-      device_id: getDeviceId()
-    });
-
-    if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
-    else await piercReloadReportedList(false);
-
-    piercUpdateSelectedBox_(student);
-    if (__piercView === "detail") piercRenderDetailView_();
-
-    piercSetHint_("Reporte actualizado ✅");
-  } catch (e) {
-    piercSetHint_(String(e && e.message ? e.message : e));
-  } finally {
-    setLoading(false);
-  }
-}
 
 async function piercDeleteOne_(studentName, row){
   const profile = requireLogin();
@@ -14779,47 +14699,7 @@ async function uniDeleteOne_(studentName, row){
 }
 
 
-async function uniEditOne_(studentName, row){
-  const profile = requireLogin();
-  if (!profile) return;
 
-  const student = uniNormalizeStudent_(studentName);
-  if (!student || !row) return;
-
-  const currentObs = reportObservationOf_(row);
-  const newObs = window.prompt("Editar observación:", currentObs);
-
-  if (newObs === null) return;
-
-  const observation = normalizeObservation_(newObs);
-
-  try {
-    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
-
-    const resp = await gsUniformUpdateOne({
-      month: uniMonthKey_(),
-      student,
-      teacher: String(row.teacher || "").trim(),
-      dt: reportDtOf_(row),
-      level: Number(row.level || 0),
-      observation,
-      email: profile.email,
-      device_id: getDeviceId()
-    });
-
-    if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
-    else await uniReloadReportedList(false);
-
-    uniUpdateSelectedBox_(student);
-    if (__uniView === "detail") uniRenderDetailView_();
-
-    uniSetHint_("Reporte actualizado ✅");
-  } catch (e) {
-    uniSetHint_(String(e && e.message ? e.message : e));
-  } finally {
-    setLoading(false);
-  }
-}
 
 async function uniDeleteOne_(studentName, row){
   const profile = requireLogin();
@@ -16820,7 +16700,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-64";
+const APP_BUILD = "2026-04-10-65";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
