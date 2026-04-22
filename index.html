@@ -11472,28 +11472,14 @@ function discUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
-  const lastObservation =
-    item
-      ? String(
-          item.lastObservation ||
-          item.observation ||
-          (
-            Array.isArray(item.who) && item.who.length
-              ? (item.who[0]?.observation || "")
-              : ""
-          )
-        ).trim()
-      : "";
+discSelectedNameEl.textContent = s;
 
-  discSelectedNameEl.textContent = s;
-
-  if (item) {
-    discSelectedMetaEl.textContent =
-      `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
-      (lastObservation ? ` • Obs: ${lastObservation}` : "");
-  } else {
-    discSelectedMetaEl.textContent = `Nuevo (sin reportes este mes aún)`;
-  }
+if (item) {
+  discSelectedMetaEl.textContent =
+    `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`;
+} else {
+  discSelectedMetaEl.textContent = `Nuevo (sin reportes este mes aún)`;
+}
 
   discSetDotByLevel_(maxLevel);
   discApplyLevelUI_(maxLevel);
@@ -12734,25 +12720,11 @@ function piercUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
-  const lastObservation =
-    item
-      ? String(
-          item.lastObservation ||
-          item.observation ||
-          (
-            Array.isArray(item.who) && item.who.length
-              ? (item.who[0]?.observation || "")
-              : ""
-          )
-        ).trim()
-      : "";
+ piercSelectedNameEl.textContent = s;
 
-  piercSelectedNameEl.textContent = s;
-
-  piercSelectedMetaEl.textContent = item
-    ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
-      (lastObservation ? ` • Obs: ${lastObservation}` : "")
-    : `Nuevo (sin reportes este mes aún)`;
+piercSelectedMetaEl.textContent = item
+  ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+  : `Nuevo (sin reportes este mes aún)`;
 
   piercSetDotByLevel_(maxLevel);
   piercApplyLevelUI_(maxLevel);
@@ -12858,7 +12830,7 @@ function piercRenderDetailView_(){
       <div style="margin-top:10px;">
         <div class="muted small" style="margin-bottom:6px;">Docentes que han reportado</div>
         <div style="display:grid; gap:8px;">
-     ${item.who.map(x => `
+${item.who.map(x => `
   <div style="
     border:1px solid rgba(255,255,255,.10);
     border-radius:12px;
@@ -12866,10 +12838,23 @@ function piercRenderDetailView_(){
     background:rgba(255,255,255,.04);
   ">
     <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+
     <div class="muted small" style="margin-top:4px;">
       Nivel ${Number(x.level || 0)}
       ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
     </div>
+
+    ${
+      (x.observacion || x.observation || x.obs || x.motivo)
+        ? `
+          <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
+            Obs: ${escapeHtml(
+              x.observacion || x.observation || x.obs || x.motivo
+            )}
+          </div>
+        `
+        : ""
+    }
   </div>
 `).join("")}
         </div>
@@ -13590,26 +13575,12 @@ function uniUpdateSelectedBox_(studentName){
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
-  const lastObservation =
-    item
-      ? String(
-          item.lastObservation ||
-          item.observation ||
-          (
-            Array.isArray(item.who) && item.who.length
-              ? (item.who[0]?.observation || "")
-              : ""
-          )
-        ).trim()
-      : "";
-
-  if (uniSelectedNameEl) uniSelectedNameEl.textContent = s;
-  if (uniSelectedMetaEl) {
-    uniSelectedMetaEl.textContent = item
-      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}` +
-        (lastObservation ? ` • Obs: ${lastObservation}` : "")
-      : `Nuevo (sin reportes este mes aún)`;
-  }
+if (uniSelectedNameEl) uniSelectedNameEl.textContent = s;
+if (uniSelectedMetaEl) {
+  uniSelectedMetaEl.textContent = item
+    ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+    : `Nuevo (sin reportes este mes aún)`;
+}
 
   uniSetDotByLevel_(maxLevel);
   uniApplyLevelUI_(maxLevel);
@@ -13655,10 +13626,23 @@ ${item.who.map(x => `
     background:rgba(255,255,255,.04);
   ">
     <div style="font-weight:800;">${escapeHtml(x.teacher || "—")}</div>
+
     <div class="muted small" style="margin-top:4px;">
       Nivel ${Number(x.level || 0)}
       ${x.dt ? ` • ${escapeHtml(x.dt)}` : ""}
     </div>
+
+    ${
+      (x.observacion || x.observation || x.obs || x.motivo)
+        ? `
+          <div class="muted small" style="margin-top:6px; white-space:pre-wrap;">
+            Obs: ${escapeHtml(
+              x.observacion || x.observation || x.obs || x.motivo
+            )}
+          </div>
+        `
+        : ""
+    }
   </div>
 `).join("")}
         </div>
