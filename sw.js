@@ -1,14 +1,14 @@
 /* ===== Service Worker: cache offline + control total ===== */
 
-const CACHE_NAME = "asistencia-v53"; // ⬅️ sube versión cuando cambies algo
+const CACHE_NAME = "asistencia-v54"; // ⬅️ sube versión cuando cambies algo
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png",
+"./icon-192-v2.png",
+"./icon-512-v2.png",
   "./apple-touch-icon.png",
   "./favicon-32.png",
   "./favicon-16.png"
