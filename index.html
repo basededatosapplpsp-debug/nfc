@@ -12952,13 +12952,15 @@ async function discDoMarkLevel(level) {
     discRenderReportedList_(__discCacheList);
     if (btnDiscBack) btnDiscBack.hidden = true;
 
-    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+    if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
-      await confirmAndShareReport_({
-        student,
-        msg,
-        title: "Compartir reporte (Uso del celular)"
-      });
+      if (msg) {
+        await confirmAndShareReport_({
+          student,
+          msg,
+          title: "Compartir reporte (Uso del celular)"
+        });
+      }
     }
 
     discSetHint_(
@@ -13815,13 +13817,15 @@ async function piercDoMarkLevel(level) {
     piercRenderReportedList_(__piercCacheList);
     if (btnPiercBack) btnPiercBack.hidden = true;
 
-    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+    if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
-      await confirmAndShareReport_({
-        student,
-        msg,
-        title: "Compartir reporte (Piercing)"
-      });
+      if (msg) {
+        await confirmAndShareReport_({
+          student,
+          msg,
+          title: "Compartir reporte (Piercing)"
+        });
+      }
     }
 
     piercSetHint_(
@@ -14801,13 +14805,15 @@ async function uniDoMarkLevel(level) {
     uniRenderReportedList_(__uniCacheList);
     if (btnUniBack) btnUniBack.hidden = true;
 
-    if (resp && resp.ok && resp.justReported && lvl >= 4) {
+    if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
-      await confirmAndShareReport_({
-        student,
-        msg,
-        title: "Compartir reporte (Uniforme)"
-      });
+      if (msg) {
+        await confirmAndShareReport_({
+          student,
+          msg,
+          title: "Compartir reporte (Uniforme)"
+        });
+      }
     }
 
     uniSetHint_(
@@ -16700,7 +16706,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-65";
+const APP_BUILD = "2026-04-10-66";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
