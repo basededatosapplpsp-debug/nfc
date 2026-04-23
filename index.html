@@ -4131,27 +4131,42 @@ function closeBehaviorHub_(){
   if (behaviorHubModal) behaviorHubModal.hidden = true;
 }
 
-function openBehaviorReport_(){
+async function openBehaviorReport_(){
   closeBehaviorHub_();
 
-  if (__behaviorKind === "discipline") {
-    if (disciplineModal) disciplineModal.hidden = false;
-    discSetHint_("");
-    if (discObservationEl) discObservationEl.value = "";
-    return;
-  }
+  try {
+    setLoading(true, "Cargando…", "Consultando reportes del mes.");
 
-  if (__behaviorKind === "piercing") {
-    if (piercingModal) piercingModal.hidden = false;
-    piercSetHint_("");
-    if (piercObservationEl) piercObservationEl.value = "";
-    return;
-  }
+    if (__behaviorKind === "discipline") {
+      __discCacheList = await gsDisciplineList(discMonthKey_());
+      openDisciplineModal();
+      return;
+    }
 
-  if (__behaviorKind === "uniform") {
-    if (uniformModal) uniformModal.hidden = false;
-    uniSetHint_("");
-    if (uniObservationEl) uniObservationEl.value = "";
+    if (__behaviorKind === "piercing") {
+      __piercCacheList = await gsPiercingList(piercMonthKey_());
+      openPiercingModal();
+      return;
+    }
+
+    if (__behaviorKind === "uniform") {
+      __uniCacheList = await gsUniformList(uniMonthKey_());
+      openUniformModal();
+      return;
+    }
+  } catch (e) {
+    if (__behaviorKind === "discipline") {
+      openDisciplineModal();
+      discSetHint_(String(e && e.message ? e.message : e));
+    } else if (__behaviorKind === "piercing") {
+      openPiercingModal();
+      piercSetHint_(String(e && e.message ? e.message : e));
+    } else if (__behaviorKind === "uniform") {
+      openUniformModal();
+      uniSetHint_(String(e && e.message ? e.message : e));
+    }
+  } finally {
+    setLoading(false);
   }
 }
 
@@ -13597,8 +13612,24 @@ function discDoMarkLevel(level) {
   const lvl = Number(level || 0);
   if (lvl < 1 || lvl > 4) return;
 
+  const student = normalizeStudent_(__discCurrentStudent);
+  const item = student ? discFindInCache_(student) : null;
+  const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+  if (!student) {
+    discSetHint_("Primero selecciona un estudiante.");
+    return;
+  }
+
+  if (lvl > currentMax + 1) {
+    discSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+    discApplyLevelUI_(currentMax);
+    __discPendingLevel = 0;
+    return;
+  }
+
   __discPendingLevel = lvl;
-  discApplyLevelUI_(lvl);
+  discApplyLevelUI_(Math.max(currentMax, lvl));
   discSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
 }
 
@@ -13792,8 +13823,27 @@ function discBindUI_() {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+
         const lvl = Number(btn.getAttribute("data-level") || 0);
-        discDoMarkLevel(lvl);
+        const student = normalizeStudent_(__discCurrentStudent);
+        const item = student ? discFindInCache_(student) : null;
+        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+        if (!student) {
+          discSetHint_("Primero selecciona un estudiante.");
+          return;
+        }
+
+        if (lvl > currentMax + 1) {
+          discSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+          discApplyLevelUI_(currentMax);
+          __discPendingLevel = 0;
+          return;
+        }
+
+        __discPendingLevel = lvl;
+        discApplyLevelUI_(Math.max(currentMax, lvl));
+        discSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
       });
     });
   }
@@ -13801,10 +13851,30 @@ function discBindUI_() {
   if (discStudentEl) {
     discStudentEl.addEventListener("input", () => {
       const raw = String(discStudentEl.value || "");
-      __discCurrentStudent = raw;
-
       const s = normalizeStudent_(raw);
+      __discCurrentStudent = s;
+
       discUpdateSelectedBox_(s);
+
+      const item = s ? discFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      discApplyLevelUI_(maxLevel);
+      __discPendingLevel = 0;
+    });
+  }
+
+  if (discStudentSelectEl) {
+    discStudentSelectEl.addEventListener("change", () => {
+      const s = normalizeStudent_(discStudentSelectEl.value || "");
+      if (discStudentEl) discStudentEl.value = s;
+      __discCurrentStudent = s;
+
+      discUpdateSelectedBox_(s);
+
+      const item = s ? discFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      discApplyLevelUI_(maxLevel);
+      __discPendingLevel = 0;
     });
   }
 
@@ -14473,11 +14543,26 @@ function piercDoMarkLevel(level) {
   const lvl = Number(level || 0);
   if (lvl < 1 || lvl > 4) return;
 
+  const student = piercNormalizeStudent_(__piercCurrentStudent);
+  const item = student ? piercFindInCache_(student) : null;
+  const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+  if (!student) {
+    piercSetHint_("Primero selecciona un estudiante.");
+    return;
+  }
+
+  if (lvl > currentMax + 1) {
+    piercSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+    piercApplyLevelUI_(currentMax);
+    __piercPendingLevel = 0;
+    return;
+  }
+
   __piercPendingLevel = lvl;
-  piercApplyLevelUI_(lvl);
+  piercApplyLevelUI_(Math.max(currentMax, lvl));
   piercSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
 }
-
 async function piercSubmitReport_() {
   const profile = requireLogin();
   if (!profile) return;
@@ -14650,8 +14735,27 @@ function piercBindUI_() {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+
         const lvl = Number(btn.getAttribute("data-level") || 0);
-        piercDoMarkLevel(lvl);
+        const student = piercNormalizeStudent_(__piercCurrentStudent);
+        const item = student ? piercFindInCache_(student) : null;
+        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+        if (!student) {
+          piercSetHint_("Primero selecciona un estudiante.");
+          return;
+        }
+
+        if (lvl > currentMax + 1) {
+          piercSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+          piercApplyLevelUI_(currentMax);
+          __piercPendingLevel = 0;
+          return;
+        }
+
+        __piercPendingLevel = lvl;
+        piercApplyLevelUI_(Math.max(currentMax, lvl));
+        piercSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
       });
     });
   }
@@ -14659,10 +14763,30 @@ function piercBindUI_() {
   if (piercStudentEl) {
     piercStudentEl.addEventListener("input", () => {
       const raw = String(piercStudentEl.value || "");
-      __piercCurrentStudent = raw;
-
       const s = piercNormalizeStudent_(raw);
+      __piercCurrentStudent = s;
+
       piercUpdateSelectedBox_(s);
+
+      const item = s ? piercFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      piercApplyLevelUI_(maxLevel);
+      __piercPendingLevel = 0;
+    });
+  }
+
+  if (piercStudentSelectEl) {
+    piercStudentSelectEl.addEventListener("change", () => {
+      const s = piercNormalizeStudent_(piercStudentSelectEl.value || "");
+      if (piercStudentEl) piercStudentEl.value = s;
+      __piercCurrentStudent = s;
+
+      piercUpdateSelectedBox_(s);
+
+      const item = s ? piercFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      piercApplyLevelUI_(maxLevel);
+      __piercPendingLevel = 0;
     });
   }
 
@@ -15464,8 +15588,24 @@ function uniDoMarkLevel(level) {
   const lvl = Number(level || 0);
   if (lvl < 1 || lvl > 4) return;
 
+  const student = uniNormalizeStudent_(__uniCurrentStudent);
+  const item = student ? uniFindInCache_(student) : null;
+  const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+  if (!student) {
+    uniSetHint_("Primero selecciona un estudiante.");
+    return;
+  }
+
+  if (lvl > currentMax + 1) {
+    uniSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+    uniApplyLevelUI_(currentMax);
+    __uniPendingLevel = 0;
+    return;
+  }
+
   __uniPendingLevel = lvl;
-  uniApplyLevelUI_(lvl);
+  uniApplyLevelUI_(Math.max(currentMax, lvl));
   uniSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
 }
 
@@ -15606,8 +15746,27 @@ function uniBindUI_() {
       btn.addEventListener("click", (e) => {
         e.preventDefault();
         e.stopPropagation();
+
         const lvl = Number(btn.getAttribute("data-level") || 0);
-        uniDoMarkLevel(lvl);
+        const student = uniNormalizeStudent_(__uniCurrentStudent);
+        const item = student ? uniFindInCache_(student) : null;
+        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+
+        if (!student) {
+          uniSetHint_("Primero selecciona un estudiante.");
+          return;
+        }
+
+        if (lvl > currentMax + 1) {
+          uniSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
+          uniApplyLevelUI_(currentMax);
+          __uniPendingLevel = 0;
+          return;
+        }
+
+        __uniPendingLevel = lvl;
+        uniApplyLevelUI_(Math.max(currentMax, lvl));
+        uniSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
       });
     });
   }
@@ -15615,7 +15774,30 @@ function uniBindUI_() {
   if (uniStudentEl) {
     uniStudentEl.addEventListener("input", () => {
       const raw = String(uniStudentEl.value || "");
-      uniOnStudentChange_(raw);
+      const s = uniNormalizeStudent_(raw);
+      __uniCurrentStudent = s;
+
+      uniUpdateSelectedBox_(s);
+
+      const item = s ? uniFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      uniApplyLevelUI_(maxLevel);
+      __uniPendingLevel = 0;
+    });
+  }
+
+  if (uniStudentSelectEl) {
+    uniStudentSelectEl.addEventListener("change", () => {
+      const s = uniNormalizeStudent_(uniStudentSelectEl.value || "");
+      if (uniStudentEl) uniStudentEl.value = s;
+      __uniCurrentStudent = s;
+
+      uniUpdateSelectedBox_(s);
+
+      const item = s ? uniFindInCache_(s) : null;
+      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+      uniApplyLevelUI_(maxLevel);
+      __uniPendingLevel = 0;
     });
   }
 
@@ -17440,7 +17622,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-73";
+const APP_BUILD = "2026-04-10-74";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
