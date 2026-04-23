@@ -11666,7 +11666,7 @@ function discApplyLevelUI_(level) {
     if (!lvl) return;
 
     if (lvl === 1) btn.innerHTML = "1 • Leve";
-    else if (lvl === 4) btn.innerHTML = lv >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else if (lvl === 4) btn.innerHTML = lv >= 4 ? " 4️⃣ Reenviar reporte" : "4 • Grave";
     else btn.textContent = String(lvl);
   });
 
@@ -13211,7 +13211,7 @@ function piercApplyLevelUI_(level) {
   piercingModal.querySelectorAll(".disc-level").forEach((btn) => {
     const lvl = Number(btn.getAttribute("data-level") || 0);
     if (lvl === 1) btn.innerHTML = "1 • Leve";
-    else if (lvl === 4) btn.innerHTML = lv >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else if (lvl === 4) btn.innerHTML = lv >= 4 ? "4️⃣ Reenviar reporte" : "4 • Grave";
     else if (lvl > 0) btn.textContent = String(lvl);
   });
 
@@ -14241,7 +14241,7 @@ function uniApplyLevelUI_(maxLevel) {
     btn.disabled = false;
 
     if (lvl === 1) btn.innerHTML = "1 • Leve";
-    else if (lvl === 4) btn.innerHTML = max >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else if (lvl === 4) btn.innerHTML = max >= 4 ? "4️⃣ Reenviar reporte" : "4 • Grave";
     else btn.textContent = String(lvl);
   });
 
@@ -16766,7 +16766,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-68";
+const APP_BUILD = "2026-04-10-69";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
