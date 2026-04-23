@@ -2497,7 +2497,36 @@ body.is-admin #registerActions{
   white-space:pre-wrap;
 }
 
+.behavior-form-grid .input-with-select{
+  position: relative;
+}
 
+.behavior-form-grid .input-with-select > .input-real{
+  width: 100%;
+  padding-right: 48px;
+}
+
+.behavior-form-grid .input-with-select > .student-overlay{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 48px;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.behavior-form-grid .input-with-select::after{
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 22px;
+  font-weight: 700;
+  opacity: .9;
+}
 
 </style>
 </head>
@@ -3043,24 +3072,35 @@ body.is-admin #registerActions{
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
-          <div class="behavior-form-grid two">
-            <div>
-              <label class="modal-label" for="discCourse">Curso</label>
-              <select id="discCourse" class="modal-input behavior-big-select"></select>
-            </div>
+ <div class="behavior-form-grid two">
+  <div>
+    <label class="modal-label" for="discCourse">Curso</label>
+    <select id="discCourse" class="modal-input behavior-big-select"></select>
+  </div>
 
-            <div>
-              <label class="modal-label" for="discStudentSelect">Estudiante</label>
-              <select id="discStudentSelect" class="modal-input behavior-big-select"></select>
-            </div>
-          </div>
+  <div>
+    <datalist id="discStudentsList"></datalist>
 
-          <datalist id="discStudentsList"></datalist>
+    <label class="modal-label" for="discStudent">Estudiante</label>
 
-          <div style="display:none;">
-            <label class="modal-label" for="discStudent">Estudiante</label>
-            <input id="discStudent" class="modal-input" type="text" list="discStudentsList" autocomplete="off" />
-          </div>
+    <div class="input-with-select">
+      <input
+        id="discStudent"
+        class="modal-input input-real behavior-big-select"
+        type="text"
+        list="discStudentsList"
+        placeholder="Escribe el nombre del estudiante..."
+        autocomplete="off"
+      />
+
+      <select
+        id="discStudentSelect"
+        class="modal-input student-overlay"
+        aria-label="Seleccionar estudiante"
+      ></select>
+    </div>
+  </div>
+</div>
 
           <div class="behavior-levels-wrap">
             <label class="modal-label">Nivel</label>
@@ -3107,24 +3147,35 @@ body.is-admin #registerActions{
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
-          <div class="behavior-form-grid two">
-            <div>
-              <label class="modal-label" for="piercCourse">Curso</label>
-              <select id="piercCourse" class="modal-input behavior-big-select"></select>
-            </div>
+     <div class="behavior-form-grid two">
+  <div>
+    <label class="modal-label" for="piercCourse">Curso</label>
+    <select id="piercCourse" class="modal-input behavior-big-select"></select>
+  </div>
 
-            <div>
-              <label class="modal-label" for="piercStudentSelect">Estudiante</label>
-              <select id="piercStudentSelect" class="modal-input behavior-big-select"></select>
-            </div>
-          </div>
+  <div>
+    <datalist id="piercStudentsList"></datalist>
 
-          <datalist id="piercStudentsList"></datalist>
+    <label class="modal-label" for="piercStudent">Estudiante</label>
 
-          <div style="display:none;">
-            <label class="modal-label" for="piercStudent">Estudiante</label>
-            <input id="piercStudent" class="modal-input" type="text" list="piercStudentsList" autocomplete="off" />
-          </div>
+    <div class="input-with-select">
+      <input
+        id="piercStudent"
+        class="modal-input input-real behavior-big-select"
+        type="text"
+        list="piercStudentsList"
+        placeholder="Escribe el nombre del estudiante..."
+        autocomplete="off"
+      />
+
+      <select
+        id="piercStudentSelect"
+        class="modal-input student-overlay"
+        aria-label="Seleccionar estudiante"
+      ></select>
+    </div>
+  </div>
+</div>
 
           <div class="behavior-levels-wrap">
             <label class="modal-label">Nivel</label>
@@ -3171,25 +3222,35 @@ body.is-admin #registerActions{
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
-          <div class="behavior-form-grid two">
-            <div>
-              <label class="modal-label" for="uniCourse">Curso</label>
-              <select id="uniCourse" class="modal-input behavior-big-select"></select>
-            </div>
+ <div class="behavior-form-grid two">
+  <div>
+    <label class="modal-label" for="uniCourse">Curso</label>
+    <select id="uniCourse" class="modal-input behavior-big-select"></select>
+  </div>
 
-            <div>
-              <label class="modal-label" for="uniStudentSelect">Estudiante</label>
-              <select id="uniStudentSelect" class="modal-input behavior-big-select"></select>
-            </div>
-          </div>
+  <div>
+    <datalist id="uniStudentsList"></datalist>
 
-          <datalist id="uniStudentsList"></datalist>
+    <label class="modal-label" for="uniStudent">Estudiante</label>
 
-          <div style="display:none;">
-            <label class="modal-label" for="uniStudent">Estudiante</label>
-            <input id="uniStudent" class="modal-input" type="text" list="uniStudentsList" autocomplete="off" />
-          </div>
+    <div class="input-with-select">
+      <input
+        id="uniStudent"
+        class="modal-input input-real behavior-big-select"
+        type="text"
+        list="uniStudentsList"
+        placeholder="Escribe el nombre del estudiante..."
+        autocomplete="off"
+      />
 
+      <select
+        id="uniStudentSelect"
+        class="modal-input student-overlay"
+        aria-label="Seleccionar estudiante"
+      ></select>
+    </div>
+  </div>
+</div>
           <div class="behavior-levels-wrap">
             <label class="modal-label">Nivel</label>
             <div class="disc-levels">
@@ -17385,7 +17446,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-70";
+const APP_BUILD = "2026-04-10-71";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
