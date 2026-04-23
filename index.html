@@ -2276,6 +2276,227 @@ body.is-admin #registerActions{
   }
 }
 
+/* =========================================
+   HUB + FULLSCREEN para llamados de atención
+========================================= */
+
+.behavior-hub-grid{
+  display:grid;
+  gap:14px;
+  margin-top:18px;
+}
+
+.behavior-hub-card{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:20px;
+  padding:18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 14px 30px rgba(0,0,0,.18);
+  cursor:pointer;
+  transition: transform .18s ease, filter .18s ease, border-color .18s ease;
+}
+
+.behavior-hub-card:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+  border-color: rgba(11,95,255,.35);
+}
+
+.behavior-hub-title{
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: .2px;
+}
+
+.behavior-hub-sub{
+  margin-top:6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.behavior-full{
+  padding: 0 !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+.behavior-full .modal-card{
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  padding: 0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+  background:
+    radial-gradient(1200px 800px at 15% 0%, rgba(11,95,255,.16), transparent 55%),
+    radial-gradient(900px 600px at 85% 20%, rgba(59,130,246,.10), transparent 50%),
+    #0b1220 !important;
+}
+
+.behavior-full-header{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding: max(16px, env(safe-area-inset-top)) 16px 14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  background: rgba(11,18,32,.72);
+  backdrop-filter: blur(12px);
+}
+
+.behavior-full-back{
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  flex:0 0 auto;
+}
+
+.behavior-full-back:active{
+  transform: translateY(1px);
+}
+
+.behavior-full-headtext{
+  min-width:0;
+  flex:1 1 auto;
+}
+
+.behavior-full-title{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing:.2px;
+}
+
+.behavior-full-sub{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.behavior-full-body{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:16px;
+}
+
+.behavior-panel{
+  width:min(920px, 100%);
+  margin:0 auto;
+  display:grid;
+  gap:14px;
+}
+
+.behavior-panel-card{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:22px;
+  padding:16px;
+  background: rgba(18,26,43,.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 14px 28px rgba(0,0,0,.20);
+}
+
+.behavior-form-grid{
+  display:grid;
+  gap:12px;
+}
+
+@media (min-width: 760px){
+  .behavior-form-grid.two{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.behavior-big-select{
+  min-height: 52px;
+  font-size: 15px;
+}
+
+.behavior-levels-wrap{
+  margin-top: 6px;
+}
+
+.behavior-observation{
+  min-height: 110px;
+  resize: vertical;
+}
+
+.behavior-viewer-filters{
+  display:grid;
+  gap:12px;
+  margin-bottom:14px;
+}
+
+@media (min-width: 760px){
+  .behavior-viewer-filters{
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.behavior-viewer-list{
+  min-height: 220px;
+  max-height: none;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  background: rgba(0,0,0,.12);
+}
+
+.behavior-empty{
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.behavior-report-card{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  padding:12px;
+  background: rgba(255,255,255,.05);
+}
+
+.behavior-report-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.behavior-report-name{
+  font-weight:900;
+  font-size:15px;
+}
+
+.behavior-report-meta{
+  margin-top:4px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.behavior-report-obs{
+  margin-top:10px;
+  font-size:13px;
+  line-height:1.45;
+  color:var(--text);
+  white-space:pre-wrap;
+}
+
 
 
 </style>
@@ -2806,58 +3027,62 @@ body.is-admin #registerActions{
 </div>
 
 <!-- ======= MODAL LLAMADO DE ATENCIÓN (CELULAR EN CLASE) ======= -->
-<div id="disciplineModal" class="modal-backdrop" hidden>
-  <div class="modal-card" style="width:min(720px,100%);">
-    <h2 class="modal-title">Uso inadecuado del celular</h2>
-    <p class="modal-sub">Reporta uso de celular en clase. Marca el nivel (1 a 4). Al llegar a 4 se notifica a los docentes que participaron.</p>
+<div id="disciplineModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnDiscBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
 
-    <label class="modal-label">Seleccionado</label>
-    <div id="discSelectedBox" class="status" style="margin-top:6px;">
-      <span class="dot" id="discLevelDot"></span>
-      <div>
-        <div id="discSelectedName" style="font-weight:900;">Selecciona un estudiante de la lista</div>
-        <div class="muted" id="discSelectedMeta">—</div>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Uso inadecuado del celular</div>
+        <div class="behavior-full-sub">Registrar llamado de atención.</div>
       </div>
     </div>
 
-    <!-- ✅ NUEVO: Curso + Autocomplete -->
-    <label class="modal-label" for="discCourse">Curso</label>
-    <select id="discCourse" class="modal-input"></select>
-    <datalist id="discStudentsList"></datalist>
-    <label class="modal-label" for="discStudentSelect">Estudiante (lista)</label>
-<select id="discStudentSelect" class="modal-input"></select>
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-form-grid two">
+            <div>
+              <label class="modal-label" for="discCourse">Curso</label>
+              <select id="discCourse" class="modal-input behavior-big-select"></select>
+            </div>
 
+            <div>
+              <label class="modal-label" for="discStudentSelect">Estudiante</label>
+              <select id="discStudentSelect" class="modal-input behavior-big-select"></select>
+            </div>
+          </div>
 
-    <label class="modal-label" for="discStudent">Estudiante</label>
-    <input id="discStudent" class="modal-input" type="text"
-           list="discStudentsList"
-           placeholder="Escribe el nombre del estudiante…" autocomplete="off" />
-    <div class="muted small" style="margin-top:6px;">
-      Tip: también puedes tocar un nombre en “Reportados” para cargarlo arriba.
-    </div>
+          <datalist id="discStudentsList"></datalist>
 
-    <div class="disc-levels">
-      <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-      <button type="button" class="disc-level" data-level="2">2</button>
-      <button type="button" class="disc-level" data-level="3">3</button>
-      <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-    </div>
+          <div style="display:none;">
+            <label class="modal-label" for="discStudent">Estudiante</label>
+            <input id="discStudent" class="modal-input" type="text" list="discStudentsList" autocomplete="off" />
+          </div>
 
+          <div class="behavior-levels-wrap">
+            <label class="modal-label">Nivel</label>
+            <div class="disc-levels">
+              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
+              <button type="button" class="disc-level" data-level="2">2</button>
+              <button type="button" class="disc-level" data-level="3">3</button>
+              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
+            </div>
+          </div>
 
+          <div>
+            <label class="modal-label" for="discObservation">Observación</label>
+            <textarea
+              id="discObservation"
+              class="modal-input behavior-observation"
+              placeholder="Ej: Uso del celular durante la explicación, no acató el llamado, etc."
+            ></textarea>
+          </div>
 
-    <div class="disc-reported">
-      <div class="row row-between" style="margin-top:12px;">
-        <div class="muted small">Reportados (mes actual)</div>
-      </div>
-
-      <div id="discReportedList" class="disc-reported-list"></div>
-
-      <div id="discHint" class="modal-hint muted small"></div>
-
-      <div class="modal-actions" style="justify-content:flex-end;">
-        <button id="btnDiscBack" type="button" class="btn btn-ghost" hidden>← Atrás</button>
-        <button id="btnDiscReload" type="button" class="btn btn-ghost">Recargar</button>
-        <button id="btnDiscClose" type="button" class="btn btn-ghost">Cerrar</button>
+          <div id="discHint" class="modal-hint muted small"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2866,61 +3091,62 @@ body.is-admin #registerActions{
 
 
 <!-- ======= MODAL PIERCING Y PERFORACIONES ======= -->
-<div id="piercingModal" class="modal-backdrop" hidden>
-  <div class="modal-card" style="width:min(720px,100%);">
+<div id="piercingModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnPiercBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
 
-    <h2 class="modal-title">Piercing y perforaciones</h2>
-    <p class="modal-sub">
-      Reporta piercing/perforaciones no permitidas. Marca el nivel (1 a 4). Al llegar a 4 se notifica por WhatsApp.
-    </p>
-
-    <label class="modal-label">Seleccionado</label>
-    <div id="piercSelectedBox" class="status" style="margin-top:6px;">
-      <span class="dot" id="piercLevelDot"></span>
-      <div>
-        <div id="piercSelectedName" style="font-weight:900;">Selecciona un estudiante de la lista</div>
-        <div class="muted" id="piercSelectedMeta">—</div>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Piercing y perforaciones</div>
+        <div class="behavior-full-sub">Registrar llamado de atención.</div>
       </div>
     </div>
 
-    <label class="modal-label" for="piercCourse">Curso</label>
-    <select id="piercCourse" class="modal-input"></select>
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-form-grid two">
+            <div>
+              <label class="modal-label" for="piercCourse">Curso</label>
+              <select id="piercCourse" class="modal-input behavior-big-select"></select>
+            </div>
 
-    <datalist id="piercStudentsList"></datalist>
+            <div>
+              <label class="modal-label" for="piercStudentSelect">Estudiante</label>
+              <select id="piercStudentSelect" class="modal-input behavior-big-select"></select>
+            </div>
+          </div>
 
-    <label class="modal-label" for="piercStudentSelect">Estudiante (lista)</label>
-    <select id="piercStudentSelect" class="modal-input"></select>
+          <datalist id="piercStudentsList"></datalist>
 
-    <label class="modal-label" for="piercStudent">Estudiante</label>
-    <input id="piercStudent" class="modal-input" type="text"
-      list="piercStudentsList"
-      placeholder="Escribe el nombre del estudiante…" autocomplete="off" />
+          <div style="display:none;">
+            <label class="modal-label" for="piercStudent">Estudiante</label>
+            <input id="piercStudent" class="modal-input" type="text" list="piercStudentsList" autocomplete="off" />
+          </div>
 
-    <div class="muted small" style="margin-top:6px;">
-      Tip: también puedes tocar un nombre en “Reportados” para cargarlo arriba.
-    </div>
+          <div class="behavior-levels-wrap">
+            <label class="modal-label">Nivel</label>
+            <div class="disc-levels">
+              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
+              <button type="button" class="disc-level" data-level="2">2</button>
+              <button type="button" class="disc-level" data-level="3">3</button>
+              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
+            </div>
+          </div>
 
-    <div class="disc-levels">
-      <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-      <button type="button" class="disc-level" data-level="2">2</button>
-      <button type="button" class="disc-level" data-level="3">3</button>
-      <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-    </div>
+          <div>
+            <label class="modal-label" for="piercObservation">Observación</label>
+            <textarea
+              id="piercObservation"
+              class="modal-input behavior-observation"
+              placeholder="Ej: Tiene piercing visible en la ceja, arete no permitido, etc."
+            ></textarea>
+          </div>
 
-
-
-    <div class="disc-reported">
-      <div class="row row-between" style="margin-top:12px;">
-        <div class="muted small">Reportados (mes actual)</div>
-      </div>
-
-      <div id="piercReportedList" class="disc-reported-list"></div>
-      <div id="piercHint" class="modal-hint muted small"></div>
-
-      <div class="modal-actions" style="justify-content:flex-end;">
-        <button id="btnPiercBack" type="button" class="btn btn-ghost" hidden>← Atrás</button>
-        <button id="btnPiercReload" type="button" class="btn btn-ghost">Recargar</button>
-        <button id="btnPiercClose" type="button" class="btn btn-ghost">Cerrar</button>
+          <div id="piercHint" class="modal-hint muted small"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -2929,61 +3155,62 @@ body.is-admin #registerActions{
 
 
 <!-- ======= MODAL: PORTE DEL UNIFORME ======= -->
-<div id="uniformModal" class="modal-backdrop" hidden>
-  <div class="modal-card" style="width:min(720px,100%);">
+<div id="uniformModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnUniBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
 
-    <h2 class="modal-title">Porte del uniforme</h2>
-    <p class="modal-sub">
-      Reporta porte incorrecto del uniforme. Marca el nivel (1 a 4). Al llegar a 4 se notifica por WhatsApp.
-    </p>
-
-    <label class="modal-label">Seleccionado</label>
-    <div id="uniSelectedBox" class="status" style="margin-top:6px;">
-      <span class="dot" id="uniLevelDot"></span>
-      <div>
-        <div id="uniSelectedName" style="font-weight:900;">Selecciona un estudiante de la lista</div>
-        <div class="muted" id="uniSelectedMeta">—</div>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Porte del uniforme</div>
+        <div class="behavior-full-sub">Registrar llamado de atención.</div>
       </div>
     </div>
 
-    <label class="modal-label" for="uniCourse">Curso</label>
-    <select id="uniCourse" class="modal-input"></select>
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-form-grid two">
+            <div>
+              <label class="modal-label" for="uniCourse">Curso</label>
+              <select id="uniCourse" class="modal-input behavior-big-select"></select>
+            </div>
 
-    <datalist id="uniStudentsList"></datalist>
+            <div>
+              <label class="modal-label" for="uniStudentSelect">Estudiante</label>
+              <select id="uniStudentSelect" class="modal-input behavior-big-select"></select>
+            </div>
+          </div>
 
-    <label class="modal-label" for="uniStudentSelect">Estudiante (lista)</label>
-    <select id="uniStudentSelect" class="modal-input"></select>
+          <datalist id="uniStudentsList"></datalist>
 
-    <label class="modal-label" for="uniStudent">Estudiante</label>
-    <input id="uniStudent" class="modal-input" type="text"
-      list="uniStudentsList"
-      placeholder="Escribe el nombre del estudiante…" autocomplete="off" />
+          <div style="display:none;">
+            <label class="modal-label" for="uniStudent">Estudiante</label>
+            <input id="uniStudent" class="modal-input" type="text" list="uniStudentsList" autocomplete="off" />
+          </div>
 
-    <div class="muted small" style="margin-top:6px;">
-      Tip: también puedes tocar un nombre en “Reportados” para cargarlo arriba.
-    </div>
+          <div class="behavior-levels-wrap">
+            <label class="modal-label">Nivel</label>
+            <div class="disc-levels">
+              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
+              <button type="button" class="disc-level" data-level="2">2</button>
+              <button type="button" class="disc-level" data-level="3">3</button>
+              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
+            </div>
+          </div>
 
-    <div class="disc-levels">
-      <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-      <button type="button" class="disc-level" data-level="2">2</button>
-      <button type="button" class="disc-level" data-level="3">3</button>
-      <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-    </div>
+          <div>
+            <label class="modal-label" for="uniObservation">Observación</label>
+            <textarea
+              id="uniObservation"
+              class="modal-input behavior-observation"
+              placeholder="Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc."
+            ></textarea>
+          </div>
 
-
-
-    <div class="disc-reported">
-      <div class="row row-between" style="margin-top:12px;">
-        <div class="muted small">Reportados (mes actual)</div>
-      </div>
-
-      <div id="uniReportedList" class="disc-reported-list"></div>
-      <div id="uniHint" class="modal-hint muted small"></div>
-
-      <div class="modal-actions" style="justify-content:flex-end;">
-        <button id="btnUniBack" type="button" class="btn btn-ghost" hidden>← Atrás</button>
-        <button id="btnUniReload" type="button" class="btn btn-ghost">Recargar</button>
-        <button id="btnUniClose" type="button" class="btn btn-ghost">Cerrar</button>
+          <div id="uniHint" class="modal-hint muted small"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -3504,6 +3731,159 @@ body.is-admin #registerActions{
   </div>
 </div>
 
+<!-- ======= MODAL HUB LLAMADOS ======= -->
+<div id="behaviorHubModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnBehaviorHubClose" type="button" class="behavior-full-back" aria-label="Cerrar">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+
+      <div class="behavior-full-headtext">
+        <div id="behaviorHubTitle" class="behavior-full-title">Llamados de atención</div>
+        <div id="behaviorHubSub" class="behavior-full-sub">Selecciona la acción que deseas realizar.</div>
+      </div>
+    </div>
+
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-hub-grid">
+            <button id="btnBehaviorOpenReport" type="button" class="behavior-hub-card">
+              <div class="behavior-hub-title">Reportar</div>
+              <div class="behavior-hub-sub">
+                Registrar un nuevo llamado de atención con curso, estudiante, nivel y observación.
+              </div>
+            </button>
+
+            <button id="btnBehaviorOpenViewer" type="button" class="behavior-hub-card">
+              <div class="behavior-hub-title">Ver reportes</div>
+              <div class="behavior-hub-sub">
+                Consultar los reportes del mes con filtros por curso y estudiante.
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= VIEWER DISCIPLINA ======= -->
+<div id="disciplineViewerModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Uso inadecuado del celular</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
+
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-viewer-filters">
+            <div>
+              <label class="modal-label" for="discViewerCourse">Curso</label>
+              <select id="discViewerCourse" class="modal-input behavior-big-select"></select>
+            </div>
+            <div>
+              <label class="modal-label" for="discViewerStudent">Estudiante</label>
+              <select id="discViewerStudent" class="modal-input behavior-big-select">
+                <option value="">Todos los estudiantes</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="discViewerList" class="behavior-viewer-list">
+            <div class="behavior-empty">Cargando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= VIEWER PIERCING ======= -->
+<div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Piercing y perforaciones</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
+
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-viewer-filters">
+            <div>
+              <label class="modal-label" for="piercViewerCourse">Curso</label>
+              <select id="piercViewerCourse" class="modal-input behavior-big-select"></select>
+            </div>
+            <div>
+              <label class="modal-label" for="piercViewerStudent">Estudiante</label>
+              <select id="piercViewerStudent" class="modal-input behavior-big-select">
+                <option value="">Todos los estudiantes</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="piercViewerList" class="behavior-viewer-list">
+            <div class="behavior-empty">Cargando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======= VIEWER UNIFORME ======= -->
+<div id="uniformViewerModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <button id="btnUniViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Porte del uniforme</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
+
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+          <div class="behavior-viewer-filters">
+            <div>
+              <label class="modal-label" for="uniViewerCourse">Curso</label>
+              <select id="uniViewerCourse" class="modal-input behavior-big-select"></select>
+            </div>
+            <div>
+              <label class="modal-label" for="uniViewerStudent">Estudiante</label>
+              <select id="uniViewerStudent" class="modal-input behavior-big-select">
+                <option value="">Todos los estudiantes</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="uniViewerList" class="behavior-viewer-list">
+            <div class="behavior-empty">Cargando...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 // ======= CONFIG DEL COLEGIO (CAMBIA ESTO) =======
@@ -3603,12 +3983,236 @@ const obsModalHint = $("obsModalHint");
 const btnObsCancel = $("btnObsCancel");
 const btnObsSave = $("btnObsSave");
 
+const behaviorHubModal = $("behaviorHubModal");
+const btnBehaviorHubClose = $("btnBehaviorHubClose");
+const behaviorHubTitle = $("behaviorHubTitle");
+const behaviorHubSub = $("behaviorHubSub");
+const btnBehaviorOpenReport = $("btnBehaviorOpenReport");
+const btnBehaviorOpenViewer = $("btnBehaviorOpenViewer");
+
+const disciplineViewerModal = $("disciplineViewerModal");
+const piercingViewerModal = $("piercingViewerModal");
+const uniformViewerModal = $("uniformViewerModal");
+
+const btnDiscViewerBack = $("btnDiscViewerBack");
+const btnPiercViewerBack = $("btnPiercViewerBack");
+const btnUniViewerBack = $("btnUniViewerBack");
+
+const discViewerCourse = $("discViewerCourse");
+const discViewerStudent = $("discViewerStudent");
+const discViewerList = $("discViewerList");
+
+const piercViewerCourse = $("piercViewerCourse");
+const piercViewerStudent = $("piercViewerStudent");
+const piercViewerList = $("piercViewerList");
+
+const uniViewerCourse = $("uniViewerCourse");
+const uniViewerStudent = $("uniViewerStudent");
+const uniViewerList = $("uniViewerList");
+
+let __behaviorKind = "";
 // ======= QR SCAN UI (NO tocar hasta init) =======
 let qrModal = null;
 let qrVideo = null;
 let qrCanvas = null;
 let qrHintEl = null;
 let btnQrClose = null;
+
+function behaviorMetaByKind_(kind){
+  if (kind === "discipline") {
+    return {
+      title: "Uso inadecuado del celular",
+      sub: "Selecciona la acción que deseas realizar."
+    };
+  }
+  if (kind === "piercing") {
+    return {
+      title: "Piercing y perforaciones",
+      sub: "Selecciona la acción que deseas realizar."
+    };
+  }
+  return {
+    title: "Porte del uniforme",
+    sub: "Selecciona la acción que deseas realizar."
+  };
+}
+
+function openBehaviorHub_(kind){
+  __behaviorKind = String(kind || "");
+  const meta = behaviorMetaByKind_(__behaviorKind);
+
+  if (behaviorHubTitle) behaviorHubTitle.textContent = meta.title;
+  if (behaviorHubSub) behaviorHubSub.textContent = meta.sub;
+
+  if (behaviorHubModal) behaviorHubModal.hidden = false;
+}
+
+function closeBehaviorHub_(){
+  if (behaviorHubModal) behaviorHubModal.hidden = true;
+}
+
+function openBehaviorReport_(){
+  closeBehaviorHub_();
+
+  if (__behaviorKind === "discipline") {
+    if (disciplineModal) disciplineModal.hidden = false;
+    discSetHint_("");
+    if (discObservationEl) discObservationEl.value = "";
+    return;
+  }
+
+  if (__behaviorKind === "piercing") {
+    if (piercingModal) piercingModal.hidden = false;
+    piercSetHint_("");
+    if (piercObservationEl) piercObservationEl.value = "";
+    return;
+  }
+
+  if (__behaviorKind === "uniform") {
+    if (uniformModal) uniformModal.hidden = false;
+    uniSetHint_("");
+    if (uniObservationEl) uniObservationEl.value = "";
+  }
+}
+
+function openBehaviorViewer_(){
+  closeBehaviorHub_();
+
+  if (__behaviorKind === "discipline") {
+    if (disciplineViewerModal) disciplineViewerModal.hidden = false;
+    renderBehaviorViewer_("discipline");
+    return;
+  }
+
+  if (__behaviorKind === "piercing") {
+    if (piercingViewerModal) piercingViewerModal.hidden = false;
+    renderBehaviorViewer_("piercing");
+    return;
+  }
+
+  if (__behaviorKind === "uniform") {
+    if (uniformViewerModal) uniformViewerModal.hidden = false;
+    renderBehaviorViewer_("uniform");
+  }
+}
+
+function backToBehaviorHub_(){
+  if (disciplineModal) disciplineModal.hidden = true;
+  if (piercingModal) piercingModal.hidden = true;
+  if (uniformModal) uniformModal.hidden = true;
+  if (disciplineViewerModal) disciplineViewerModal.hidden = true;
+  if (piercingViewerModal) piercingViewerModal.hidden = true;
+  if (uniformViewerModal) uniformViewerModal.hidden = true;
+  openBehaviorHub_(__behaviorKind);
+}
+
+function collectCoursesFromBehaviorItems_(items){
+  const set = new Set();
+  (items || []).forEach(it => {
+    const course = String(it.course || it.course_name || "").trim();
+    if (course) set.add(course);
+  });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+}
+
+function populateSimpleSelect_(selectEl, firstText, items){
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = firstText;
+  selectEl.appendChild(opt0);
+
+  (items || []).forEach(v => {
+    const opt = document.createElement("option");
+    opt.value = String(v || "");
+    opt.textContent = String(v || "");
+    selectEl.appendChild(opt);
+  });
+}
+
+function renderBehaviorViewerList_(listEl, items){
+  if (!listEl) return;
+
+  const arr = Array.isArray(items) ? items : [];
+  if (!arr.length) {
+    listEl.innerHTML = `<div class="behavior-empty">No hay reportes para este filtro.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = arr.map(it => {
+    const student = String(it.student || "").trim();
+    const maxLevel = Number(it.maxLevel || 0);
+    const totalMarks = Number(it.totalMarks || 0);
+    const teachersCount = Number(it.teachersCount || 0);
+    const lastObs = String(
+      it.lastObservation ||
+      (Array.isArray(it.who) && it.who.length ? (it.who[0]?.observation || "") : "")
+    ).trim();
+
+    return `
+      <div class="behavior-report-card">
+        <div class="behavior-report-top">
+          <div>
+            <div class="behavior-report-name">${escapeHtml(student)}</div>
+            <div class="behavior-report-meta">
+              Nivel ${maxLevel} • Llamados: ${totalMarks} • Docentes: ${teachersCount}
+            </div>
+          </div>
+        </div>
+        ${lastObs ? `<div class="behavior-report-obs">${escapeHtml(lastObs)}</div>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+function renderBehaviorViewer_(kind){
+  let items = [];
+  let courseEl = null;
+  let studentEl = null;
+  let listEl = null;
+
+  if (kind === "discipline") {
+    items = Array.isArray(__discCacheList) ? __discCacheList : [];
+    courseEl = discViewerCourse;
+    studentEl = discViewerStudent;
+    listEl = discViewerList;
+  } else if (kind === "piercing") {
+    items = Array.isArray(__piercCacheList) ? __piercCacheList : [];
+    courseEl = piercViewerCourse;
+    studentEl = piercViewerStudent;
+    listEl = piercViewerList;
+  } else {
+    items = Array.isArray(__uniCacheList) ? __uniCacheList : [];
+    courseEl = uniViewerCourse;
+    studentEl = uniViewerStudent;
+    listEl = uniViewerList;
+  }
+
+  const courses = collectCoursesFromBehaviorItems_(items);
+  populateSimpleSelect_(courseEl, "Todos los cursos", courses);
+
+  const selectedCourse = String(courseEl && courseEl.value || "").trim();
+  let filtered = items.slice();
+
+  if (selectedCourse) {
+    filtered = filtered.filter(it => String(it.course || it.course_name || "").trim() === selectedCourse);
+  }
+
+  const students = filtered
+    .map(it => String(it.student || "").trim())
+    .filter(Boolean)
+    .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+
+  populateSimpleSelect_(studentEl, "Todos los estudiantes", students);
+
+  const selectedStudent = String(studentEl && studentEl.value || "").trim();
+  if (selectedStudent) {
+    filtered = filtered.filter(it => String(it.student || "").trim() === selectedStudent);
+  }
+
+  renderBehaviorViewerList_(listEl, filtered);
+}
 
 function initQrUi_() {
   // IMPORTANTE: $() debe existir antes de esto
@@ -12955,24 +13559,23 @@ if (lvl === 4 && currentMax >= 4) {
   try {
     setLoading(true, "Guardando…", "Registrando reporte de uso del celular.");
 
-    const resp = await gsDisciplineMark({
-      month: discMonthKey_(),
-      student,
-      level: lvl,
-      observation,
-      teacher: profile.name,
-      email: profile.email,
-      device_id: getDeviceId(),
-      date: new Date().toISOString()
-    });
+const resp = await gsDisciplineMark({
+  month: discMonthKey_(),
+  course: discCourseEl ? discCourseEl.value : "",
+  student,
+  level: lvl,
+  observation,
+  teacher: profile.name,
+  email: profile.email,
+  device_id: getDeviceId(),
+  date: new Date().toISOString()
+});
 
     if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
     else await discReloadReportedList(false);
 
     discUpdateSelectedBox_(student);
-    __discView = "list";
-    discRenderReportedList_(__discCacheList);
-    if (btnDiscBack) btnDiscBack.hidden = true;
+   __discView = "list";
 
     if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -13089,13 +13692,12 @@ function closeDisciplineModal() {
 }
 function discBindUI_() {
   // ✅ Mantener menú/submenú abiertos al abrir el modal
-  if (btnDiscipline) {
-    btnDiscipline.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openDisciplineModal();
-    });
-  }
+if (btnDiscipline) {
+  btnDiscipline.onclick = () => {
+    setMenuOpen(false);
+    openBehaviorHub_("discipline");
+  };
+}
 
   // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (disciplineModal) {
@@ -13840,24 +14442,23 @@ if (lvl === 4 && currentMax >= 4) {
   try {
     setLoading(true, "Guardando…", "Registrando reporte de piercing/perforaciones.");
 
-    const resp = await gsPiercingMark({
-      month: piercMonthKey_(),
-      student,
-      level: lvl,
-      observation,
-      teacher: profile.name,
-      email: profile.email,
-      device_id: getDeviceId(),
-      date: new Date().toISOString()
-    });
+const resp = await gsPiercingMark({
+  month: piercMonthKey_(),
+  course: piercCourseEl ? piercCourseEl.value : "",
+  student,
+  level: lvl,
+  observation,
+  teacher: profile.name,
+  email: profile.email,
+  device_id: getDeviceId(),
+  date: new Date().toISOString()
+});
 
     if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
     else await piercReloadReportedList(false);
 
     piercUpdateSelectedBox_(student);
-    __piercView = "list";
-    piercRenderReportedList_(__piercCacheList);
-    if (btnPiercBack) btnPiercBack.hidden = true;
+  __piercView = "list";
 
     if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -13964,13 +14565,12 @@ function closePiercingModal() {
 
 function piercBindUI_() {
   // ✅ Mantener menú/submenú abiertos al abrir el modal
-  if (btnPiercing) {
-    btnPiercing.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openPiercingModal();
-    });
-  }
+if (btnPiercing) {
+  btnPiercing.onclick = () => {
+    setMenuOpen(false);
+    openBehaviorHub_("piercing");
+  };
+}
 
   // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (piercingModal) {
@@ -14846,24 +15446,23 @@ if (lvl === 4 && currentMax >= 4) {
   try {
     setLoading(true, "Guardando…", "Registrando porte del uniforme.");
 
-    const resp = await gsUniformMark({
-      month: uniMonthKey_(),
-      student,
-      level: lvl,
-      observation,
-      teacher: profile.name,
-      email: profile.email,
-      device_id: getDeviceId(),
-      date: new Date().toISOString()
-    });
+const resp = await gsUniformMark({
+  month: uniMonthKey_(),
+  course: uniCourseEl ? uniCourseEl.value : "",
+  student,
+  level: lvl,
+  observation,
+  teacher: profile.name,
+  email: profile.email,
+  device_id: getDeviceId(),
+  date: new Date().toISOString()
+});
 
     if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
     else await uniReloadReportedList(false);
 
     uniUpdateSelectedBox_(student);
-    __uniView = "list";
-    uniRenderReportedList_(__uniCacheList);
-    if (btnUniBack) btnUniBack.hidden = true;
+   __uniView = "list";
 
     if (resp && resp.ok && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -14917,13 +15516,12 @@ function closeUniformModal() {
 
 function uniBindUI_() {
   // ✅ Mantener menú/submenú abiertos al abrir el modal
-  if (btnUniform) {
-    btnUniform.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      openUniformModal();
-    });
-  }
+if (btnUniform) {
+  btnUniform.onclick = () => {
+    setMenuOpen(false);
+    openBehaviorHub_("uniform");
+  };
+}
 
   // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (uniformModal) {
@@ -14974,6 +15572,27 @@ if (uniStudentEl) {
 
 }
 
+
+if (btnBehaviorHubClose) btnBehaviorHubClose.onclick = closeBehaviorHub_;
+if (btnBehaviorOpenReport) btnBehaviorOpenReport.onclick = openBehaviorReport_;
+if (btnBehaviorOpenViewer) btnBehaviorOpenViewer.onclick = openBehaviorViewer_;
+
+if (btnDiscBack) btnDiscBack.onclick = backToBehaviorHub_;
+if (btnPiercBack) btnPiercBack.onclick = backToBehaviorHub_;
+if (btnUniBack) btnUniBack.onclick = backToBehaviorHub_;
+
+if (btnDiscViewerBack) btnDiscViewerBack.onclick = backToBehaviorHub_;
+if (btnPiercViewerBack) btnPiercViewerBack.onclick = backToBehaviorHub_;
+if (btnUniViewerBack) btnUniViewerBack.onclick = backToBehaviorHub_;
+
+if (discViewerCourse) discViewerCourse.onchange = () => renderBehaviorViewer_("discipline");
+if (discViewerStudent) discViewerStudent.onchange = () => renderBehaviorViewer_("discipline");
+
+if (piercViewerCourse) piercViewerCourse.onchange = () => renderBehaviorViewer_("piercing");
+if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer_("piercing");
+
+if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
+if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
 
 /* ======= Poll ======= */
 function uniStartPolling_() {
@@ -16766,7 +17385,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-69";
+const APP_BUILD = "2026-04-10-70";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
