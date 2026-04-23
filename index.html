@@ -11654,14 +11654,28 @@ function discClearLevelUI_() {
 }
 
 function discApplyLevelUI_(level) {
+  if (!disciplineModal) return;
+
   discClearLevelUI_();
+
   const lv = Number(level || 0);
-  for (let i=1;i<=lv;i++){
-    const btn = document.querySelector(`.disc-level[data-level="${i}"]`);
+
+  // restaura textos base SOLO dentro del modal de disciplina
+  disciplineModal.querySelectorAll(".disc-level").forEach((btn) => {
+    const lvl = Number(btn.getAttribute("data-level") || 0);
+    if (!lvl) return;
+
+    if (lvl === 1) btn.innerHTML = "1 • Leve";
+    else if (lvl === 4) btn.innerHTML = lv >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else btn.textContent = String(lvl);
+  });
+
+  // activa 1..lv
+  for (let i = 1; i <= lv; i++) {
+    const btn = disciplineModal.querySelector(`.disc-level[data-level="${i}"]`);
     if (btn) btn.classList.add("active");
   }
 }
-
 function discRenderWho_(whoArr) {
   if (!discWhoList) return;
 
@@ -13190,8 +13204,18 @@ function piercClearLevelUI_() {
 
 function piercApplyLevelUI_(level) {
   piercClearLevelUI_();
+
   const lv = Number(level || 0);
-  for (let i=1;i<=lv;i++){
+
+  // restaura textos base
+  piercingModal.querySelectorAll(".disc-level").forEach((btn) => {
+    const lvl = Number(btn.getAttribute("data-level") || 0);
+    if (lvl === 1) btn.innerHTML = "1 • Leve";
+    else if (lvl === 4) btn.innerHTML = lv >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else if (lvl > 0) btn.textContent = String(lvl);
+  });
+
+  for (let i = 1; i <= lv; i++) {
     const btn = piercingModal.querySelector(`.disc-level[data-level="${i}"]`);
     if (btn) btn.classList.add("active");
   }
@@ -14208,6 +14232,18 @@ function uniApplyLevelUI_(maxLevel) {
   uniClearLevelUI_();
 
   const max = Number(maxLevel || 0);
+
+  // restaura textos base
+  uniformModal.querySelectorAll(".disc-level").forEach(btn => {
+    const lvl = Number(btn.getAttribute("data-level") || 0);
+    if (!lvl) return;
+
+    btn.disabled = false;
+
+    if (lvl === 1) btn.innerHTML = "1 • Leve";
+    else if (lvl === 4) btn.innerHTML = max >= 4 ? "🔁 Reenviar reporte" : "4 • Grave";
+    else btn.textContent = String(lvl);
+  });
 
   // activa 1..max
   for (let i = 1; i <= max; i++) {
@@ -16730,7 +16766,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-67";
+const APP_BUILD = "2026-04-10-68";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
