@@ -6187,6 +6187,20 @@ function normalizeKey(s) {
 }
 
 
+function behaviorLevelFromItem_(item) {
+  if (!item) return 0;
+
+  const maxLevel = Number(item.maxLevel || 0);
+
+  const fromWho = Array.isArray(item.who)
+    ? item.who.reduce((m, r) => Math.max(m, Number(r.level || 0)), 0)
+    : 0;
+
+  const fromTotal = Number(item.totalMarks || 0);
+
+  return Math.min(4, Math.max(maxLevel, fromWho, fromTotal));
+}
+
   function formatDateShort_(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -12309,7 +12323,7 @@ function discUpdateSelectedBox_(studentName){
   if (discStudentEl) discStudentEl.value = s || "";
 
   const item = s ? discFindInCache_(s) : null;
-  const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+  const maxLevel = behaviorLevelFromItem_(item);
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
@@ -12345,7 +12359,9 @@ function discUpdateSelectedBox_(studentName){
 
 function discFindInCache_(studentName) {
   const key = normalizeKey(studentName);
-  return (__discCacheList || []).find(x => normalizeKey(x.student) === key) || null;
+  return (__discCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
 
 function discClearLevelUI_() {
@@ -13827,7 +13843,7 @@ function discBindUI_() {
         const lvl = Number(btn.getAttribute("data-level") || 0);
         const student = normalizeStudent_(__discCurrentStudent);
         const item = student ? discFindInCache_(student) : null;
-        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+        const currentMax = behaviorLevelFromItem_(item);
 
         if (!student) {
           discSetHint_("Primero selecciona un estudiante.");
@@ -13850,15 +13866,12 @@ function discBindUI_() {
 
   if (discStudentEl) {
     discStudentEl.addEventListener("input", () => {
-      const raw = String(discStudentEl.value || "");
-      const s = normalizeStudent_(raw);
+      const s = normalizeStudent_(discStudentEl.value || "");
       __discCurrentStudent = s;
-
       discUpdateSelectedBox_(s);
 
       const item = s ? discFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      discApplyLevelUI_(maxLevel);
+      discApplyLevelUI_(behaviorLevelFromItem_(item));
       __discPendingLevel = 0;
     });
   }
@@ -13868,12 +13881,10 @@ function discBindUI_() {
       const s = normalizeStudent_(discStudentSelectEl.value || "");
       if (discStudentEl) discStudentEl.value = s;
       __discCurrentStudent = s;
-
       discUpdateSelectedBox_(s);
 
       const item = s ? discFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      discApplyLevelUI_(maxLevel);
+      discApplyLevelUI_(behaviorLevelFromItem_(item));
       __discPendingLevel = 0;
     });
   }
@@ -13931,7 +13942,9 @@ piercLevelDot.className = dotClassByLevel_(lv);
 
 function piercFindInCache_(studentName) {
   const key = normalizeKey(studentName);
-  return (__piercCacheList || []).find(x => normalizeKey(x.student) === key) || null;
+  return (__piercCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
 
 function piercClearLevelUI_() {
@@ -13996,7 +14009,7 @@ function piercUpdateSelectedBox_(studentName){
   if (piercStudentEl) piercStudentEl.value = s || "";
 
   const item = s ? piercFindInCache_(s) : null;
-  const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+  const maxLevel = behaviorLevelFromItem_(item);
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
@@ -14739,7 +14752,7 @@ function piercBindUI_() {
         const lvl = Number(btn.getAttribute("data-level") || 0);
         const student = piercNormalizeStudent_(__piercCurrentStudent);
         const item = student ? piercFindInCache_(student) : null;
-        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+        const currentMax = behaviorLevelFromItem_(item);
 
         if (!student) {
           piercSetHint_("Primero selecciona un estudiante.");
@@ -14762,15 +14775,12 @@ function piercBindUI_() {
 
   if (piercStudentEl) {
     piercStudentEl.addEventListener("input", () => {
-      const raw = String(piercStudentEl.value || "");
-      const s = piercNormalizeStudent_(raw);
+      const s = piercNormalizeStudent_(piercStudentEl.value || "");
       __piercCurrentStudent = s;
-
       piercUpdateSelectedBox_(s);
 
       const item = s ? piercFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      piercApplyLevelUI_(maxLevel);
+      piercApplyLevelUI_(behaviorLevelFromItem_(item));
       __piercPendingLevel = 0;
     });
   }
@@ -14780,12 +14790,10 @@ function piercBindUI_() {
       const s = piercNormalizeStudent_(piercStudentSelectEl.value || "");
       if (piercStudentEl) piercStudentEl.value = s;
       __piercCurrentStudent = s;
-
       piercUpdateSelectedBox_(s);
 
       const item = s ? piercFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      piercApplyLevelUI_(maxLevel);
+      piercApplyLevelUI_(behaviorLevelFromItem_(item));
       __piercPendingLevel = 0;
     });
   }
@@ -15066,11 +15074,12 @@ function uniRenderWho_(whoArr){
 }
 
 
-function uniFindInCache_(student){
-  const key = normalizeKey(student);
-  return (__uniCacheList || []).find(it => normalizeKey(it.student) === key) || null;
+function uniFindInCache_(studentName) {
+  const key = normalizeKey(studentName);
+  return (__uniCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
-
 
 
 function uniOnStudentChange_(studentName) {
@@ -15192,7 +15201,7 @@ function uniUpdateSelectedBox_(studentName){
   if (uniStudentEl) uniStudentEl.value = s || "";
 
   const item = s ? uniFindInCache_(s) : null;
-  const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+  const maxLevel = behaviorLevelFromItem_(item);
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
@@ -15750,7 +15759,7 @@ function uniBindUI_() {
         const lvl = Number(btn.getAttribute("data-level") || 0);
         const student = uniNormalizeStudent_(__uniCurrentStudent);
         const item = student ? uniFindInCache_(student) : null;
-        const currentMax = item ? Number(item.maxLevel || 0) : 0;
+        const currentMax = behaviorLevelFromItem_(item);
 
         if (!student) {
           uniSetHint_("Primero selecciona un estudiante.");
@@ -15773,15 +15782,12 @@ function uniBindUI_() {
 
   if (uniStudentEl) {
     uniStudentEl.addEventListener("input", () => {
-      const raw = String(uniStudentEl.value || "");
-      const s = uniNormalizeStudent_(raw);
+      const s = uniNormalizeStudent_(uniStudentEl.value || "");
       __uniCurrentStudent = s;
-
       uniUpdateSelectedBox_(s);
 
       const item = s ? uniFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      uniApplyLevelUI_(maxLevel);
+      uniApplyLevelUI_(behaviorLevelFromItem_(item));
       __uniPendingLevel = 0;
     });
   }
@@ -15791,12 +15797,10 @@ function uniBindUI_() {
       const s = uniNormalizeStudent_(uniStudentSelectEl.value || "");
       if (uniStudentEl) uniStudentEl.value = s;
       __uniCurrentStudent = s;
-
       uniUpdateSelectedBox_(s);
 
       const item = s ? uniFindInCache_(s) : null;
-      const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-      uniApplyLevelUI_(maxLevel);
+      uniApplyLevelUI_(behaviorLevelFromItem_(item));
       __uniPendingLevel = 0;
     });
   }
@@ -17622,7 +17626,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-74";
+const APP_BUILD = "2026-04-10-75";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
