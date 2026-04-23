@@ -3122,6 +3122,9 @@ body.is-admin #registerActions{
           </div>
 
           <div id="discHint" class="modal-hint muted small"></div>
+          <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
+  <button id="btnDiscReport" type="button" class="btn btn-primary">Reportar</button>
+</div>
         </div>
       </div>
     </div>
@@ -3197,6 +3200,10 @@ body.is-admin #registerActions{
           </div>
 
           <div id="piercHint" class="modal-hint muted small"></div>
+
+          <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
+  <button id="btnPiercReport" type="button" class="btn btn-primary">Reportar</button>
+</div>
         </div>
       </div>
     </div>
@@ -3271,6 +3278,10 @@ body.is-admin #registerActions{
           </div>
 
           <div id="uniHint" class="modal-hint muted small"></div>
+
+          <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
+  <button id="btnUniReport" type="button" class="btn btn-primary">Reportar</button>
+</div>
         </div>
       </div>
     </div>
@@ -4071,6 +4082,10 @@ const uniViewerCourse = $("uniViewerCourse");
 const uniViewerStudent = $("uniViewerStudent");
 const uniViewerList = $("uniViewerList");
 
+const btnDiscReport = $("btnDiscReport");
+const btnPiercReport = $("btnPiercReport");
+const btnUniReport = $("btnUniReport");
+
 let __behaviorKind = "";
 // ======= QR SCAN UI (NO tocar hasta init) =======
 let qrModal = null;
@@ -4078,6 +4093,10 @@ let qrVideo = null;
 let qrCanvas = null;
 let qrHintEl = null;
 let btnQrClose = null;
+
+let __discPendingLevel = 0;
+let __piercPendingLevel = 0;
+let __uniPendingLevel = 0;
 
 function behaviorMetaByKind_(kind){
   if (kind === "discipline") {
@@ -13574,12 +13593,25 @@ async function copyTextToClipboard_(text) {
 
 const WHATSAPP_GROUP_LINK = "https://chat.whatsapp.com/EztQUrHgqC6L7di7rvaNwu?mode=gi_t";
 
-async function discDoMarkLevel(level) {
+function discDoMarkLevel(level) {
+  const lvl = Number(level || 0);
+  if (lvl < 1 || lvl > 4) return;
+
+  __discPendingLevel = lvl;
+  discApplyLevelUI_(lvl);
+  discSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
+}
+
+
+async function discSubmitReport_() {
   const profile = requireLogin();
   if (!profile) return;
 
-  const lvl = Number(level || 0);
-  if (lvl < 1 || lvl > 4) return;
+  const lvl = Number(__discPendingLevel || 0);
+  if (lvl < 1 || lvl > 4) {
+    discSetHint_("Debes seleccionar un nivel antes de reportar.");
+    return;
+  }
 
   const student = normalizeStudent_(__discCurrentStudent);
   if (!student) {
@@ -13587,58 +13619,42 @@ async function discDoMarkLevel(level) {
     return;
   }
 
+  const observation = normalizeObservation_(discObservationEl ? discObservationEl.value : "");
+
   const item = discFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
   if (lvl > currentMax + 1) {
     discSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
     discApplyLevelUI_(currentMax);
+    __discPendingLevel = currentMax;
     return;
   }
-
-let observation = "";
-
-// 🚫 Si ya está en nivel 4, NO pedir observación otra vez
-if (lvl === 4 && currentMax >= 4) {
-  // no abrimos modal
-  observation = "";
-} else {
-  observation = await openObservationModal_({
-    title: "Observación · Uso del celular",
-    sub: `Nivel ${lvl} para ${student}`,
-    placeholder: "Ej: Uso del celular durante la explicación, no acató el llamado, etc.",
-    initialValue: ""
-  });
-
-  if (observation === null) {
-    discSetHint_("Registro cancelado.");
-    discApplyLevelUI_(currentMax);
-    return;
-  }
-}
 
   try {
     setLoading(true, "Guardando…", "Registrando reporte de uso del celular.");
 
-const resp = await gsDisciplineMark({
-  month: discMonthKey_(),
-  course: discCourseEl ? discCourseEl.value : "",
-  student,
-  level: lvl,
-  observation,
-  teacher: profile.name,
-  email: profile.email,
-  device_id: getDeviceId(),
-  date: new Date().toISOString()
-});
+    const resp = await gsDisciplineMark({
+      month: discMonthKey_(),
+      course: discCourseEl ? discCourseEl.value : "",
+      student,
+      level: lvl,
+      observation,
+      teacher: profile.name,
+      email: profile.email,
+      device_id: getDeviceId(),
+      date: new Date().toISOString()
+    });
 
     if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
     else await discReloadReportedList(false);
 
     discUpdateSelectedBox_(student);
-   __discView = "list";
+    __discPendingLevel = 0;
+    if (discObservationEl) discObservationEl.value = "";
+    discClearLevelUI_();
 
-    if (resp && resp.ok && lvl >= 4) {
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
       if (msg) {
         await confirmAndShareReport_({
@@ -13649,15 +13665,11 @@ const resp = await gsDisciplineMark({
       }
     }
 
-  discSetHint_(
-  (lvl === 4 && currentMax >= 4)
-    ? "Listo para compartir nuevamente ✅"
-    : (
-        observation
-          ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
-          : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
-      )
-);
+    discSetHint_(
+      observation
+        ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
+        : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
+    );
 
   } catch (e) {
     discSetHint_(String(e && e.message ? e.message : e));
@@ -13665,9 +13677,6 @@ const resp = await gsDisciplineMark({
     setLoading(false);
   }
 }
-
-
-
 
 
 
@@ -13720,22 +13729,21 @@ function discStartPolling_() {
 
 
 
-function openDisciplineModal() {
+function openDisciplineModal() {function openDisciplineModal() {
   if (!disciplineModal) return;
 
   disciplineModal.hidden = false;
+  disciplineModal.removeAttribute("hidden");
+  disciplineModal.style.display = "flex";
+
   discSetHint_("");
+  __discPendingLevel = 0;
+  __discView = "report";
+  __discCurrentStudent = "";
 
-  __discView = "list";               // ✅ siempre abre en lista
-  __discCurrentStudent = "";         // ✅ no debe quedar “pegado” el último
-  discUpdateSelectedBox_("");        // limpia box seleccionado
-  discRenderReportedList_(__discCacheList);
-
-  // ✅ ocultar botón Atrás al abrir
-  if (typeof btnDiscBack !== "undefined" && btnDiscBack) btnDiscBack.hidden = true;
-
-  // si quieres que muestre el “Lista sincronizada ✅” al abrir:
-  discReloadReportedList(true);
+  if (discObservationEl) discObservationEl.value = "";
+  discClearLevelUI_();
+  discUpdateSelectedBox_("");
 }
 
 function closeDisciplineModal() {
@@ -13743,53 +13751,38 @@ function closeDisciplineModal() {
 
   disciplineModal.hidden = true;
 
-  __discView = "list";
+  __discPendingLevel = 0;
+  __discView = "report";
   __discCurrentStudent = "";
+
+  if (discObservationEl) discObservationEl.value = "";
+  discClearLevelUI_();
   discSetHint_("");
   discUpdateSelectedBox_("");
-
-  // ✅ ocultar botón Atrás al cerrar
-  if (typeof btnDiscBack !== "undefined" && btnDiscBack) btnDiscBack.hidden = true;
 }
+
+
+
 function discBindUI_() {
-  // ✅ Mantener menú/submenú abiertos al abrir el modal
-if (btnDiscipline) {
-  btnDiscipline.onclick = () => {
-    setMenuOpen(false);
-    openBehaviorHub_("discipline");
-  };
-}
+  if (btnDiscipline) {
+    btnDiscipline.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("discipline");
+    };
+  }
 
-  // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (disciplineModal) {
     disciplineModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  if (btnDiscClose) {
-    btnDiscClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeDisciplineModal();
-    });
-  }
-
-  if (btnDiscReload) {
-    btnDiscReload.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      discReloadReportedList(true);
-    });
   }
 
   if (btnDiscBack) {
     btnDiscBack.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      discBackToList_();
+      backToBehaviorHub_();
     });
   }
 
-  // botones 1..4 (también evitamos bubbling)
   if (disciplineModal) {
     disciplineModal.querySelectorAll(".disc-level").forEach((btn) => {
       btn.addEventListener("click", (e) => {
@@ -13801,14 +13794,21 @@ if (btnDiscipline) {
     });
   }
 
-  // input: no hace falta stopPropagation aquí, pero no estorba
   if (discStudentEl) {
     discStudentEl.addEventListener("input", () => {
       const raw = String(discStudentEl.value || "");
       __discCurrentStudent = raw;
 
       const s = normalizeStudent_(raw);
-      // ... (TU CÓDIGO EXISTENTE sigue igual desde aquí)
+      discUpdateSelectedBox_(s);
+    });
+  }
+
+  if (btnDiscReport) {
+    btnDiscReport.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      discSubmitReport_();
     });
   }
 }
@@ -14459,12 +14459,24 @@ async function piercDeleteOne_(studentName, row){
   }
 }
 
-async function piercDoMarkLevel(level) {
+function piercDoMarkLevel(level) {
+  const lvl = Number(level || 0);
+  if (lvl < 1 || lvl > 4) return;
+
+  __piercPendingLevel = lvl;
+  piercApplyLevelUI_(lvl);
+  piercSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
+}
+
+async function piercSubmitReport_() {
   const profile = requireLogin();
   if (!profile) return;
 
-  const lvl = Number(level || 0);
-  if (lvl < 1 || lvl > 4) return;
+  const lvl = Number(__piercPendingLevel || 0);
+  if (lvl < 1 || lvl > 4) {
+    piercSetHint_("Debes seleccionar un nivel antes de reportar.");
+    return;
+  }
 
   const student = piercNormalizeStudent_(__piercCurrentStudent);
   if (!student) {
@@ -14472,56 +14484,42 @@ async function piercDoMarkLevel(level) {
     return;
   }
 
+  const observation = normalizeObservation_(piercObservationEl ? piercObservationEl.value : "");
+
   const item = piercFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
   if (lvl > currentMax + 1) {
     piercSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
     piercApplyLevelUI_(currentMax);
+    __piercPendingLevel = currentMax;
     return;
   }
-
-let observation = "";
-
-if (lvl === 4 && currentMax >= 4) {
-  observation = "";
-} else {
-  observation = await openObservationModal_({
-    title: "Observación · Piercing y perforaciones",
-    sub: `Nivel ${lvl} para ${student}`,
-    placeholder: "Ej: Tiene piercing visible en la ceja, arete no permitido, etc.",
-    initialValue: ""
-  });
-
-  if (observation === null) {
-    piercSetHint_("Registro cancelado.");
-    piercApplyLevelUI_(currentMax);
-    return;
-  }
-}
 
   try {
     setLoading(true, "Guardando…", "Registrando reporte de piercing/perforaciones.");
 
-const resp = await gsPiercingMark({
-  month: piercMonthKey_(),
-  course: piercCourseEl ? piercCourseEl.value : "",
-  student,
-  level: lvl,
-  observation,
-  teacher: profile.name,
-  email: profile.email,
-  device_id: getDeviceId(),
-  date: new Date().toISOString()
-});
+    const resp = await gsPiercingMark({
+      month: piercMonthKey_(),
+      course: piercCourseEl ? piercCourseEl.value : "",
+      student,
+      level: lvl,
+      observation,
+      teacher: profile.name,
+      email: profile.email,
+      device_id: getDeviceId(),
+      date: new Date().toISOString()
+    });
 
     if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
     else await piercReloadReportedList(false);
 
     piercUpdateSelectedBox_(student);
-  __piercView = "list";
+    __piercPendingLevel = 0;
+    if (piercObservationEl) piercObservationEl.value = "";
+    piercClearLevelUI_();
 
-    if (resp && resp.ok && lvl >= 4) {
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
       if (msg) {
         await confirmAndShareReport_({
@@ -14544,7 +14542,6 @@ const resp = await gsPiercingMark({
     setLoading(false);
   }
 }
-
 
 /* ======= Poll ======= */
 function piercStartPolling_() {
@@ -14578,38 +14575,24 @@ function piercStartPolling_() {
 }
 
 function openPiercingModal() {
-  const modal = document.getElementById("piercingModal");
-  if (!modal) return;
+  if (!piercingModal) return;
 
-  // 🔥 FIX: si está anidado dentro de disciplineModal, sácalo al <body>
-  if (modal.parentElement !== document.body) {
-    document.body.appendChild(modal);
-    console.warn("✅ PiercingModal movido al <body> (estaba anidado).");
+  if (piercingModal.parentElement !== document.body) {
+    document.body.appendChild(piercingModal);
   }
 
-  // ✅ (Opcional) cerrar SOLO disciplina (no el menú)
-  if (disciplineModal) disciplineModal.hidden = true;
+  piercingModal.hidden = false;
+  piercingModal.removeAttribute("hidden");
+  piercingModal.style.display = "flex";
 
-  // ❌ NO cerrar menú aquí
-  // setMenuOpen(false);
-
-  // Abre piercing
-  modal.hidden = false;
-  modal.removeAttribute("hidden");
-  modal.style.display = "flex";
-
-  // Reset UI
   piercSetHint_("");
-  __piercView = "list";
+  __piercPendingLevel = 0;
+  __piercView = "report";
   __piercCurrentStudent = "";
+
+  if (piercObservationEl) piercObservationEl.value = "";
+  piercClearLevelUI_();
   piercUpdateSelectedBox_("");
-  piercRenderReportedList_(__piercCacheList);
-  if (btnPiercBack) btnPiercBack.hidden = true;
-
-  // Cargar lista
-  piercReloadReportedList(true);
-
-  console.log("✅ openPiercingModal() abrió el modal y dejó el menú/submenú abiertos");
 }
 
 
@@ -14617,48 +14600,34 @@ function closePiercingModal() {
   if (!piercingModal) return;
 
   piercingModal.hidden = true;
-  __piercView = "list";
+
+  __piercPendingLevel = 0;
+  __piercView = "report";
   __piercCurrentStudent = "";
+
+  if (piercObservationEl) piercObservationEl.value = "";
+  piercClearLevelUI_();
   piercSetHint_("");
   piercUpdateSelectedBox_("");
-  if (btnPiercBack) btnPiercBack.hidden = true;
 }
 
 function piercBindUI_() {
-  // ✅ Mantener menú/submenú abiertos al abrir el modal
-if (btnPiercing) {
-  btnPiercing.onclick = () => {
-    setMenuOpen(false);
-    openBehaviorHub_("piercing");
-  };
-}
+  if (btnPiercing) {
+    btnPiercing.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("piercing");
+    };
+  }
 
-  // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (piercingModal) {
     piercingModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  if (btnPiercClose) {
-    btnPiercClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closePiercingModal();
-    });
-  }
-
-  if (btnPiercReload) {
-    btnPiercReload.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      piercReloadReportedList(true);
-    });
   }
 
   if (btnPiercBack) {
     btnPiercBack.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      piercBackToList_();
+      backToBehaviorHub_();
     });
   }
 
@@ -14678,7 +14647,16 @@ if (btnPiercing) {
       const raw = String(piercStudentEl.value || "");
       __piercCurrentStudent = raw;
 
-      // ... (TU CÓDIGO EXISTENTE sigue igual desde aquí)
+      const s = piercNormalizeStudent_(raw);
+      piercUpdateSelectedBox_(s);
+    });
+  }
+
+  if (btnPiercReport) {
+    btnPiercReport.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      piercSubmitReport_();
     });
   }
 }
@@ -15463,12 +15441,25 @@ async function uniDeleteOne_(studentName, row){
   }
 }
 
-async function uniDoMarkLevel(level) {
+function uniDoMarkLevel(level) {
+  const lvl = Number(level || 0);
+  if (lvl < 1 || lvl > 4) return;
+
+  __uniPendingLevel = lvl;
+  uniApplyLevelUI_(lvl);
+  uniSetHint_(`Nivel ${lvl} seleccionado. Presiona "Reportar" para guardar.`);
+}
+
+
+async function uniSubmitReport_() {
   const profile = requireLogin();
   if (!profile) return;
 
-  const lvl = Number(level || 0);
-  if (lvl < 1 || lvl > 4) return;
+  const lvl = Number(__uniPendingLevel || 0);
+  if (lvl < 1 || lvl > 4) {
+    uniSetHint_("Debes seleccionar un nivel antes de reportar.");
+    return;
+  }
 
   const student = uniNormalizeStudent_(__uniCurrentStudent);
   if (!student) {
@@ -15476,56 +15467,42 @@ async function uniDoMarkLevel(level) {
     return;
   }
 
+  const observation = normalizeObservation_(uniObservationEl ? uniObservationEl.value : "");
+
   const item = uniFindInCache_(student);
   const currentMax = item ? Number(item.maxLevel || 0) : 0;
 
   if (lvl > currentMax + 1) {
     uniSetHint_(`Debes marcar primero el nivel ${currentMax + 1}.`);
     uniApplyLevelUI_(currentMax);
+    __uniPendingLevel = currentMax;
     return;
   }
-
-let observation = "";
-
-if (lvl === 4 && currentMax >= 4) {
-  observation = "";
-} else {
-  observation = await openObservationModal_({
-    title: "Observación · Porte del uniforme",
-    sub: `Nivel ${lvl} para ${student}`,
-    placeholder: "Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc.",
-    initialValue: ""
-  });
-
-  if (observation === null) {
-    uniSetHint_("Registro cancelado.");
-    uniApplyLevelUI_(currentMax);
-    return;
-  }
-}
 
   try {
     setLoading(true, "Guardando…", "Registrando porte del uniforme.");
 
-const resp = await gsUniformMark({
-  month: uniMonthKey_(),
-  course: uniCourseEl ? uniCourseEl.value : "",
-  student,
-  level: lvl,
-  observation,
-  teacher: profile.name,
-  email: profile.email,
-  device_id: getDeviceId(),
-  date: new Date().toISOString()
-});
+    const resp = await gsUniformMark({
+      month: uniMonthKey_(),
+      course: uniCourseEl ? uniCourseEl.value : "",
+      student,
+      level: lvl,
+      observation,
+      teacher: profile.name,
+      email: profile.email,
+      device_id: getDeviceId(),
+      date: new Date().toISOString()
+    });
 
     if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
     else await uniReloadReportedList(false);
 
     uniUpdateSelectedBox_(student);
-   __uniView = "list";
+    __uniPendingLevel = 0;
+    if (uniObservationEl) uniObservationEl.value = "";
+    uniClearLevelUI_();
 
-    if (resp && resp.ok && lvl >= 4) {
+    if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
       if (msg) {
         await confirmAndShareReport_({
@@ -15548,68 +15525,56 @@ const resp = await gsUniformMark({
   }
 }
 
-
 /* ======= modal open/close/bind ======= */
 function openUniformModal() {
   if (!uniformModal) return;
+
   uniformModal.hidden = false;
+  uniformModal.removeAttribute("hidden");
+  uniformModal.style.display = "flex";
 
   uniSetHint_("");
-  __uniView = "list";
+  __uniPendingLevel = 0;
+  __uniView = "report";
   __uniCurrentStudent = "";
-  uniUpdateSelectedBox_("");
-  uniRenderReportedList_(__uniCacheList);
 
-  if (btnUniBack) btnUniBack.hidden = true;
-  uniReloadReportedList(true);
+  if (uniObservationEl) uniObservationEl.value = "";
+  uniClearLevelUI_();
+  uniUpdateSelectedBox_("");
 }
 
 function closeUniformModal() {
   if (!uniformModal) return;
+
   uniformModal.hidden = true;
 
-  __uniView = "list";
+  __uniPendingLevel = 0;
+  __uniView = "report";
   __uniCurrentStudent = "";
+
+  if (uniObservationEl) uniObservationEl.value = "";
+  uniClearLevelUI_();
   uniSetHint_("");
   uniUpdateSelectedBox_("");
-  if (btnUniBack) btnUniBack.hidden = true;
 }
 
 function uniBindUI_() {
-  // ✅ Mantener menú/submenú abiertos al abrir el modal
-if (btnUniform) {
-  btnUniform.onclick = () => {
-    setMenuOpen(false);
-    openBehaviorHub_("uniform");
-  };
-}
+  if (btnUniform) {
+    btnUniform.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("uniform");
+    };
+  }
 
-  // ✅ Evitar que cualquier click dentro del modal cierre el menú global
   if (uniformModal) {
     uniformModal.addEventListener("click", (e) => e.stopPropagation());
-  }
-
-  if (btnUniClose) {
-    btnUniClose.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      closeUniformModal();
-    });
-  }
-
-  if (btnUniReload) {
-    btnUniReload.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      uniReloadReportedList(true);
-    });
   }
 
   if (btnUniBack) {
     btnUniBack.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      uniBackToList_();
+      backToBehaviorHub_();
     });
   }
 
@@ -15624,15 +15589,21 @@ if (btnUniform) {
     });
   }
 
-if (uniStudentEl) {
-  uniStudentEl.addEventListener("input", () => {
-    const raw = String(uniStudentEl.value || "");
-    uniOnStudentChange_(raw);
-  });
-}
+  if (uniStudentEl) {
+    uniStudentEl.addEventListener("input", () => {
+      const raw = String(uniStudentEl.value || "");
+      uniOnStudentChange_(raw);
+    });
+  }
 
+  if (btnUniReport) {
+    btnUniReport.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uniSubmitReport_();
+    });
+  }
 }
-
 
 if (btnBehaviorHubClose) btnBehaviorHubClose.onclick = closeBehaviorHub_;
 if (btnBehaviorOpenReport) btnBehaviorOpenReport.onclick = openBehaviorReport_;
@@ -17446,7 +17417,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-71";
+const APP_BUILD = "2026-04-10-72";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
