@@ -12289,41 +12289,41 @@ discLevelDot.className = dotClassByLevel_(lv);
 // ✅ pinta el recuadro “Seleccionado”
 function discUpdateSelectedBox_(studentName){
   const s = normalizeStudent_(studentName);
-  __discCurrentStudent = s;
+  __discCurrentStudent = s || "";
 
   if (discStudentEl) discStudentEl.value = s || "";
-  if (!discSelectedNameEl || !discSelectedMetaEl) return;
 
-  if (!s) {
-    discSelectedNameEl.textContent = "(Selecciona o escribe un estudiante)";
-    discSelectedMetaEl.textContent = "—";
-    discSetDotByLevel_(0);
-    discClearLevelUI_();
-    if (discWhoList) discWhoList.textContent = "—";
-    return;
-  }
-
-  const item = discFindInCache_(s);
+  const item = s ? discFindInCache_(s) : null;
   const maxLevel = item ? Number(item.maxLevel || 0) : 0;
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
-discSelectedNameEl.textContent = s;
+  if (!s) {
+    if (discSelectedNameEl) discSelectedNameEl.textContent = "(Selecciona o escribe un estudiante)";
+    if (discSelectedMetaEl) discSelectedMetaEl.textContent = "—";
+    discSetDotByLevel_(0);
+    discClearLevelUI_();
+    if (discWhoList) discWhoList.textContent = "—";
+    __discPendingLevel = 0;
+    return;
+  }
 
-if (item) {
-  discSelectedMetaEl.textContent =
-    `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`;
-} else {
-  discSelectedMetaEl.textContent = `Nuevo (sin reportes este mes aún)`;
-}
+  if (discSelectedNameEl) discSelectedNameEl.textContent = s;
+
+  if (discSelectedMetaEl) {
+    discSelectedMetaEl.textContent = item
+      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+      : `Nuevo (sin reportes este mes aún)`;
+  }
 
   discSetDotByLevel_(maxLevel);
   discApplyLevelUI_(maxLevel);
+  __discPendingLevel = 0;
 
   if (item && Array.isArray(item.who) && item.who.length) {
     discRenderWho_(item.who);
-  } else {
-    if (discWhoList) discWhoList.textContent = "—";
+  } else if (discWhoList) {
+    discWhoList.textContent = "—";
   }
 }
 
@@ -13649,10 +13649,14 @@ async function discSubmitReport_() {
     if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
     else await discReloadReportedList(false);
 
-    discUpdateSelectedBox_(student);
-    __discPendingLevel = 0;
-    if (discObservationEl) discObservationEl.value = "";
-    discClearLevelUI_();
+ __discPendingLevel = 0;
+if (discObservationEl) discObservationEl.value = "";
+
+discUpdateSelectedBox_(student);
+
+const discUpdatedItem = discFindInCache_(student);
+const discUpdatedMax = discUpdatedItem ? Number(discUpdatedItem.maxLevel || 0) : lvl;
+discApplyLevelUI_(discUpdatedMax);
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -13917,36 +13921,42 @@ function piercRenderWho_(whoArr) {
 
 function piercUpdateSelectedBox_(studentName){
   const s = piercNormalizeStudent_(studentName);
-  __piercCurrentStudent = s;
+  __piercCurrentStudent = s || "";
 
   if (piercStudentEl) piercStudentEl.value = s || "";
-  if (!piercSelectedNameEl || !piercSelectedMetaEl) return;
 
-  if (!s) {
-    piercSelectedNameEl.textContent = "(Selecciona o escribe un estudiante)";
-    piercSelectedMetaEl.textContent = "—";
-    piercSetDotByLevel_(0);
-    piercClearLevelUI_();
-    if (piercWhoList) piercWhoList.textContent = "—";
-    return;
-  }
-
-  const item = piercFindInCache_(s);
+  const item = s ? piercFindInCache_(s) : null;
   const maxLevel = item ? Number(item.maxLevel || 0) : 0;
   const total = item ? Number(item.totalMarks || 0) : 0;
   const teachersCount = item ? Number(item.teachersCount || 0) : 0;
 
- piercSelectedNameEl.textContent = s;
+  if (!s) {
+    if (piercSelectedNameEl) piercSelectedNameEl.textContent = "(Selecciona o escribe un estudiante)";
+    if (piercSelectedMetaEl) piercSelectedMetaEl.textContent = "—";
+    piercSetDotByLevel_(0);
+    piercClearLevelUI_();
+    if (piercWhoList) piercWhoList.textContent = "—";
+    __piercPendingLevel = 0;
+    return;
+  }
 
-piercSelectedMetaEl.textContent = item
-  ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
-  : `Nuevo (sin reportes este mes aún)`;
+  if (piercSelectedNameEl) piercSelectedNameEl.textContent = s;
+
+  if (piercSelectedMetaEl) {
+    piercSelectedMetaEl.textContent = item
+      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+      : `Nuevo (sin reportes este mes aún)`;
+  }
 
   piercSetDotByLevel_(maxLevel);
   piercApplyLevelUI_(maxLevel);
+  __piercPendingLevel = 0;
 
-  if (item && Array.isArray(item.who) && item.who.length) piercRenderWho_(item.who);
-  else if (piercWhoList) piercWhoList.textContent = "—";
+  if (item && Array.isArray(item.who) && item.who.length) {
+    piercRenderWho_(item.who);
+  } else if (piercWhoList) {
+    piercWhoList.textContent = "—";
+  }
 }
 
 function piercRenderReportedList_(items) {
@@ -14514,10 +14524,14 @@ async function piercSubmitReport_() {
     if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
     else await piercReloadReportedList(false);
 
-    piercUpdateSelectedBox_(student);
-    __piercPendingLevel = 0;
-    if (piercObservationEl) piercObservationEl.value = "";
-    piercClearLevelUI_();
+ __piercPendingLevel = 0;
+if (piercObservationEl) piercObservationEl.value = "";
+
+piercUpdateSelectedBox_(student);
+
+const piercUpdatedItem = piercFindInCache_(student);
+const piercUpdatedMax = piercUpdatedItem ? Number(piercUpdatedItem.maxLevel || 0) : lvl;
+piercApplyLevelUI_(piercUpdatedMax);
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -15051,35 +15065,40 @@ function uniUpdateSelectedBox_(studentName){
   const s = uniNormalizeStudent_(studentName);
   __uniCurrentStudent = s || "";
 
+  if (uniStudentEl) uniStudentEl.value = s || "";
+
+  const item = s ? uniFindInCache_(s) : null;
+  const maxLevel = item ? Number(item.maxLevel || 0) : 0;
+  const total = item ? Number(item.totalMarks || 0) : 0;
+  const teachersCount = item ? Number(item.teachersCount || 0) : 0;
+
   if (!s) {
-    if (uniStudentEl) uniStudentEl.value = "";
     if (uniSelectedNameEl) uniSelectedNameEl.textContent = "(Selecciona o escribe un estudiante)";
     if (uniSelectedMetaEl) uniSelectedMetaEl.textContent = "—";
     uniSetDotByLevel_(0);
     uniClearLevelUI_();
     if (uniWhoList) uniWhoList.textContent = "—";
+    __uniPendingLevel = 0;
     return;
   }
 
-  if (uniStudentEl) uniStudentEl.value = s;
+  if (uniSelectedNameEl) uniSelectedNameEl.textContent = s;
 
-  const item = uniFindInCache_(s);
-  const maxLevel = item ? Number(item.maxLevel || 0) : 0;
-  const total = item ? Number(item.totalMarks || 0) : 0;
-  const teachersCount = item ? Number(item.teachersCount || 0) : 0;
-
-if (uniSelectedNameEl) uniSelectedNameEl.textContent = s;
-if (uniSelectedMetaEl) {
-  uniSelectedMetaEl.textContent = item
-    ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
-    : `Nuevo (sin reportes este mes aún)`;
-}
+  if (uniSelectedMetaEl) {
+    uniSelectedMetaEl.textContent = item
+      ? `Nivel ${maxLevel} • Llamados: ${total} • Docentes: ${teachersCount}`
+      : `Nuevo (sin reportes este mes aún)`;
+  }
 
   uniSetDotByLevel_(maxLevel);
   uniApplyLevelUI_(maxLevel);
+  __uniPendingLevel = 0;
 
-  if (item && Array.isArray(item.who) && item.who.length) uniRenderWho_(item.who);
-  else if (uniWhoList) uniWhoList.textContent = "—";
+  if (item && Array.isArray(item.who) && item.who.length) {
+    uniRenderWho_(item.who);
+  } else if (uniWhoList) {
+    uniWhoList.textContent = "—";
+  }
 }
 
 /* ======= views ======= */
@@ -15497,10 +15516,14 @@ async function uniSubmitReport_() {
     if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
     else await uniReloadReportedList(false);
 
-    uniUpdateSelectedBox_(student);
-    __uniPendingLevel = 0;
-    if (uniObservationEl) uniObservationEl.value = "";
-    uniClearLevelUI_();
+  __uniPendingLevel = 0;
+if (uniObservationEl) uniObservationEl.value = "";
+
+uniUpdateSelectedBox_(student);
+
+const uniUpdatedItem = uniFindInCache_(student);
+const uniUpdatedMax = uniUpdatedItem ? Number(uniUpdatedItem.maxLevel || 0) : lvl;
+uniApplyLevelUI_(uniUpdatedMax);
 
     if (resp && resp.ok && resp.justReported && lvl >= 4) {
       const msg = String(resp.wa_msg || "").trim();
@@ -17417,7 +17440,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-72";
+const APP_BUILD = "2026-04-10-73";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
