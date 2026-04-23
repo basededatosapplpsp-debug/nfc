@@ -13932,19 +13932,18 @@ function piercSetHint_(msg) {
 
 // ✅ DOT Piercing: oculto si NO hay reportes
 function piercSetDotByLevel_(level) {
-  if (!piercLevelDot) return;
+  if (!piercLevelDotEl) return;
 
   const lv = Number(level || 0);
 
   if (lv <= 0) {
-    piercLevelDot.style.visibility = "hidden";
-    piercLevelDot.className = "dot";
+    piercLevelDotEl.style.visibility = "hidden";
+    piercLevelDotEl.className = "dot";
     return;
   }
 
-piercLevelDot.style.visibility = "visible";
-piercLevelDot.className = dotClassByLevel_(lv);
-
+  piercLevelDotEl.style.visibility = "visible";
+  piercLevelDotEl.className = dotClassByLevel_(lv);
 }
 
 function piercFindInCache_(studentName) {
@@ -17637,7 +17636,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-76";
+const APP_BUILD = "2026-04-10-77";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
