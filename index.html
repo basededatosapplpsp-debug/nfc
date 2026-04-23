@@ -12300,19 +12300,18 @@ function discSetHint_(msg) {
 // ✅ colores del puntico según nivel
 // ✅ DOT Disciplina: oculto si NO hay reportes
 function discSetDotByLevel_(level) {
-  if (!discLevelDot) return;
+  if (!discLevelDotEl) return;
 
   const lv = Number(level || 0);
 
   if (lv <= 0) {
-    discLevelDot.style.visibility = "hidden"; // 👈 no se ve si no hay reportes
-    discLevelDot.className = "dot";
+    discLevelDotEl.style.visibility = "hidden";
+    discLevelDotEl.className = "dot";
     return;
   }
 
- discLevelDot.style.visibility = "visible";
-discLevelDot.className = dotClassByLevel_(lv);
-
+  discLevelDotEl.style.visibility = "visible";
+  discLevelDotEl.className = dotClassByLevel_(lv);
 }
 
 // ✅ pinta el recuadro “Seleccionado”
@@ -12356,6 +12355,20 @@ function discUpdateSelectedBox_(studentName){
   }
 }
 
+
+function discOnStudentChange_(studentName) {
+  const s = normalizeStudent_(studentName);
+  __discCurrentStudent = s;
+
+  discUpdateSelectedBox_(s);
+
+  const item = s ? discFindInCache_(s) : null;
+  const level = behaviorLevelFromItem_(item);
+
+  discApplyLevelUI_(level);
+  discSetDotByLevel_(level);
+  __discPendingLevel = 0;
+}
 
 function discFindInCache_(studentName) {
   const key = normalizeKey(studentName);
@@ -13864,17 +13877,11 @@ function discBindUI_() {
     });
   }
 
-  if (discStudentEl) {
-    discStudentEl.addEventListener("input", () => {
-      const s = normalizeStudent_(discStudentEl.value || "");
-      __discCurrentStudent = s;
-      discUpdateSelectedBox_(s);
-
-      const item = s ? discFindInCache_(s) : null;
-      discApplyLevelUI_(behaviorLevelFromItem_(item));
-      __discPendingLevel = 0;
-    });
-  }
+if (discStudentEl) {
+  discStudentEl.addEventListener("input", () => {
+    discOnStudentChange_(discStudentEl.value || "");
+  });
+}
 
   if (discStudentSelectEl) {
     discStudentSelectEl.addEventListener("change", () => {
@@ -14040,6 +14047,20 @@ function piercUpdateSelectedBox_(studentName){
   } else if (piercWhoList) {
     piercWhoList.textContent = "—";
   }
+}
+
+function piercOnStudentChange_(studentName) {
+  const s = piercNormalizeStudent_(studentName);
+  __piercCurrentStudent = s;
+
+  piercUpdateSelectedBox_(s);
+
+  const item = s ? piercFindInCache_(s) : null;
+  const level = behaviorLevelFromItem_(item);
+
+  piercApplyLevelUI_(level);
+  piercSetDotByLevel_(level);
+  __piercPendingLevel = 0;
 }
 
 function piercRenderReportedList_(items) {
@@ -14773,17 +14794,11 @@ function piercBindUI_() {
     });
   }
 
-  if (piercStudentEl) {
-    piercStudentEl.addEventListener("input", () => {
-      const s = piercNormalizeStudent_(piercStudentEl.value || "");
-      __piercCurrentStudent = s;
-      piercUpdateSelectedBox_(s);
-
-      const item = s ? piercFindInCache_(s) : null;
-      piercApplyLevelUI_(behaviorLevelFromItem_(item));
-      __piercPendingLevel = 0;
-    });
-  }
+if (piercStudentEl) {
+  piercStudentEl.addEventListener("input", () => {
+    piercOnStudentChange_(piercStudentEl.value || "");
+  });
+}
 
   if (piercStudentSelectEl) {
     piercStudentSelectEl.addEventListener("change", () => {
@@ -14829,11 +14844,9 @@ function initAllModalCourses_() {
 
   // ========= DISC =========
   mountStudentSelectIntoInput_(discStudentEl, discStudentSelectEl);
-  bindStudentSelectToInput_(discStudentSelectEl, discStudentEl, (name) => {
-    if (typeof discUpdateSelectedBox_ === "function") {
-      discUpdateSelectedBox_(name);
-    }
-  });
+bindStudentSelectToInput_(discStudentSelectEl, discStudentEl, (name) => {
+  discOnStudentChange_(name);
+});
 
   initCourseComboForModal({
     selectEl: discCourseEl,
@@ -14845,11 +14858,9 @@ function initAllModalCourses_() {
 
   // ========= PIERC =========
   mountStudentSelectIntoInput_(piercStudentEl, piercStudentSelectEl);
-  bindStudentSelectToInput_(piercStudentSelectEl, piercStudentEl, (name) => {
-    if (typeof piercUpdateSelectedBox_ === "function") {
-      piercUpdateSelectedBox_(name);
-    }
-  });
+bindStudentSelectToInput_(piercStudentSelectEl, piercStudentEl, (name) => {
+  piercOnStudentChange_(name);
+});
 
   initCourseComboForModal({
     selectEl: piercCourseEl,
@@ -17626,7 +17637,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-75";
+const APP_BUILD = "2026-04-10-76";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
