@@ -12917,7 +12917,14 @@ async function discDoMarkLevel(level) {
     return;
   }
 
-  const observation = await openObservationModal_({
+let observation = "";
+
+// 🚫 Si ya está en nivel 4, NO pedir observación otra vez
+if (lvl === 4 && currentMax >= 4) {
+  // no abrimos modal
+  observation = "";
+} else {
+  observation = await openObservationModal_({
     title: "Observación · Uso del celular",
     sub: `Nivel ${lvl} para ${student}`,
     placeholder: "Ej: Uso del celular durante la explicación, no acató el llamado, etc.",
@@ -12929,6 +12936,7 @@ async function discDoMarkLevel(level) {
     discApplyLevelUI_(currentMax);
     return;
   }
+}
 
   try {
     setLoading(true, "Guardando…", "Registrando reporte de uso del celular.");
@@ -12963,11 +12971,15 @@ async function discDoMarkLevel(level) {
       }
     }
 
-    discSetHint_(
-      observation
-        ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
-        : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
-    );
+  discSetHint_(
+  (lvl === 4 && currentMax >= 4)
+    ? "Listo para compartir nuevamente ✅"
+    : (
+        observation
+          ? (lvl >= 4 ? "Nivel 4 registrado ✅ Observación guardada." : "Registrado ✅ Observación guardada.")
+          : (lvl >= 4 ? "Nivel 4 registrado ✅" : "Registrado ✅")
+      )
+);
 
   } catch (e) {
     discSetHint_(String(e && e.message ? e.message : e));
@@ -13782,7 +13794,12 @@ async function piercDoMarkLevel(level) {
     return;
   }
 
-  const observation = await openObservationModal_({
+let observation = "";
+
+if (lvl === 4 && currentMax >= 4) {
+  observation = "";
+} else {
+  observation = await openObservationModal_({
     title: "Observación · Piercing y perforaciones",
     sub: `Nivel ${lvl} para ${student}`,
     placeholder: "Ej: Tiene piercing visible en la ceja, arete no permitido, etc.",
@@ -13794,6 +13811,7 @@ async function piercDoMarkLevel(level) {
     piercApplyLevelUI_(currentMax);
     return;
   }
+}
 
   try {
     setLoading(true, "Guardando…", "Registrando reporte de piercing/perforaciones.");
@@ -14770,7 +14788,12 @@ async function uniDoMarkLevel(level) {
     return;
   }
 
-  const observation = await openObservationModal_({
+let observation = "";
+
+if (lvl === 4 && currentMax >= 4) {
+  observation = "";
+} else {
+  observation = await openObservationModal_({
     title: "Observación · Porte del uniforme",
     sub: `Nivel ${lvl} para ${student}`,
     placeholder: "Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc.",
@@ -14782,6 +14805,7 @@ async function uniDoMarkLevel(level) {
     uniApplyLevelUI_(currentMax);
     return;
   }
+}
 
   try {
     setLoading(true, "Guardando…", "Registrando porte del uniforme.");
@@ -16706,7 +16730,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-66";
+const APP_BUILD = "2026-04-10-67";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
