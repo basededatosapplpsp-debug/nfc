@@ -4670,18 +4670,37 @@ function collectCoursesFromBehaviorItems_(items){
 
 function populateSimpleSelect_(selectEl, firstText, items){
   if (!selectEl) return;
+
+  const values = (items || []).map(v => String(v || ""));
+  const nextSignature = JSON.stringify([String(firstText || ""), ...values]);
+  const prevSignature = selectEl.dataset.optionsSignature || "";
+
+  // ✅ Si las opciones son iguales, NO repintar.
+  // Esto evita el parpadeo causado por el polling.
+  if (prevSignature === nextSignature) return;
+
+  const currentValue = String(selectEl.value || "");
+
   selectEl.innerHTML = "";
+
   const opt0 = document.createElement("option");
   opt0.value = "";
   opt0.textContent = firstText;
   selectEl.appendChild(opt0);
 
-  (items || []).forEach(v => {
+  values.forEach(v => {
     const opt = document.createElement("option");
-    opt.value = String(v || "");
-    opt.textContent = String(v || "");
+    opt.value = v;
+    opt.textContent = v;
     selectEl.appendChild(opt);
   });
+
+  selectEl.dataset.optionsSignature = nextSignature;
+
+  // ✅ Mantiene la selección actual si todavía existe
+  if (currentValue && values.includes(currentValue)) {
+    selectEl.value = currentValue;
+  }
 }
 
 
@@ -18619,7 +18638,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-86";
+const APP_BUILD = "2026-04-10-87";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
