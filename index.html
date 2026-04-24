@@ -2528,6 +2528,71 @@ body.is-admin #registerActions{
   opacity: .9;
 }
 
+
+.behavior-level-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border-radius:999px;
+  padding:6px 10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.behavior-report-card{
+  cursor:pointer;
+}
+
+.behavior-report-card.selected{
+  border-color: rgba(11,95,255,.62);
+  background: rgba(11,95,255,.16);
+}
+
+.behavior-detail-box{
+  display:grid;
+  gap:10px;
+}
+
+.behavior-detail-title{
+  font-size:17px;
+  font-weight:950;
+  line-height:1.25;
+}
+
+.behavior-detail-row{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+  padding:12px;
+  background:rgba(255,255,255,.05);
+}
+
+.behavior-detail-row-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.behavior-detail-teacher{
+  font-weight:900;
+}
+
+.behavior-detail-meta{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:12px;
+}
+
+.behavior-detail-obs{
+  margin-top:9px;
+  font-size:13px;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
 </style>
 </head>
 
@@ -4306,39 +4371,185 @@ function populateSimpleSelect_(selectEl, firstText, items){
   });
 }
 
+
+function behaviorItemStudent_(it){
+  return String(it?.student || it?.student_name || it?.studentName || it?.name || "").trim();
+}
+
+function behaviorItemCourse_(it){
+  return String(it?.course || it?.course_name || it?.courseName || "").trim();
+}
+
+function behaviorItemLevel_(it){
+  const fromMax = Number(it?.maxLevel || 0);
+  const fromLevel = Number(it?.level || 0);
+  const fromTotal = Number(it?.totalMarks || 0);
+
+  const fromWho = Array.isArray(it?.who)
+    ? it.who.reduce((m, r) => Math.max(m, Number(r.level || 0)), 0)
+    : 0;
+
+  return Math.min(4, Math.max(fromMax, fromLevel, fromTotal, fromWho));
+}
+
+function behaviorLevelText_(level){
+  const lv = Number(level || 0);
+  if (lv === 1) return "Nivel 1 • Leve";
+  if (lv === 2) return "Nivel 2";
+  if (lv === 3) return "Nivel 3";
+  if (lv >= 4) return "Nivel 4 • Grave";
+  return "Sin nivel";
+}
+
+function behaviorWhenText_(row){
+  const date = String(row?.date || row?.date_local || "").trim();
+  const time = String(row?.time || row?.time_local || "").trim();
+  const dt = String(row?.dt || row?.created_at || "").trim();
+
+  if (date && time) return `${date} ${time}`;
+  if (dt) return dt;
+  if (date) return date;
+  return "";
+}
+
+function behaviorObservationOf_(row){
+  return String(row?.observation || row?.observacion || row?.obs || "").trim();
+}
+
+function behaviorLevelBadgeHtml_(level){
+  const lv = Number(level || 0);
+  const safeLv = Math.max(1, Math.min(4, lv || 1));
+
+  return `
+    <span class="behavior-level-badge">
+      <span class="lvl-dot lvl-${safeLv}"></span>
+      ${escapeHtml(behaviorLevelText_(lv))}
+    </span>
+  `;
+}
+
+function behaviorViewerDetailHtml_(item){
+  const student = behaviorItemStudent_(item);
+  const level = behaviorItemLevel_(item);
+  const totalMarks = Number(item?.totalMarks || 0);
+  const teachersCount = Number(item?.teachersCount || (Array.isArray(item?.who) ? item.who.length : 0));
+  const who = Array.isArray(item?.who) ? item.who.slice() : [];
+
+  who.sort((a,b) => String(b.dt || b.created_at || "").localeCompare(String(a.dt || a.created_at || "")));
+
+  const rowsHtml = who.length
+    ? who.map(row => {
+        const teacher = String(row.teacher || "—").trim();
+        const rowLevel = Number(row.level || 0);
+        const when = behaviorWhenText_(row);
+        const obs = behaviorObservationOf_(row);
+
+        return `
+          <div class="behavior-detail-row">
+            <div class="behavior-detail-row-top">
+              <div>
+                <div class="behavior-detail-teacher">${escapeHtml(teacher)}</div>
+                <div class="behavior-detail-meta">
+                  ${when ? escapeHtml(when) : "Sin fecha registrada"}
+                </div>
+              </div>
+              ${behaviorLevelBadgeHtml_(rowLevel)}
+            </div>
+            ${obs ? `<div class="behavior-detail-obs">${escapeHtml(obs)}</div>` : ""}
+          </div>
+        `;
+      }).join("")
+    : `<div class="behavior-empty">Este estudiante no tiene detalle de docentes en el reporte.</div>`;
+
+  return `
+    <div class="behavior-detail-box">
+      <div class="behavior-report-card selected">
+        <div class="behavior-report-top">
+          <div>
+            <div class="behavior-detail-title">${escapeHtml(student)}</div>
+            <div class="behavior-report-meta">
+              Llamados: ${totalMarks} • Docentes: ${teachersCount}
+            </div>
+          </div>
+          ${behaviorLevelBadgeHtml_(level)}
+        </div>
+      </div>
+
+      ${rowsHtml}
+    </div>
+  `;
+}
+
+
 function renderBehaviorViewerList_(listEl, items){
   if (!listEl) return;
 
   const arr = Array.isArray(items) ? items : [];
+
   if (!arr.length) {
     listEl.innerHTML = `<div class="behavior-empty">No hay reportes para este filtro.</div>`;
+    listEl.onclick = null;
+    return;
+  }
+
+  // Si el filtro dejó un solo estudiante, mostrar detalle completo
+  if (arr.length === 1) {
+    listEl.innerHTML = behaviorViewerDetailHtml_(arr[0]);
+    listEl.onclick = null;
     return;
   }
 
   listEl.innerHTML = arr.map(it => {
-    const student = String(it.student || "").trim();
-    const maxLevel = Number(it.maxLevel || 0);
+    const student = behaviorItemStudent_(it);
+    const level = behaviorItemLevel_(it);
     const totalMarks = Number(it.totalMarks || 0);
-    const teachersCount = Number(it.teachersCount || 0);
+    const teachersCount = Number(it.teachersCount || (Array.isArray(it.who) ? it.who.length : 0));
     const lastObs = String(
       it.lastObservation ||
-      (Array.isArray(it.who) && it.who.length ? (it.who[0]?.observation || "") : "")
+      it.observation ||
+      (Array.isArray(it.who) && it.who.length ? behaviorObservationOf_(it.who[0]) : "")
     ).trim();
 
     return `
-      <div class="behavior-report-card">
+      <div class="behavior-report-card" data-student="${escapeHtml(student)}">
         <div class="behavior-report-top">
-          <div>
+          <div style="min-width:0;">
             <div class="behavior-report-name">${escapeHtml(student)}</div>
             <div class="behavior-report-meta">
-              Nivel ${maxLevel} • Llamados: ${totalMarks} • Docentes: ${teachersCount}
+              Llamados: ${totalMarks} • Docentes: ${teachersCount}
             </div>
           </div>
+          ${behaviorLevelBadgeHtml_(level)}
         </div>
         ${lastObs ? `<div class="behavior-report-obs">${escapeHtml(lastObs)}</div>` : ""}
       </div>
     `;
   }).join("");
+
+  listEl.onclick = (e) => {
+    const card = e.target.closest(".behavior-report-card[data-student]");
+    if (!card) return;
+
+    const student = String(card.getAttribute("data-student") || "").trim();
+    if (!student) return;
+
+    if (listEl === discViewerList) {
+      if (discViewerStudent) discViewerStudent.value = student;
+      renderBehaviorViewer_("discipline");
+      return;
+    }
+
+    if (listEl === piercViewerList) {
+      if (piercViewerStudent) piercViewerStudent.value = student;
+      renderBehaviorViewer_("piercing");
+      return;
+    }
+
+    if (listEl === uniViewerList) {
+      if (uniViewerStudent) uniViewerStudent.value = student;
+      renderBehaviorViewer_("uniform");
+    }
+  };
 }
 
 function renderBehaviorViewer_(kind){
@@ -4364,26 +4575,41 @@ function renderBehaviorViewer_(kind){
     listEl = uniViewerList;
   }
 
-  const courses = collectCoursesFromBehaviorItems_(items);
+  const prevCourse = String(courseEl && courseEl.value || "").trim();
+  const prevStudent = String(studentEl && studentEl.value || "").trim();
+
+  const courses = Array.from(
+    new Set(items.map(behaviorItemCourse_).filter(Boolean))
+  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
+  if (courseEl && prevCourse && courses.includes(prevCourse)) {
+    courseEl.value = prevCourse;
+  }
+
   const selectedCourse = String(courseEl && courseEl.value || "").trim();
+
   let filtered = items.slice();
 
   if (selectedCourse) {
-    filtered = filtered.filter(it => String(it.course || it.course_name || "").trim() === selectedCourse);
+    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
   }
 
-  const students = filtered
-    .map(it => String(it.student || "").trim())
-    .filter(Boolean)
-    .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+  const students = Array.from(
+    new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
+  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
   populateSimpleSelect_(studentEl, "Todos los estudiantes", students);
 
+  if (studentEl && prevStudent && students.includes(prevStudent)) {
+    studentEl.value = prevStudent;
+  }
+
   const selectedStudent = String(studentEl && studentEl.value || "").trim();
+
   if (selectedStudent) {
-    filtered = filtered.filter(it => String(it.student || "").trim() === selectedStudent);
+    filtered = filtered.filter(it => behaviorItemStudent_(it) === selectedStudent);
   }
 
   renderBehaviorViewerList_(listEl, filtered);
@@ -17731,7 +17957,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-78";
+const APP_BUILD = "2026-04-10-79";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
