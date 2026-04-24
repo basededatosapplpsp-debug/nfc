@@ -4170,6 +4170,12 @@ const btnPiercReport = $("btnPiercReport");
 const btnUniReport = $("btnUniReport");
 
 let __behaviorKind = "";
+
+let __behaviorLoadPromises = {
+  discipline: null,
+  piercing: null,
+  uniform: null
+};
 // ======= QR SCAN UI (NO tocar hasta init) =======
 let qrModal = null;
 let qrVideo = null;
@@ -4200,14 +4206,138 @@ function behaviorMetaByKind_(kind){
   };
 }
 
+function behaviorKindMonth_(kind){
+  if (kind === "discipline") return discMonthKey_();
+  if (kind === "piercing") return piercMonthKey_();
+  return uniMonthKey_();
+}
+
+function behaviorKindHasCache_(kind){
+  if (kind === "discipline") return Array.isArray(__discCacheList);
+  if (kind === "piercing") return Array.isArray(__piercCacheList);
+  if (kind === "uniform") return Array.isArray(__uniCacheList);
+  return false;
+}
+
+function behaviorKindSetCache_(kind, items){
+  const list = Array.isArray(items) ? items : [];
+
+  if (kind === "discipline") {
+    __discCacheList = list;
+    behaviorSaveCache_("discipline", discMonthKey_(), list);
+    return;
+  }
+
+  if (kind === "piercing") {
+    __piercCacheList = list;
+    behaviorSaveCache_("piercing", piercMonthKey_(), list);
+    return;
+  }
+
+  if (kind === "uniform") {
+    __uniCacheList = list;
+    behaviorSaveCache_("uniform", uniMonthKey_(), list);
+  }
+}
+
+function behaviorKindReadStorage_(kind){
+  const month = behaviorKindMonth_(kind);
+  return behaviorReadCache_(kind, month);
+}
+
+async function behaviorKindFetchList_(kind){
+  if (kind === "discipline") return await gsDisciplineList(discMonthKey_());
+  if (kind === "piercing") return await gsPiercingList(piercMonthKey_());
+  if (kind === "uniform") return await gsUniformList(uniMonthKey_());
+  return [];
+}
+
+async function ensureBehaviorDataLoaded_(kind, options = {}){
+  const force = !!options.force;
+  const silent = options.silent !== false;
+
+  kind = String(kind || "").trim();
+  if (!kind) return [];
+
+  if (!force && behaviorKindHasCache_(kind)) {
+    return kind === "discipline"
+      ? (__discCacheList || [])
+      : kind === "piercing"
+        ? (__piercCacheList || [])
+        : (__uniCacheList || []);
+  }
+
+  if (!force) {
+    const saved = behaviorKindReadStorage_(kind);
+    if (Array.isArray(saved)) {
+      behaviorKindSetCache_(kind, saved);
+      return saved;
+    }
+  }
+
+  if (__behaviorLoadPromises[kind]) {
+    return await __behaviorLoadPromises[kind];
+  }
+
+  __behaviorLoadPromises[kind] = (async () => {
+    try {
+      if (!silent) {
+        setLoading(true, "Cargando…", "Consultando reportes del mes.");
+      }
+
+      const items = await behaviorKindFetchList_(kind);
+      behaviorKindSetCache_(kind, items);
+
+      return items;
+    } finally {
+      __behaviorLoadPromises[kind] = null;
+      if (!silent) setLoading(false);
+    }
+  })();
+
+  return await __behaviorLoadPromises[kind];
+}
+
+async function preloadBehaviorModule_(kind){
+  try {
+    await ensureBehaviorDataLoaded_(kind, { silent: true });
+
+    // cursos y estudiantes se cargan con tu lógica existente
+    if (typeof initAllModalCourses_ === "function") {
+      initAllModalCourses_();
+    }
+  } catch (e) {
+    console.warn("No se pudo precargar módulo:", kind, e);
+  }
+}
+
 function openBehaviorHub_(kind){
   __behaviorKind = String(kind || "");
   const meta = behaviorMetaByKind_(__behaviorKind);
 
   if (behaviorHubTitle) behaviorHubTitle.textContent = meta.title;
-  if (behaviorHubSub) behaviorHubSub.textContent = meta.sub;
+  if (behaviorHubSub) behaviorHubSub.textContent = "Cargando información inicial…";
 
   if (behaviorHubModal) behaviorHubModal.hidden = false;
+
+  preloadBehaviorModule_(__behaviorKind).then(() => {
+    if (behaviorHubSub) behaviorHubSub.textContent = meta.sub;
+
+    // Si mientras carga el usuario ya abrió Ver reportes, repintar apenas llegue
+    if (__behaviorKind === "discipline" && disciplineViewerModal && !disciplineViewerModal.hidden) {
+      renderBehaviorViewer_("discipline");
+    }
+
+    if (__behaviorKind === "piercing" && piercingViewerModal && !piercingViewerModal.hidden) {
+      renderBehaviorViewer_("piercing");
+    }
+
+    if (__behaviorKind === "uniform" && uniformViewerModal && !uniformViewerModal.hidden) {
+      renderBehaviorViewer_("uniform");
+    }
+  }).catch(() => {
+    if (behaviorHubSub) behaviorHubSub.textContent = meta.sub;
+  });
 }
 
 function closeBehaviorHub_(){
@@ -4261,96 +4391,90 @@ function behaviorHasLocalCache_(items, kind, month) {
 async function openBehaviorReport_(){
   closeBehaviorHub_();
 
-  if (__behaviorKind === "discipline") {
-    const month = discMonthKey_();
+  try {
+    await ensureBehaviorDataLoaded_(__behaviorKind, { silent: false });
 
-    if (!behaviorHasLocalCache_(__discCacheList, "discipline", month)) {
-      try {
-        setLoading(true, "Cargando…", "Consultando reportes del mes.");
-        __discCacheList = await gsDisciplineList(month);
-        behaviorSaveCache_("discipline", month, __discCacheList);
-      } catch (e) {
-        discSetHint_(String(e && e.message ? e.message : e));
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const saved = behaviorReadCache_("discipline", month);
-      if ((!Array.isArray(__discCacheList) || !__discCacheList.length) && Array.isArray(saved)) {
-        __discCacheList = saved;
-      }
+    if (__behaviorKind === "discipline") {
+      openDisciplineModal();
+      return;
     }
 
-    openDisciplineModal();
-    return;
-  }
-
-  if (__behaviorKind === "piercing") {
-    const month = piercMonthKey_();
-
-    if (!behaviorHasLocalCache_(__piercCacheList, "piercing", month)) {
-      try {
-        setLoading(true, "Cargando…", "Consultando reportes del mes.");
-        __piercCacheList = await gsPiercingList(month);
-        behaviorSaveCache_("piercing", month, __piercCacheList);
-      } catch (e) {
-        piercSetHint_(String(e && e.message ? e.message : e));
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const saved = behaviorReadCache_("piercing", month);
-      if ((!Array.isArray(__piercCacheList) || !__piercCacheList.length) && Array.isArray(saved)) {
-        __piercCacheList = saved;
-      }
+    if (__behaviorKind === "piercing") {
+      openPiercingModal();
+      return;
     }
 
-    openPiercingModal();
-    return;
-  }
+    if (__behaviorKind === "uniform") {
+      openUniformModal();
+      return;
+    }
+  } catch (e) {
+    const msg = String(e && e.message ? e.message : e);
 
-  if (__behaviorKind === "uniform") {
-    const month = uniMonthKey_();
-
-    if (!behaviorHasLocalCache_(__uniCacheList, "uniform", month)) {
-      try {
-        setLoading(true, "Cargando…", "Consultando reportes del mes.");
-        __uniCacheList = await gsUniformList(month);
-        behaviorSaveCache_("uniform", month, __uniCacheList);
-      } catch (e) {
-        uniSetHint_(String(e && e.message ? e.message : e));
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      const saved = behaviorReadCache_("uniform", month);
-      if ((!Array.isArray(__uniCacheList) || !__uniCacheList.length) && Array.isArray(saved)) {
-        __uniCacheList = saved;
-      }
+    if (__behaviorKind === "discipline") {
+      openDisciplineModal();
+      discSetHint_(msg);
+      return;
     }
 
-    openUniformModal();
+    if (__behaviorKind === "piercing") {
+      openPiercingModal();
+      piercSetHint_(msg);
+      return;
+    }
+
+    if (__behaviorKind === "uniform") {
+      openUniformModal();
+      uniSetHint_(msg);
+    }
   }
 }
 
-function openBehaviorViewer_(){
+async function openBehaviorViewer_(){
   closeBehaviorHub_();
 
   if (__behaviorKind === "discipline") {
     if (disciplineViewerModal) disciplineViewerModal.hidden = false;
-    renderBehaviorViewer_("discipline");
+    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
+
+    try {
+      await ensureBehaviorDataLoaded_("discipline", { silent: false });
+      renderBehaviorViewer_("discipline");
+    } catch (e) {
+      if (discViewerList) {
+        discViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
+      }
+    }
     return;
   }
 
   if (__behaviorKind === "piercing") {
     if (piercingViewerModal) piercingViewerModal.hidden = false;
-    renderBehaviorViewer_("piercing");
+    if (piercViewerList) piercViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
+
+    try {
+      await ensureBehaviorDataLoaded_("piercing", { silent: false });
+      renderBehaviorViewer_("piercing");
+    } catch (e) {
+      if (piercViewerList) {
+        piercViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
+      }
+    }
     return;
   }
 
   if (__behaviorKind === "uniform") {
     if (uniformViewerModal) uniformViewerModal.hidden = false;
-    renderBehaviorViewer_("uniform");
+    if (uniViewerList) uniViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
+
+    try {
+      await ensureBehaviorDataLoaded_("uniform", { silent: false });
+      renderBehaviorViewer_("uniform");
+    } catch (e) {
+      if (uniViewerList) {
+        uniViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
+      }
+    }
   }
 }
 
@@ -18030,7 +18154,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-81";
+const APP_BUILD = "2026-04-10-82";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
