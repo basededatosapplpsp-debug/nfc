@@ -2611,6 +2611,40 @@ body.is-admin #registerActions{
 .behavior-back-btn:hover{
   background:rgba(255,255,255,.12);
 }
+
+
+.behavior-detail-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  margin-top:10px;
+}
+
+.behavior-mini-btn{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:var(--text);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+}
+
+.behavior-mini-btn.edit{
+  color:#93c5fd;
+  background:rgba(59,130,246,.10);
+  border-color:rgba(59,130,246,.22);
+}
+
+.behavior-mini-btn.delete{
+  color:#ffb4b4;
+  background:rgba(239,68,68,.10);
+  border-color:rgba(239,68,68,.22);
+}
+
 </style>
 </head>
 
@@ -4588,7 +4622,199 @@ function behaviorLevelBadgeHtml_(level){
   `;
 }
 
-function behaviorViewerDetailHtml_(item){
+function behaviorKindLabel_(kind){
+  if (kind === "discipline") return "Uso del celular";
+  if (kind === "piercing") return "Piercing y perforaciones";
+  if (kind === "uniform") return "Porte del uniforme";
+  return "Reporte";
+}
+
+function behaviorKindMonthKey_(kind){
+  if (kind === "discipline") return discMonthKey_();
+  if (kind === "piercing") return piercMonthKey_();
+  if (kind === "uniform") return uniMonthKey_();
+  return "";
+}
+
+function behaviorNormalizeStudentByKind_(kind, student){
+  if (kind === "discipline") return normalizeStudent_(student);
+  if (kind === "piercing") return piercNormalizeStudent_(student);
+  if (kind === "uniform") return uniNormalizeStudent_(student);
+  return String(student || "").trim();
+}
+
+function behaviorSetHintByKind_(kind, msg){
+  if (kind === "discipline") discSetHint_(msg);
+  if (kind === "piercing") piercSetHint_(msg);
+  if (kind === "uniform") uniSetHint_(msg);
+}
+
+function behaviorFindInCacheByKind_(kind, student){
+  if (kind === "discipline") return discFindInCache_(student);
+  if (kind === "piercing") return piercFindInCache_(student);
+  if (kind === "uniform") return uniFindInCache_(student);
+  return null;
+}
+
+async function gsBehaviorAction_(kind, suffix, payload){
+  const action = `${kind}_${suffix}`;
+
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action,
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || `${action}_failed`);
+  return data;
+}
+
+async function behaviorDeleteStudent_(kind, studentName){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = behaviorNormalizeStudentByKind_(kind, studentName);
+  if (!student) return;
+
+  const ok = await confirmPro({
+    title: `Eliminar estudiante (${behaviorKindLabel_(kind)})`,
+    msg: `¿Seguro que deseas eliminar a "${student}"?\n\nSe borrarán TODOS sus reportes del mes actual.`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando reportes del estudiante.");
+
+    const resp = await gsBehaviorAction_(kind, "delete_student", {
+      month: behaviorKindMonthKey_(kind),
+      student,
+      teacher: profile.name,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      behaviorKindSetCache_(kind, resp.list);
+    } else {
+      await ensureBehaviorDataLoaded_(kind, { force: true, silent: true });
+    }
+
+    behaviorRefreshOpenUI_(kind);
+    renderBehaviorViewer_(kind);
+    behaviorSetHintByKind_(kind, "Estudiante eliminado ✅");
+  } catch (e) {
+    behaviorSetHintByKind_(kind, String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function behaviorEditOne_(kind, studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = behaviorNormalizeStudentByKind_(kind, studentName);
+  if (!student || !row) return;
+
+  const currentObs = behaviorObservationOf_(row);
+
+  const observation = await openObservationModal_({
+    title: `Editar observación · ${behaviorKindLabel_(kind)}`,
+    sub: `${student} • ${String(row.teacher || "—").trim()}`,
+    placeholder: "Escribe la observación...",
+    initialValue: currentObs
+  });
+
+  if (observation === null) return;
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando observación del reporte.");
+
+    const resp = await gsBehaviorAction_(kind, "update_one", {
+      month: behaviorKindMonthKey_(kind),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      observation,
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      behaviorKindSetCache_(kind, resp.list);
+    } else {
+      await ensureBehaviorDataLoaded_(kind, { force: true, silent: true });
+    }
+
+    behaviorRefreshOpenUI_(kind);
+    renderBehaviorViewer_(kind);
+    behaviorSetHintByKind_(kind, "Reporte actualizado ✅");
+  } catch (e) {
+    behaviorSetHintByKind_(kind, String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function behaviorDeleteOne_(kind, studentName, row){
+  const profile = requireLogin();
+  if (!profile) return;
+
+  const student = behaviorNormalizeStudentByKind_(kind, studentName);
+  if (!student || !row) return;
+
+  const ok = await confirmPro({
+    title: "Eliminar reporte",
+    msg: `¿Seguro que deseas eliminar solo este reporte de "${student}"?`,
+    okText: "Sí, eliminar",
+    cancelText: "Cancelar",
+    danger: true
+  });
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando…", "Borrando solo este reporte.");
+
+    const resp = await gsBehaviorAction_(kind, "delete_one", {
+      month: behaviorKindMonthKey_(kind),
+      student,
+      teacher: String(row.teacher || "").trim(),
+      dt: reportDtOf_(row),
+      level: Number(row.level || 0),
+      email: profile.email,
+      device_id: getDeviceId()
+    });
+
+    if (resp && Array.isArray(resp.list)) {
+      behaviorKindSetCache_(kind, resp.list);
+    } else {
+      await ensureBehaviorDataLoaded_(kind, { force: true, silent: true });
+    }
+
+    behaviorRefreshOpenUI_(kind);
+    renderBehaviorViewer_(kind);
+    behaviorSetHintByKind_(kind, "Reporte eliminado ✅");
+  } catch (e) {
+    behaviorSetHintByKind_(kind, String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+function behaviorViewerDetailHtml_(item, kind){
   const student = behaviorItemStudent_(item);
   const level = behaviorItemLevel_(item);
   const totalMarks = Number(item?.totalMarks || 0);
@@ -4598,14 +4824,14 @@ function behaviorViewerDetailHtml_(item){
   who.sort((a,b) => String(b.dt || b.created_at || "").localeCompare(String(a.dt || a.created_at || "")));
 
   const rowsHtml = who.length
-    ? who.map(row => {
+    ? who.map((row, idx) => {
         const teacher = String(row.teacher || "—").trim();
         const rowLevel = Number(row.level || 0);
         const when = behaviorWhenText_(row);
         const obs = behaviorObservationOf_(row);
 
         return `
-          <div class="behavior-detail-row">
+          <div class="behavior-detail-row" data-row-index="${idx}">
             <div class="behavior-detail-row-top">
               <div>
                 <div class="behavior-detail-teacher">${escapeHtml(teacher)}</div>
@@ -4615,7 +4841,18 @@ function behaviorViewerDetailHtml_(item){
               </div>
               ${behaviorLevelBadgeHtml_(rowLevel)}
             </div>
+
             ${obs ? `<div class="behavior-detail-obs">${escapeHtml(obs)}</div>` : ""}
+
+            <div class="behavior-detail-actions">
+              <button type="button" class="behavior-mini-btn edit" data-action="edit-one" data-row-index="${idx}" title="Editar observación">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+
+              <button type="button" class="behavior-mini-btn delete" data-action="delete-one" data-row-index="${idx}" title="Eliminar este reporte">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
           </div>
         `;
       }).join("")
@@ -4633,6 +4870,12 @@ function behaviorViewerDetailHtml_(item){
             </div>
           </div>
           ${behaviorLevelBadgeHtml_(level)}
+        </div>
+
+        <div class="behavior-detail-actions">
+          <button type="button" class="behavior-mini-btn delete" data-action="delete-student" title="Eliminar todos los reportes del estudiante">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
 
@@ -4662,27 +4905,56 @@ function renderBehaviorViewerList_(listEl, items){
 
   // Si el filtro dejó un solo estudiante, mostrar detalle completo
 if (arr.length === 1) {
-  listEl.innerHTML = behaviorViewerDetailHtml_(arr[0]);
+  const item = arr[0];
+  const student = behaviorItemStudent_(item);
+  const who = Array.isArray(item?.who) ? item.who.slice() : [];
 
-  listEl.onclick = (e) => {
+  let kind = "";
+  if (listEl === discViewerList) kind = "discipline";
+  if (listEl === piercViewerList) kind = "piercing";
+  if (listEl === uniViewerList) kind = "uniform";
+
+  who.sort((a,b) => String(b.dt || b.created_at || "").localeCompare(String(a.dt || a.created_at || "")));
+
+  listEl.innerHTML = behaviorViewerDetailHtml_(item, kind);
+
+  listEl.onclick = async (e) => {
     const backBtn = e.target.closest('[data-action="back"]');
-    if (!backBtn) return;
-
-    if (listEl === discViewerList) {
-      if (discViewerStudent) discViewerStudent.value = "";
-      renderBehaviorViewer_("discipline");
+    if (backBtn) {
+      if (kind === "discipline" && discViewerStudent) discViewerStudent.value = "";
+      if (kind === "piercing" && piercViewerStudent) piercViewerStudent.value = "";
+      if (kind === "uniform" && uniViewerStudent) uniViewerStudent.value = "";
+      renderBehaviorViewer_(kind);
       return;
     }
 
-    if (listEl === piercViewerList) {
-      if (piercViewerStudent) piercViewerStudent.value = "";
-      renderBehaviorViewer_("piercing");
+    const deleteStudentBtn = e.target.closest('[data-action="delete-student"]');
+    if (deleteStudentBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      await behaviorDeleteStudent_(kind, student);
       return;
     }
 
-    if (listEl === uniViewerList) {
-      if (uniViewerStudent) uniViewerStudent.value = "";
-      renderBehaviorViewer_("uniform");
+    const editBtn = e.target.closest('[data-action="edit-one"]');
+    if (editBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const idx = Number(editBtn.getAttribute("data-row-index") || -1);
+      const row = who[idx];
+      await behaviorEditOne_(kind, student, row);
+      return;
+    }
+
+    const deleteOneBtn = e.target.closest('[data-action="delete-one"]');
+    if (deleteOneBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const idx = Number(deleteOneBtn.getAttribute("data-row-index") || -1);
+      const row = who[idx];
+      await behaviorDeleteOne_(kind, student, row);
       return;
     }
   };
@@ -4710,14 +4982,19 @@ if (arr.length === 1) {
               Llamados: ${totalMarks} • Docentes: ${teachersCount}
             </div>
           </div>
-          ${behaviorLevelBadgeHtml_(level)}
+          <div style="display:flex; gap:8px; align-items:center;">
+  ${behaviorLevelBadgeHtml_(level)}
+  <button type="button" class="behavior-mini-btn delete" data-action="delete-student-list" data-student="${escapeHtml(student)}" title="Eliminar todos los reportes">
+    <i class="fa-solid fa-trash"></i>
+  </button>
+</div>
         </div>
         ${lastObs ? `<div class="behavior-report-obs">${escapeHtml(lastObs)}</div>` : ""}
       </div>
     `;
   }).join("");
 
-listEl.onclick = (e) => {
+listEl.onclick = async (e) => {
 
   // 🔙 BOTÓN VOLVER
   const backBtn = e.target.closest('[data-action="back"]');
@@ -4741,6 +5018,28 @@ listEl.onclick = (e) => {
     }
   }
 
+  const deleteStudentListBtn = e.target.closest('[data-action="delete-student-list"]');
+if (deleteStudentListBtn) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  const student = String(deleteStudentListBtn.getAttribute("data-student") || "").trim();
+
+  if (listEl === discViewerList) {
+    await behaviorDeleteStudent_("discipline", student);
+    return;
+  }
+
+  if (listEl === piercViewerList) {
+    await behaviorDeleteStudent_("piercing", student);
+    return;
+  }
+
+  if (listEl === uniViewerList) {
+    await behaviorDeleteStudent_("uniform", student);
+    return;
+  }
+}
   // 👇 TU LÓGICA ORIGINAL (NO SE TOCA)
   const card = e.target.closest(".behavior-report-card[data-student]");
   if (!card) return;
@@ -18201,7 +18500,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-85";
+const APP_BUILD = "2026-04-10-86";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
