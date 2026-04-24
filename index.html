@@ -14227,13 +14227,14 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
- if (resp && Array.isArray(resp.list)) {
-  __discCacheList = resp.list;
-  behaviorSaveCache_("discipline", discMonthKey_(), __discCacheList);
+if (resp && Array.isArray(resp.list)) {
+  behaviorKindSetCache_("discipline", resp.list);
 } else {
-  await discReloadReportedList(false);
-  behaviorSaveCache_("discipline", discMonthKey_(), __discCacheList);
+  const items = await gsDisciplineList(discMonthKey_());
+  behaviorKindSetCache_("discipline", items);
 }
+
+behaviorRefreshOpenUI_("discipline");
 
  __discPendingLevel = 0;
 if (discObservationEl) discObservationEl.value = "";
@@ -14270,6 +14271,60 @@ discApplyLevelUI_(discUpdatedMax);
 
 
 
+function behaviorRefreshOpenUI_(kind) {
+  if (kind === "discipline") {
+    if (disciplineViewerModal && !disciplineViewerModal.hidden) {
+      renderBehaviorViewer_("discipline");
+    }
+
+    if (disciplineModal && !disciplineModal.hidden && __discCurrentStudent) {
+      const isTyping = discStudentEl && document.activeElement === discStudentEl;
+
+      if (!isTyping) {
+        discUpdateSelectedBox_(__discCurrentStudent);
+        const item = discFindInCache_(__discCurrentStudent);
+        discApplyLevelUI_(behaviorLevelFromItem_(item));
+      }
+    }
+
+    return;
+  }
+
+  if (kind === "piercing") {
+    if (piercingViewerModal && !piercingViewerModal.hidden) {
+      renderBehaviorViewer_("piercing");
+    }
+
+    if (piercingModal && !piercingModal.hidden && __piercCurrentStudent) {
+      const isTyping = piercStudentEl && document.activeElement === piercStudentEl;
+
+      if (!isTyping) {
+        piercUpdateSelectedBox_(__piercCurrentStudent);
+        const item = piercFindInCache_(__piercCurrentStudent);
+        piercApplyLevelUI_(behaviorLevelFromItem_(item));
+      }
+    }
+
+    return;
+  }
+
+  if (kind === "uniform") {
+    if (uniformViewerModal && !uniformViewerModal.hidden) {
+      renderBehaviorViewer_("uniform");
+    }
+
+    if (uniformModal && !uniformModal.hidden && __uniCurrentStudent) {
+      const isTyping = uniStudentEl && document.activeElement === uniStudentEl;
+
+      if (!isTyping) {
+        uniUpdateSelectedBox_(__uniCurrentStudent);
+        const item = uniFindInCache_(__uniCurrentStudent);
+        uniApplyLevelUI_(behaviorLevelFromItem_(item));
+      }
+    }
+  }
+}
+
 /* ======= Poll para sincronizar entre celulares ======= */
 function discStartPolling_() {
   if (__discPollTimer) return;
@@ -14279,35 +14334,11 @@ function discStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    // ✅ si el modal no está abierto, solo actualiza cache y ya
-    if (!disciplineModal || disciplineModal.hidden === true) {
-      try {
-        __discCacheList = await gsDisciplineList(discMonthKey_());
-      } catch {}
-      return;
-    }
-
     try {
       const items = await gsDisciplineList(discMonthKey_());
-      __discCacheList = items;
 
-      // ✅ Si el usuario está escribiendo en el input, NO pisar su texto
-      const isTyping = (discStudentEl && document.activeElement === discStudentEl);
-
-      // ✅ SI hay estudiante seleccionado (aunque estés en LISTA),
-      // refresca “Seleccionado” (punto arriba + niveles + who)
-      if (__discCurrentStudent && !isTyping) {
-        discUpdateSelectedBox_(__discCurrentStudent);
-      }
-
-      // ✅ Si estoy en detalle: refresco la tarjeta detalle
-      if (__discView === "detail") {
-        if (__discCurrentStudent) discRenderDetailView_();
-        return;
-      }
-
-      // ✅ En lista: repintar lista (para que cambie el punto/orden)
-      discRenderReportedList_(items);
+      behaviorKindSetCache_("discipline", items);
+      behaviorRefreshOpenUI_("discipline");
 
     } catch {
       // silencioso
@@ -15165,14 +15196,14 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
-   if (resp && Array.isArray(resp.list)) {
-  __piercCacheList = resp.list;
-  behaviorSaveCache_("piercing", piercMonthKey_(), __piercCacheList);
+if (resp && Array.isArray(resp.list)) {
+  behaviorKindSetCache_("piercing", resp.list);
 } else {
-  await piercReloadReportedList(false);
-  behaviorSaveCache_("piercing", piercMonthKey_(), __piercCacheList);
+  const items = await gsPiercingList(piercMonthKey_());
+  behaviorKindSetCache_("piercing", items);
 }
 
+behaviorRefreshOpenUI_("piercing");
  __piercPendingLevel = 0;
 if (piercObservationEl) piercObservationEl.value = "";
 
@@ -15215,25 +15246,15 @@ function piercStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    if (!piercingModal || piercingModal.hidden === true) {
-      try { __piercCacheList = await gsPiercingList(piercMonthKey_()); } catch {}
-      return;
-    }
-
     try {
       const items = await gsPiercingList(piercMonthKey_());
-      __piercCacheList = items;
 
-      const isTyping = (piercStudentEl && document.activeElement === piercStudentEl);
-      if (__piercCurrentStudent && !isTyping) piercUpdateSelectedBox_(__piercCurrentStudent);
+      behaviorKindSetCache_("piercing", items);
+      behaviorRefreshOpenUI_("piercing");
 
-      if (__piercView === "detail") {
-        if (__piercCurrentStudent) piercRenderDetailView_();
-        return;
-      }
-
-      piercRenderReportedList_(items);
-    } catch {}
+    } catch {
+      // silencioso
+    }
   }, 4000);
 }
 
@@ -16204,12 +16225,13 @@ async function uniSubmitReport_() {
     });
 
 if (resp && Array.isArray(resp.list)) {
-  __uniCacheList = resp.list;
-  behaviorSaveCache_("uniform", uniMonthKey_(), __uniCacheList);
+  behaviorKindSetCache_("uniform", resp.list);
 } else {
-  await uniReloadReportedList(false);
-  behaviorSaveCache_("uniform", uniMonthKey_(), __uniCacheList);
+  const items = await gsUniformList(uniMonthKey_());
+  behaviorKindSetCache_("uniform", items);
 }
+
+behaviorRefreshOpenUI_("uniform");
 
   __uniPendingLevel = 0;
 if (uniObservationEl) uniObservationEl.value = "";
@@ -16390,25 +16412,11 @@ function uniStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    if (!uniformModal || uniformModal.hidden === true) {
-      try { __uniCacheList = await gsUniformList(uniMonthKey_()); } catch {}
-      return;
-    }
-
     try {
       const items = await gsUniformList(uniMonthKey_());
-      __uniCacheList = items;
 
-      const isTyping = (uniStudentEl && document.activeElement === uniStudentEl);
-
-      if (__uniCurrentStudent && !isTyping) uniUpdateSelectedBox_(__uniCurrentStudent);
-
-      if (__uniView === "detail") {
-        if (__uniCurrentStudent) uniRenderDetailView_();
-        return;
-      }
-
-      uniRenderReportedList_(items);
+      behaviorKindSetCache_("uniform", items);
+      behaviorRefreshOpenUI_("uniform");
 
     } catch {
       // silencioso
@@ -18172,7 +18180,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-83";
+const APP_BUILD = "2026-04-10-84";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
