@@ -2593,6 +2593,24 @@ body.is-admin #registerActions{
   white-space:pre-wrap;
 }
 
+
+.behavior-back-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:800;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);
+  cursor:pointer;
+  width:max-content;
+}
+
+.behavior-back-btn:hover{
+  background:rgba(255,255,255,.12);
+}
 </style>
 </head>
 
@@ -4463,6 +4481,12 @@ function behaviorViewerDetailHtml_(item){
 
   return `
     <div class="behavior-detail-box">
+
+      <!-- BOTÓN VOLVER -->
+      <div class="behavior-back-btn" data-action="back">
+        ← Volver a la lista
+      </div>
+
       <div class="behavior-report-card selected">
         <div class="behavior-report-top">
           <div>
@@ -4526,30 +4550,54 @@ function renderBehaviorViewerList_(listEl, items){
     `;
   }).join("");
 
-  listEl.onclick = (e) => {
-    const card = e.target.closest(".behavior-report-card[data-student]");
-    if (!card) return;
+listEl.onclick = (e) => {
 
-    const student = String(card.getAttribute("data-student") || "").trim();
-    if (!student) return;
-
+  // 🔙 BOTÓN VOLVER
+  const backBtn = e.target.closest('[data-action="back"]');
+  if (backBtn) {
     if (listEl === discViewerList) {
-      if (discViewerStudent) discViewerStudent.value = student;
+      if (discViewerStudent) discViewerStudent.value = "";
       renderBehaviorViewer_("discipline");
       return;
     }
 
     if (listEl === piercViewerList) {
-      if (piercViewerStudent) piercViewerStudent.value = student;
+      if (piercViewerStudent) piercViewerStudent.value = "";
       renderBehaviorViewer_("piercing");
       return;
     }
 
     if (listEl === uniViewerList) {
-      if (uniViewerStudent) uniViewerStudent.value = student;
+      if (uniViewerStudent) uniViewerStudent.value = "";
       renderBehaviorViewer_("uniform");
+      return;
     }
-  };
+  }
+
+  // 👇 TU LÓGICA ORIGINAL (NO SE TOCA)
+  const card = e.target.closest(".behavior-report-card[data-student]");
+  if (!card) return;
+
+  const student = String(card.getAttribute("data-student") || "").trim();
+  if (!student) return;
+
+  if (listEl === discViewerList) {
+    if (discViewerStudent) discViewerStudent.value = student;
+    renderBehaviorViewer_("discipline");
+    return;
+  }
+
+  if (listEl === piercViewerList) {
+    if (piercViewerStudent) piercViewerStudent.value = student;
+    renderBehaviorViewer_("piercing");
+    return;
+  }
+
+  if (listEl === uniViewerList) {
+    if (uniViewerStudent) uniViewerStudent.value = student;
+    renderBehaviorViewer_("uniform");
+  }
+};
 }
 
 function renderBehaviorViewer_(kind){
@@ -17957,7 +18005,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-79";
+const APP_BUILD = "2026-04-10-80";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
