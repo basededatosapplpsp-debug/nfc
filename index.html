@@ -14278,13 +14278,20 @@ function behaviorRefreshOpenUI_(kind) {
     }
 
     if (disciplineModal && !disciplineModal.hidden && __discCurrentStudent) {
-      const isTyping = discStudentEl && document.activeElement === discStudentEl;
+      const isTypingStudent = discStudentEl && document.activeElement === discStudentEl;
+      const isWritingObs = discObservationEl && document.activeElement === discObservationEl;
+      const pending = Number(__discPendingLevel || 0);
 
-      if (!isTyping) {
-        discUpdateSelectedBox_(__discCurrentStudent);
-        const item = discFindInCache_(__discCurrentStudent);
-        discApplyLevelUI_(behaviorLevelFromItem_(item));
+      const item = discFindInCache_(__discCurrentStudent);
+      const currentLevel = behaviorLevelFromItem_(item);
+
+      if (pending > 0 || isTypingStudent || isWritingObs) {
+        discApplyLevelUI_(Math.max(currentLevel, pending));
+        return;
       }
+
+      discUpdateSelectedBox_(__discCurrentStudent);
+      discApplyLevelUI_(currentLevel);
     }
 
     return;
@@ -14296,13 +14303,20 @@ function behaviorRefreshOpenUI_(kind) {
     }
 
     if (piercingModal && !piercingModal.hidden && __piercCurrentStudent) {
-      const isTyping = piercStudentEl && document.activeElement === piercStudentEl;
+      const isTypingStudent = piercStudentEl && document.activeElement === piercStudentEl;
+      const isWritingObs = piercObservationEl && document.activeElement === piercObservationEl;
+      const pending = Number(__piercPendingLevel || 0);
 
-      if (!isTyping) {
-        piercUpdateSelectedBox_(__piercCurrentStudent);
-        const item = piercFindInCache_(__piercCurrentStudent);
-        piercApplyLevelUI_(behaviorLevelFromItem_(item));
+      const item = piercFindInCache_(__piercCurrentStudent);
+      const currentLevel = behaviorLevelFromItem_(item);
+
+      if (pending > 0 || isTypingStudent || isWritingObs) {
+        piercApplyLevelUI_(Math.max(currentLevel, pending));
+        return;
       }
+
+      piercUpdateSelectedBox_(__piercCurrentStudent);
+      piercApplyLevelUI_(currentLevel);
     }
 
     return;
@@ -14314,13 +14328,20 @@ function behaviorRefreshOpenUI_(kind) {
     }
 
     if (uniformModal && !uniformModal.hidden && __uniCurrentStudent) {
-      const isTyping = uniStudentEl && document.activeElement === uniStudentEl;
+      const isTypingStudent = uniStudentEl && document.activeElement === uniStudentEl;
+      const isWritingObs = uniObservationEl && document.activeElement === uniObservationEl;
+      const pending = Number(__uniPendingLevel || 0);
 
-      if (!isTyping) {
-        uniUpdateSelectedBox_(__uniCurrentStudent);
-        const item = uniFindInCache_(__uniCurrentStudent);
-        uniApplyLevelUI_(behaviorLevelFromItem_(item));
+      const item = uniFindInCache_(__uniCurrentStudent);
+      const currentLevel = behaviorLevelFromItem_(item);
+
+      if (pending > 0 || isTypingStudent || isWritingObs) {
+        uniApplyLevelUI_(Math.max(currentLevel, pending));
+        return;
       }
+
+      uniUpdateSelectedBox_(__uniCurrentStudent);
+      uniApplyLevelUI_(currentLevel);
     }
   }
 }
@@ -18180,7 +18201,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-84";
+const APP_BUILD = "2026-04-10-85";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
