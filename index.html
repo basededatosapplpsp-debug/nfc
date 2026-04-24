@@ -2765,44 +2765,43 @@ body.is-admin #registerActions{
   }
 }
 
-
 /* =========================================================
-   FIX: botón Atrás fijo abajo SOLO en modales Reportar
-   Celular / Piercing / Uniforme
+   FIX: botón "Volver a la lista" fijo abajo
+   SOLO en viewers de Celular / Piercing / Uniforme
    ========================================================= */
 
-#disciplineModal #btnDiscBack,
-#piercingModal #btnPiercBack,
-#uniformModal #btnUniBack{
+#disciplineViewerModal .behavior-back-btn,
+#piercingViewerModal .behavior-back-btn,
+#uniformViewerModal .behavior-back-btn{
   position: fixed;
-  left: 16px;
+  left: 50%;
   bottom: calc(16px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
   z-index: 100000;
-  width: 52px;
-  height: 52px;
+  width: min(88vw, 260px);
+  justify-content: center;
+
+  padding: 13px 18px;
   border-radius: 18px;
-  background: rgba(18,26,43,.92);
-  border: 1px solid rgba(255,255,255,.16);
-  box-shadow: 0 14px 34px rgba(0,0,0,.35);
+  background: rgba(18,26,43,.94);
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow: 0 16px 36px rgba(0,0,0,.38);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
 
-/* deja espacio para que el contenido no quede tapado por el botón */
-#disciplineModal .behavior-full-body,
-#piercingModal .behavior-full-body,
-#uniformModal .behavior-full-body{
-  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+/* evita que el último reporte quede tapado por el botón fijo */
+#disciplineViewerModal .behavior-viewer-list,
+#piercingViewerModal .behavior-viewer-list,
+#uniformViewerModal .behavior-viewer-list{
+  padding-bottom: calc(82px + env(safe-area-inset-bottom));
 }
 
-/* el encabezado ya no necesita reservar espacio visual para el botón */
-#disciplineModal .behavior-full-header,
-#piercingModal .behavior-full-header,
-#uniformModal .behavior-full-header{
-  padding-left: 16px;
+#disciplineViewerModal .behavior-back-btn:active,
+#piercingViewerModal .behavior-back-btn:active,
+#uniformViewerModal .behavior-back-btn:active{
+  transform: translateX(-50%) translateY(1px);
 }
-
-
 
 </style>
 </head>
