@@ -4482,11 +4482,6 @@ function behaviorViewerDetailHtml_(item){
   return `
     <div class="behavior-detail-box">
 
-      <!-- BOTÓN VOLVER -->
-      <div class="behavior-back-btn" data-action="back">
-        ← Volver a la lista
-      </div>
-
       <div class="behavior-report-card selected">
         <div class="behavior-report-top">
           <div>
@@ -4500,6 +4495,13 @@ function behaviorViewerDetailHtml_(item){
       </div>
 
       ${rowsHtml}
+
+      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
+        <div class="behavior-back-btn" data-action="back">
+          ← Volver a la lista
+        </div>
+      </div>
+
     </div>
   `;
 }
@@ -4517,11 +4519,34 @@ function renderBehaviorViewerList_(listEl, items){
   }
 
   // Si el filtro dejó un solo estudiante, mostrar detalle completo
-  if (arr.length === 1) {
-    listEl.innerHTML = behaviorViewerDetailHtml_(arr[0]);
-    listEl.onclick = null;
-    return;
-  }
+if (arr.length === 1) {
+  listEl.innerHTML = behaviorViewerDetailHtml_(arr[0]);
+
+  listEl.onclick = (e) => {
+    const backBtn = e.target.closest('[data-action="back"]');
+    if (!backBtn) return;
+
+    if (listEl === discViewerList) {
+      if (discViewerStudent) discViewerStudent.value = "";
+      renderBehaviorViewer_("discipline");
+      return;
+    }
+
+    if (listEl === piercViewerList) {
+      if (piercViewerStudent) piercViewerStudent.value = "";
+      renderBehaviorViewer_("piercing");
+      return;
+    }
+
+    if (listEl === uniViewerList) {
+      if (uniViewerStudent) uniViewerStudent.value = "";
+      renderBehaviorViewer_("uniform");
+      return;
+    }
+  };
+
+  return;
+}
 
   listEl.innerHTML = arr.map(it => {
     const student = behaviorItemStudent_(it);
@@ -18005,7 +18030,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-80";
+const APP_BUILD = "2026-04-10-81";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
