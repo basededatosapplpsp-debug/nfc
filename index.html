@@ -4131,42 +4131,122 @@ function closeBehaviorHub_(){
   if (behaviorHubModal) behaviorHubModal.hidden = true;
 }
 
+
+const BEHAVIOR_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function behaviorStorageKey_(kind, month) {
+  return `behavior_cache_${kind}_${month}`;
+}
+
+function behaviorReadCache_(kind, month) {
+  try {
+    const raw = localStorage.getItem(behaviorStorageKey_(kind, month));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.items)) return null;
+
+    const savedAt = Number(parsed.savedAt || 0);
+    if (!savedAt || Date.now() - savedAt > BEHAVIOR_CACHE_TTL_MS) return null;
+
+    return parsed.items;
+  } catch (e) {
+    return null;
+  }
+}
+
+function behaviorSaveCache_(kind, month, items) {
+  try {
+    localStorage.setItem(
+      behaviorStorageKey_(kind, month),
+      JSON.stringify({
+        savedAt: Date.now(),
+        items: Array.isArray(items) ? items : []
+      })
+    );
+  } catch (e) {}
+}
+
+function behaviorHasLocalCache_(items, kind, month) {
+  if (Array.isArray(items) && items.length) return true;
+
+  const saved = behaviorReadCache_(kind, month);
+  return Array.isArray(saved);
+}
+
+
 async function openBehaviorReport_(){
   closeBehaviorHub_();
 
-  try {
-    setLoading(true, "Cargando…", "Consultando reportes del mes.");
+  if (__behaviorKind === "discipline") {
+    const month = discMonthKey_();
 
-    if (__behaviorKind === "discipline") {
-      __discCacheList = await gsDisciplineList(discMonthKey_());
-      openDisciplineModal();
-      return;
+    if (!behaviorHasLocalCache_(__discCacheList, "discipline", month)) {
+      try {
+        setLoading(true, "Cargando…", "Consultando reportes del mes.");
+        __discCacheList = await gsDisciplineList(month);
+        behaviorSaveCache_("discipline", month, __discCacheList);
+      } catch (e) {
+        discSetHint_(String(e && e.message ? e.message : e));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      const saved = behaviorReadCache_("discipline", month);
+      if ((!Array.isArray(__discCacheList) || !__discCacheList.length) && Array.isArray(saved)) {
+        __discCacheList = saved;
+      }
     }
 
-    if (__behaviorKind === "piercing") {
-      __piercCacheList = await gsPiercingList(piercMonthKey_());
-      openPiercingModal();
-      return;
+    openDisciplineModal();
+    return;
+  }
+
+  if (__behaviorKind === "piercing") {
+    const month = piercMonthKey_();
+
+    if (!behaviorHasLocalCache_(__piercCacheList, "piercing", month)) {
+      try {
+        setLoading(true, "Cargando…", "Consultando reportes del mes.");
+        __piercCacheList = await gsPiercingList(month);
+        behaviorSaveCache_("piercing", month, __piercCacheList);
+      } catch (e) {
+        piercSetHint_(String(e && e.message ? e.message : e));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      const saved = behaviorReadCache_("piercing", month);
+      if ((!Array.isArray(__piercCacheList) || !__piercCacheList.length) && Array.isArray(saved)) {
+        __piercCacheList = saved;
+      }
     }
 
-    if (__behaviorKind === "uniform") {
-      __uniCacheList = await gsUniformList(uniMonthKey_());
-      openUniformModal();
-      return;
+    openPiercingModal();
+    return;
+  }
+
+  if (__behaviorKind === "uniform") {
+    const month = uniMonthKey_();
+
+    if (!behaviorHasLocalCache_(__uniCacheList, "uniform", month)) {
+      try {
+        setLoading(true, "Cargando…", "Consultando reportes del mes.");
+        __uniCacheList = await gsUniformList(month);
+        behaviorSaveCache_("uniform", month, __uniCacheList);
+      } catch (e) {
+        uniSetHint_(String(e && e.message ? e.message : e));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      const saved = behaviorReadCache_("uniform", month);
+      if ((!Array.isArray(__uniCacheList) || !__uniCacheList.length) && Array.isArray(saved)) {
+        __uniCacheList = saved;
+      }
     }
-  } catch (e) {
-    if (__behaviorKind === "discipline") {
-      openDisciplineModal();
-      discSetHint_(String(e && e.message ? e.message : e));
-    } else if (__behaviorKind === "piercing") {
-      openPiercingModal();
-      piercSetHint_(String(e && e.message ? e.message : e));
-    } else if (__behaviorKind === "uniform") {
-      openUniformModal();
-      uniSetHint_(String(e && e.message ? e.message : e));
-    }
-  } finally {
-    setLoading(false);
+
+    openUniformModal();
   }
 }
 
@@ -13706,8 +13786,13 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
-    if (resp && Array.isArray(resp.list)) __discCacheList = resp.list;
-    else await discReloadReportedList(false);
+ if (resp && Array.isArray(resp.list)) {
+  __discCacheList = resp.list;
+  behaviorSaveCache_("discipline", discMonthKey_(), __discCacheList);
+} else {
+  await discReloadReportedList(false);
+  behaviorSaveCache_("discipline", discMonthKey_(), __discCacheList);
+}
 
  __discPendingLevel = 0;
 if (discObservationEl) discObservationEl.value = "";
@@ -14639,8 +14724,13 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
-    if (resp && Array.isArray(resp.list)) __piercCacheList = resp.list;
-    else await piercReloadReportedList(false);
+   if (resp && Array.isArray(resp.list)) {
+  __piercCacheList = resp.list;
+  behaviorSaveCache_("piercing", piercMonthKey_(), __piercCacheList);
+} else {
+  await piercReloadReportedList(false);
+  behaviorSaveCache_("piercing", piercMonthKey_(), __piercCacheList);
+}
 
  __piercPendingLevel = 0;
 if (piercObservationEl) piercObservationEl.value = "";
@@ -15672,8 +15762,13 @@ async function uniSubmitReport_() {
       date: new Date().toISOString()
     });
 
-    if (resp && Array.isArray(resp.list)) __uniCacheList = resp.list;
-    else await uniReloadReportedList(false);
+if (resp && Array.isArray(resp.list)) {
+  __uniCacheList = resp.list;
+  behaviorSaveCache_("uniform", uniMonthKey_(), __uniCacheList);
+} else {
+  await uniReloadReportedList(false);
+  behaviorSaveCache_("uniform", uniMonthKey_(), __uniCacheList);
+}
 
   __uniPendingLevel = 0;
 if (uniObservationEl) uniObservationEl.value = "";
@@ -17636,7 +17731,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-77";
+const APP_BUILD = "2026-04-10-78";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
