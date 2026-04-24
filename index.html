@@ -2764,6 +2764,46 @@ body.is-admin #registerActions{
     top: 16px;
   }
 }
+
+
+/* =========================================================
+   FIX: botón Atrás fijo abajo SOLO en modales Reportar
+   Celular / Piercing / Uniforme
+   ========================================================= */
+
+#disciplineModal #btnDiscBack,
+#piercingModal #btnPiercBack,
+#uniformModal #btnUniBack{
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 100000;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: rgba(18,26,43,.92);
+  border: 1px solid rgba(255,255,255,.16);
+  box-shadow: 0 14px 34px rgba(0,0,0,.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* deja espacio para que el contenido no quede tapado por el botón */
+#disciplineModal .behavior-full-body,
+#piercingModal .behavior-full-body,
+#uniformModal .behavior-full-body{
+  padding-bottom: calc(92px + env(safe-area-inset-bottom));
+}
+
+/* el encabezado ya no necesita reservar espacio visual para el botón */
+#disciplineModal .behavior-full-header,
+#piercingModal .behavior-full-header,
+#uniformModal .behavior-full-header{
+  padding-left: 16px;
+}
+
+
+
 </style>
 </head>
 
@@ -18638,7 +18678,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-87";
+const APP_BUILD = "2026-04-10-88";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
