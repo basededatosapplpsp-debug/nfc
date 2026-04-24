@@ -4176,6 +4176,13 @@ let __behaviorLoadPromises = {
   piercing: null,
   uniform: null
 };
+
+let __behaviorLoadedMonth = {
+  discipline: "",
+  piercing: "",
+  uniform: ""
+};
+
 // ======= QR SCAN UI (NO tocar hasta init) =======
 let qrModal = null;
 let qrVideo = null;
@@ -4213,30 +4220,32 @@ function behaviorKindMonth_(kind){
 }
 
 function behaviorKindHasCache_(kind){
-  if (kind === "discipline") return Array.isArray(__discCacheList);
-  if (kind === "piercing") return Array.isArray(__piercCacheList);
-  if (kind === "uniform") return Array.isArray(__uniCacheList);
-  return false;
+  const month = behaviorKindMonth_(kind);
+  return String(__behaviorLoadedMonth[kind] || "") === String(month || "");
 }
 
 function behaviorKindSetCache_(kind, items){
   const list = Array.isArray(items) ? items : [];
+  const month = behaviorKindMonth_(kind);
 
   if (kind === "discipline") {
     __discCacheList = list;
-    behaviorSaveCache_("discipline", discMonthKey_(), list);
+    __behaviorLoadedMonth.discipline = month;
+    behaviorSaveCache_("discipline", month, list);
     return;
   }
 
   if (kind === "piercing") {
     __piercCacheList = list;
-    behaviorSaveCache_("piercing", piercMonthKey_(), list);
+    __behaviorLoadedMonth.piercing = month;
+    behaviorSaveCache_("piercing", month, list);
     return;
   }
 
   if (kind === "uniform") {
     __uniCacheList = list;
-    behaviorSaveCache_("uniform", uniMonthKey_(), list);
+    __behaviorLoadedMonth.uniform = month;
+    behaviorSaveCache_("uniform", month, list);
   }
 }
 
@@ -4260,11 +4269,9 @@ async function ensureBehaviorDataLoaded_(kind, options = {}){
   if (!kind) return [];
 
   if (!force && behaviorKindHasCache_(kind)) {
-    return kind === "discipline"
-      ? (__discCacheList || [])
-      : kind === "piercing"
-        ? (__piercCacheList || [])
-        : (__uniCacheList || []);
+    if (kind === "discipline") return __discCacheList || [];
+    if (kind === "piercing") return __piercCacheList || [];
+    if (kind === "uniform") return __uniCacheList || [];
   }
 
   if (!force) {
@@ -4302,9 +4309,20 @@ async function preloadBehaviorModule_(kind){
   try {
     await ensureBehaviorDataLoaded_(kind, { silent: true });
 
-    // cursos y estudiantes se cargan con tu lógica existente
     if (typeof initAllModalCourses_ === "function") {
       initAllModalCourses_();
+    }
+
+    if (kind === "discipline" && disciplineViewerModal && !disciplineViewerModal.hidden) {
+      renderBehaviorViewer_("discipline");
+    }
+
+    if (kind === "piercing" && piercingViewerModal && !piercingViewerModal.hidden) {
+      renderBehaviorViewer_("piercing");
+    }
+
+    if (kind === "uniform" && uniformViewerModal && !uniformViewerModal.hidden) {
+      renderBehaviorViewer_("uniform");
     }
   } catch (e) {
     console.warn("No se pudo precargar módulo:", kind, e);
@@ -18154,7 +18172,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-82";
+const APP_BUILD = "2026-04-10-83";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
