@@ -2775,11 +2775,12 @@ body.is-admin #registerActions{
   position: relative !important;
 }
 
-/* 🔥 BOTÓN PRO */
+/* 🔥 BOTÓN PRO (FIX REAL DE POSICIÓN) */
 .behavior-viewer-fab-back{
   position: absolute !important;
   left: 22px !important;
-  bottom: 90px !important;
+  bottom: 0 !important; /* 👈 base */
+  transform: translateY(-110px) !important; /* 👈 esto lo sube de verdad */
   z-index: 999999 !important;
 
   width: 60px !important;
@@ -2857,13 +2858,13 @@ body.is-admin #registerActions{
 
 /* hover */
 .behavior-viewer-fab-back:hover{
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-112px) scale(1.05) !important;
   filter: brightness(1.08);
 }
 
 /* active */
 .behavior-viewer-fab-back:active{
-  transform: scale(.92);
+  transform: translateY(-108px) scale(.92) !important;
 }
 
 /* espacio inferior */
@@ -2886,7 +2887,7 @@ body.is-admin #registerActions{
   }
   to{
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(-110px) scale(1);
   }
 }
 
