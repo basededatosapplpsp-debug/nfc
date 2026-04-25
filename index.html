@@ -2779,91 +2779,57 @@ body.is-admin #registerActions{
 #btnPiercViewerBack,
 #btnUniViewerBack{
   position: absolute !important;
-  left: 40px !important;
-  bottom: 85px !important;
+  left: 32px !important;
+  bottom: 95px !important;
   top: auto !important;
   right: auto !important;
   z-index: 9999999 !important;
 
-  width: 72px !important;
-  height: 72px !important;
-  min-width: 72px !important;
-  min-height: 72px !important;
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
   padding: 0 !important;
 
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 
-  border-radius: 24px !important;
+  border-radius: 18px !important;
   opacity: 1 !important;
 
   background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 40%),
-    linear-gradient(135deg, #2563eb 0%, #0b5fff 58%, #1e3a8a 100%) !important;
+    linear-gradient(180deg, rgba(18,26,43,.96), rgba(11,18,32,.94)) !important;
 
-  border: 1px solid rgba(191,219,254,.85) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
 
   box-shadow:
-    0 20px 42px rgba(11,95,255,.42),
-    0 12px 28px rgba(0,0,0,.55),
-    inset 0 1px 0 rgba(255,255,255,.65),
-    inset 0 -12px 20px rgba(0,0,0,.22) !important;
+    0 12px 28px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 
   cursor: pointer;
   overflow: hidden;
   isolation: isolate;
 
-  animation: fabBackIn .35s ease-out both;
+  animation: fabBackIn .25s ease-out both;
   transition:
-    transform .18s cubic-bezier(.2,.8,.2,1),
-    box-shadow .18s ease,
-    filter .18s ease;
+    transform .16s ease,
+    box-shadow .16s ease,
+    background .16s ease;
 }
 
-/* brillo animado */
-#btnDiscViewerBack::after,
-#btnPiercViewerBack::after,
-#btnUniViewerBack::after{
-  content: "";
-  position: absolute;
-  top: -35%;
-  left: -70%;
-  width: 48%;
-  height: 170%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255,255,255,.42),
-    transparent
-  );
-  transform: rotate(22deg);
-  animation: fabBackShine 3s infinite;
-}
 
-/* glow */
-#btnDiscViewerBack::before,
-#btnPiercViewerBack::before,
-#btnUniViewerBack::before{
-  content: "";
-  position: absolute;
-  inset: -6px;
-  border-radius: 28px;
-  background: rgba(59,130,246,.28);
-  filter: blur(12px);
-  z-index: -1;
-}
 
 /* icono */
 #btnDiscViewerBack i,
 #btnPiercViewerBack i,
 #btnUniViewerBack i{
-  font-size: 30px !important;
-  color: #ffffff !important;
-  text-shadow: 0 2px 8px rgba(0,0,0,.4);
+  font-size: 22px !important;
+  color: rgba(233,238,252,.96) !important;
+  text-shadow: none !important;
 }
 
 /* hover */
