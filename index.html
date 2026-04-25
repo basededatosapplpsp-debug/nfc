@@ -11161,6 +11161,16 @@ function reportesGetItemCourse_(item) {
     item?.curso ||
     item?.grade ||
     item?.grado ||
+    item?.Curso ||
+    item?.Grado ||
+    item?.COURSE ||
+    item?.GRADO ||
+    item?.student_course ||
+    item?.studentCourse ||
+    item?.curso_estudiante ||
+    item?.cursoEstudiante ||
+    item?.course_name ||
+    item?.courseName ||
     ""
   ).trim();
 }
@@ -11168,36 +11178,32 @@ function reportesGetItemCourse_(item) {
 function reportesBuildCourseFilter_(items) {
   if (!reportesViewerCourseFilterEl) return;
 
-  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
+  const currentKey = reportesNormalizeCourse_(reportesViewerCourseFilterEl.value || "");
+  const courseMap = new Map();
 
-  const courses = [...new Set(
-    (Array.isArray(items) ? items : [])
-      .map(reportesGetItemCourse_)
-      .filter(Boolean)
-      .map(reportesNormalizeCourse_)
-  )].sort((a, b) => a.localeCompare(b, "es"));
+  (Array.isArray(items) ? items : []).forEach(item => {
+    const rawCourse = reportesGetItemCourse_(item);
+    const key = reportesNormalizeCourse_(rawCourse);
+    if (key && !courseMap.has(key)) {
+      courseMap.set(key, rawCourse);
+    }
+  });
 
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  const courses = Array.from(courseMap.values())
+    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
 
-  let html = "";
+  let html = `<option value="">Todos los cursos</option>`;
+  html += courses
+    .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+    .join("");
 
-  if (isAdmin) {
-    html += `<option value="">Todos los cursos</option>`;
-  }
+  reportesViewerCourseFilterEl.innerHTML = html;
 
-  html += courses.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-
-  reportesViewerCourseFilterEl.innerHTML = html || `<option value="">Sin cursos</option>`;
-
-  if (profileCourse && courses.includes(profileCourse)) {
-    reportesViewerCourseFilterEl.value = profileCourse;
-  } else if (!isAdmin && courses.length) {
-    reportesViewerCourseFilterEl.value = courses[0];
-  } else if (isAdmin) {
-    reportesViewerCourseFilterEl.value = "";
+  if (currentKey) {
+    const found = courses.find(c => reportesNormalizeCourse_(c) === currentKey);
+    if (found) reportesViewerCourseFilterEl.value = found;
   }
 }
-
 function reportesBuildSubjectFilter_(items) {
   if (!reportesViewerSubjectFilterEl) return;
 
