@@ -5012,10 +5012,24 @@ function behaviorItemStudent_(it){
   return String(it?.student || it?.student_name || it?.studentName || it?.name || "").trim();
 }
 
-function behaviorItemCourse_(it){
-  return String(it?.course || it?.course_name || it?.courseName || "").trim();
+function behaviorNormalizeCourseKey_(value){
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
 }
 
+function behaviorItemCourse_(it){
+  return behaviorNormalizeCourseKey_(
+    it?.course ||
+    it?.curso ||
+    it?.grade ||
+    it?.grado ||
+    it?.course_name ||
+    it?.courseName ||
+    ""
+  );
+}
 function behaviorItemLevel_(it){
   const fromMax = Number(it?.maxLevel || 0);
   const fromLevel = Number(it?.level || 0);
@@ -5544,9 +5558,10 @@ function renderBehaviorViewer_(kind){
 
   let filtered = items.slice();
 
-  if (selectedCourse) {
-    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
-  }
+if (selectedCourse) {
+  const selectedCourseKey = behaviorNormalizeCourseKey_(selectedCourse);
+  filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourseKey);
+}
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
