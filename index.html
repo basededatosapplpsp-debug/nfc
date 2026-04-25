@@ -2766,28 +2766,107 @@ body.is-admin #registerActions{
 }
 
 /* =========================================================
-   Botones atrás abajo izquierda SOLO en celular
-   Celular / Piercing / Uniforme
+   FAB Atrás Pro - Viewer Celular / Piercing / Uniforme
    ========================================================= */
 
-/* FORZAR botones atrás abajo izquierda */
-#btnDiscBack,
-#btnPiercBack,
-#btnUniBack,
-#btnDiscViewerBack,
-#btnPiercViewerBack,
-#btnUniViewerBack{
+.behavior-viewer-fab-back{
   position: fixed !important;
-  left: 16px !important;
-  bottom: 16px !important;
-  top: auto !important;
-  right: auto !important;
+  left: 18px !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
   z-index: 9999999 !important;
 
-  width: 52px !important;
-  height: 52px !important;
-  border-radius: 50% !important;
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 22px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  color: #ffffff !important;
   opacity: 1 !important;
+
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.34), transparent 38%),
+    linear-gradient(135deg, #3b82f6 0%, #0b5fff 52%, #1e40af 100%) !important;
+
+  border: 1px solid rgba(191,219,254,.65) !important;
+
+  box-shadow:
+    0 18px 36px rgba(11,95,255,.35),
+    0 10px 24px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -10px 18px rgba(0,0,0,.16) !important;
+
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+
+  animation: fabBackIn .38s cubic-bezier(.2,.8,.2,1) both;
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+/* brillo diagonal */
+.behavior-viewer-fab-back::after{
+  content: "";
+  position: absolute;
+  top: -35%;
+  left: -70%;
+  width: 48%;
+  height: 170%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,.42),
+    transparent
+  );
+  transform: rotate(22deg);
+  z-index: -1;
+  animation: fabBackShine 2.8s ease-in-out infinite;
+}
+
+/* halo suave */
+.behavior-viewer-fab-back::before{
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 26px;
+  background: rgba(59,130,246,.28);
+  filter: blur(14px);
+  z-index: -2;
+}
+
+.behavior-viewer-fab-back i{
+  font-size: 24px !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+}
+
+.behavior-viewer-fab-back:hover{
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.08);
+  box-shadow:
+    0 22px 42px rgba(11,95,255,.42),
+    0 12px 28px rgba(0,0,0,.50),
+    inset 0 1px 0 rgba(255,255,255,.62) !important;
+}
+
+.behavior-viewer-fab-back:active{
+  transform: translateY(1px) scale(.94);
+  filter: brightness(.98);
+}
+
+/* deja espacio para que no tape contenido */
+#disciplineViewerModal .behavior-full-body,
+#piercingViewerModal .behavior-full-body,
+#uniformViewerModal .behavior-full-body{
+  padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
 }
 
 /* No mover la X del menú Reportar / Ver reportes */
@@ -2795,31 +2874,25 @@ body.is-admin #registerActions{
   position: static !important;
 }
 
-.behavior-viewer-fab-back{
-  position: fixed !important;
-  left: 16px !important;
-  bottom: 16px !important;
-  z-index: 9999999 !important;
-
-  width: 56px !important;
-  height: 56px !important;
-  border-radius: 50% !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  background: #0b5fff !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(255,255,255,.25) !important;
-  box-shadow: 0 12px 30px rgba(0,0,0,.45) !important;
-  opacity: 1 !important;
+@keyframes fabBackIn{
+  from{
+    opacity: 0;
+    transform: translateY(18px) scale(.82);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.behavior-viewer-fab-back i{
-  font-size: 22px !important;
-  color: #ffffff !important;
+@keyframes fabBackShine{
+  0%{ left: -70%; opacity: 0; }
+  18%{ opacity: 1; }
+  38%{ left: 130%; opacity: 0; }
+  100%{ left: 130%; opacity: 0; }
 }
+
+
 </style>
 </head>
 
@@ -18716,7 +18789,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-92";
+const APP_BUILD = "2026-04-10-93";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
