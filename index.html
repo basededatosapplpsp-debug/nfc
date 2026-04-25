@@ -7765,6 +7765,18 @@ function loadProfile() {
   }
 }
 
+
+function getDeviceId_(){
+  let id = localStorage.getItem("device_id");
+
+  if (!id) {
+    id = "dev_" + Math.random().toString(36).slice(2) + Date.now();
+    localStorage.setItem("device_id", id);
+  }
+
+  return id;
+}
+
 function openAdminConfigModal() {
   if (!adminConfigModal) return;
   adminConfigModal.hidden = false;
