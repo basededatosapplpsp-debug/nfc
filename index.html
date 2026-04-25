@@ -4953,17 +4953,6 @@ async function openBehaviorViewer_(){
   }
 }
 
-function keepAttentionMenuOpen_(){
-  if (userMenu) userMenu.hidden = false;
-
-  const btnUserMenuEl = document.getElementById("btnUserMenu");
-  if (btnUserMenuEl) btnUserMenuEl.setAttribute("aria-expanded", "true");
-
-  if (faltasSubMenu) faltasSubMenu.hidden = false;
-
-  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-}
-
 function backToBehaviorHub_(){
   if (disciplineModal) disciplineModal.hidden = true;
   if (piercingModal) piercingModal.hidden = true;
@@ -4971,8 +4960,7 @@ function backToBehaviorHub_(){
   if (disciplineViewerModal) disciplineViewerModal.hidden = true;
   if (piercingViewerModal) piercingViewerModal.hidden = true;
   if (uniformViewerModal) uniformViewerModal.hidden = true;
-
-  keepAttentionMenuOpen_();
+  openBehaviorHub_(__behaviorKind);
 }
 
 function collectCoursesFromBehaviorItems_(items){
@@ -5516,72 +5504,6 @@ if (deleteStudentListBtn) {
 };
 }
 
-function behaviorCoursesOf_(it){
-  const out = [];
-
-  [
-    it?.course,
-    it?.curso,
-    it?.grade,
-    it?.grado,
-    it?.course_name,
-    it?.courseName
-  ].forEach(v => {
-    const c = String(v || "").trim();
-    if (c) out.push(c);
-  });
-
-  const who = Array.isArray(it?.who) ? it.who : [];
-  who.forEach(row => {
-    [
-      row?.course,
-      row?.curso,
-      row?.grade,
-      row?.grado,
-      row?.course_name,
-      row?.courseName
-    ].forEach(v => {
-      const c = String(v || "").trim();
-      if (c) out.push(c);
-    });
-  });
-
-  return Array.from(new Set(out));
-}
-
-function behaviorItemMatchesCourse_(it, course){
-  const c = String(course || "").trim();
-  if (!c) return true;
-  return behaviorCoursesOf_(it).includes(c);
-}
-
-function behaviorAttachCourseToItems_(items, student, course){
-  const s = String(student || "").trim();
-  const c = String(course || "").trim();
-
-  if (!Array.isArray(items) || !s || !c) return Array.isArray(items) ? items : [];
-
-  return items.map(it => {
-    const itemStudent = String(
-      it?.student || it?.name || it?.student_name || ""
-    ).trim();
-
-    if (itemStudent !== s) return it;
-
-    const next = { ...it, course: it.course || c };
-
-    if (Array.isArray(next.who)) {
-      next.who = next.who.map(row => ({
-        ...row,
-        course: row.course || c
-      }));
-    }
-
-    return next;
-  });
-}
-
-
 function renderBehaviorViewer_(kind){
   let items = [];
   let courseEl = null;
@@ -5608,9 +5530,9 @@ function renderBehaviorViewer_(kind){
   const prevCourse = String(courseEl && courseEl.value || "").trim();
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
-const courses = Array.from(
-  new Set(items.flatMap(behaviorCoursesOf_).filter(Boolean))
-).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+  const courses = Array.from(
+    new Set(items.map(behaviorItemCourse_).filter(Boolean))
+  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
@@ -5622,9 +5544,9 @@ const courses = Array.from(
 
   let filtered = items.slice();
 
- if (selectedCourse) {
-  filtered = filtered.filter(it => behaviorItemMatchesCourse_(it, selectedCourse));
-}
+  if (selectedCourse) {
+    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
+  }
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
@@ -8173,11 +8095,10 @@ if (btnFaltasMenu) {
 
 // ✅ Si el usuario toca cualquier opción dentro del submenú, lo cerramos
 if (faltasSubMenu) {
-  faltasSubMenu.addEventListener("click", () => {
-    closeFaltasSubMenu_();
+  faltasSubMenu.addEventListener("click", (e) => {
+    e.stopPropagation(); // no cerrar submenú al tocar Celular/Piercing/Uniforme
   });
 }
-
 // ✅ Si tienes una función setMenuOpen(false), el menú se cierra:
 // pero el submenú puede quedar "abierto" en estado => lo reseteamos
 document.addEventListener("click", (e) => {
@@ -8229,9 +8150,24 @@ if (faltasTiposSubMenu) {
 
 // ✅ Click fuera => cierra submenú
 document.addEventListener("click", (e) => {
-  if (!faltasTiposSubMenu || !btnFaltasTiposMenu) return;
-  const inside = (e.target && (faltasTiposSubMenu.contains(e.target) || btnFaltasTiposMenu.contains(e.target)));
-  if (!inside) closeFaltasTiposSubMenu_();
+  if (!faltasSubMenu || !btnFaltasMenu) return;
+
+  const t = e.target;
+  const inside =
+    t &&
+    (
+      faltasSubMenu.contains(t) ||
+      btnFaltasMenu.contains(t) ||
+      (behaviorHubModal && behaviorHubModal.contains(t)) ||
+      (disciplineModal && disciplineModal.contains(t)) ||
+      (piercingModal && piercingModal.contains(t)) ||
+      (uniformModal && uniformModal.contains(t)) ||
+      (disciplineViewerModal && disciplineViewerModal.contains(t)) ||
+      (piercingViewerModal && piercingViewerModal.contains(t)) ||
+      (uniformViewerModal && uniformViewerModal.contains(t))
+    );
+
+  if (!inside) closeFaltasSubMenu_();
 });
 
 
@@ -15042,19 +14978,11 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const selectedCourse = String(discCourseEl ? discCourseEl.value : "").trim();
-
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_(
-    "discipline",
-    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
-  );
+  behaviorKindSetCache_("discipline", resp.list);
 } else {
   const items = await gsDisciplineList(discMonthKey_());
-  behaviorKindSetCache_(
-    "discipline",
-    behaviorAttachCourseToItems_(items, student, selectedCourse)
-  );
+  behaviorKindSetCache_("discipline", items);
 }
 
 behaviorRefreshOpenUI_("discipline");
@@ -15230,8 +15158,12 @@ function closeDisciplineModal() {
 
 function discBindUI_() {
   if (btnDiscipline) {
-    btnDiscipline.onclick = () => {
-      setMenuOpen(false);
+    btnDiscipline.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setMenuOpen(true);
+      if (faltasSubMenu) faltasSubMenu.hidden = false;
+      if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
       openBehaviorHub_("discipline");
     };
   }
@@ -16040,19 +15972,11 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const selectedCourse = String(piercCourseEl ? piercCourseEl.value : "").trim();
-
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_(
-    "piercing",
-    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
-  );
+  behaviorKindSetCache_("piercing", resp.list);
 } else {
   const items = await gsPiercingList(piercMonthKey_());
-  behaviorKindSetCache_(
-    "piercing",
-    behaviorAttachCourseToItems_(items, student, selectedCourse)
-  );
+  behaviorKindSetCache_("piercing", items);
 }
 
 behaviorRefreshOpenUI_("piercing");
@@ -16149,10 +16073,14 @@ function closePiercingModal() {
 
 function piercBindUI_() {
   if (btnPiercing) {
-    btnPiercing.onclick = () => {
-      setMenuOpen(false);
-      openBehaviorHub_("piercing");
-    };
+  btnPiercing.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setMenuOpen(true);
+  if (faltasSubMenu) faltasSubMenu.hidden = false;
+  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+  openBehaviorHub_("piercing");
+};
   }
 
   if (piercingModal) {
@@ -17076,19 +17004,11 @@ async function uniSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const selectedCourse = String(uniCourseEl ? uniCourseEl.value : "").trim();
-
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_(
-    "uniform",
-    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
-  );
+  behaviorKindSetCache_("uniform", resp.list);
 } else {
   const items = await gsUniformList(uniMonthKey_());
-  behaviorKindSetCache_(
-    "uniform",
-    behaviorAttachCourseToItems_(items, student, selectedCourse)
-  );
+  behaviorKindSetCache_("uniform", items);
 }
 
 behaviorRefreshOpenUI_("uniform");
@@ -17159,11 +17079,14 @@ function closeUniformModal() {
 }
 
 function uniBindUI_() {
-  if (btnUniform) {
-    btnUniform.onclick = () => {
-      setMenuOpen(false);
-      openBehaviorHub_("uniform");
-    };
+btnUniform.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  setMenuOpen(true);
+  if (faltasSubMenu) faltasSubMenu.hidden = false;
+  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+  openBehaviorHub_("uniform");
+};
   }
 
   if (uniformModal) {
@@ -17242,27 +17165,14 @@ function uniBindUI_() {
   }
 }
 
-function closeBehaviorFormKeepMenu_(){
-  if (disciplineModal) disciplineModal.hidden = true;
-  if (piercingModal) piercingModal.hidden = true;
-  if (uniformModal) uniformModal.hidden = true;
-
-  if (behaviorHubModal) behaviorHubModal.hidden = true;
-
-  if (userMenu) userMenu.hidden = false;
-  if (faltasSubMenu) faltasSubMenu.hidden = false;
-
-  if (btnUserMenu) btnUserMenu.setAttribute("aria-expanded", "true");
-  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-}
-
 if (btnBehaviorHubClose) btnBehaviorHubClose.onclick = closeBehaviorHub_;
 if (btnBehaviorOpenReport) btnBehaviorOpenReport.onclick = openBehaviorReport_;
 if (btnBehaviorOpenViewer) btnBehaviorOpenViewer.onclick = openBehaviorViewer_;
 
-if (btnDiscBack) btnDiscBack.onclick = closeBehaviorFormKeepMenu_;
-if (btnPiercBack) btnPiercBack.onclick = closeBehaviorFormKeepMenu_;
-if (btnUniBack) btnUniBack.onclick = closeBehaviorFormKeepMenu_;
+if (btnDiscBack) btnDiscBack.onclick = backToBehaviorHub_;
+if (btnPiercBack) btnPiercBack.onclick = backToBehaviorHub_;
+if (btnUniBack) btnUniBack.onclick = backToBehaviorHub_;
+
 function behaviorViewerBack_(kind){
   let studentEl = null;
 
