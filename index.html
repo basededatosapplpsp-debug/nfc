@@ -2772,7 +2772,7 @@ body.is-admin #registerActions{
 .behavior-viewer-fab-back{
   position: fixed !important;
 left: 22px !important;
-bottom: calc(34px + env(safe-area-inset-bottom)) !important;
+bottom: 90px !important;
   z-index: 9999999 !important;
 
   width: 60px !important;
@@ -2892,7 +2892,11 @@ padding-bottom: calc(125px + env(safe-area-inset-bottom)) !important;
   100%{ left: 130%; opacity: 0; }
 }
 
-
+#disciplineViewerModal,
+#piercingViewerModal,
+#uniformViewerModal{
+  overflow: visible !important;
+}
 </style>
 </head>
 
