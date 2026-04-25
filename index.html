@@ -2343,6 +2343,32 @@ body.is-admin #registerActions{
     #0b1220 !important;
 }
 
+/* ✅ Ajuste solo para Llegadas tarde en celular */
+#lateArrivalModal.behavior-full .modal-card{
+  width: 100% !important;
+  max-width: 430px !important;
+  height: 100dvh !important;
+  margin: 0 auto !important;
+  border-radius: 0 !important;
+}
+
+#lateArrivalModal .behavior-panel{
+  width: 100% !important;
+  max-width: 430px !important;
+}
+
+#lateArrivalModal .behavior-full-body{
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+  overflow-x: hidden !important;
+}
+
+#lateArrivalModal .behavior-panel-card{
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
 .behavior-full-header{
   flex:0 0 auto;
   display:flex;
@@ -3067,6 +3093,29 @@ button[data-pierc-edit] + button[data-pierc-del-one],
 button[data-uni-edit] + button[data-uni-del-one]{
   margin-left: 2px !important;
 }
+
+
+#lateArrivalModal .disc-item{
+  max-width: 100%;
+  overflow: hidden;
+}
+
+#lateArrivalModal .disc-item .left{
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+#lateArrivalModal .disc-item .right{
+  flex: 0 0 auto;
+}
+
+#lateArrivalModal .disc-item .name{
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 </style>
 </head>
