@@ -2768,55 +2768,66 @@ body.is-admin #registerActions{
    FAB Atrás Pro - Viewer Celular / Piercing / Uniforme
    ========================================================= */
 
-/* 🔥 CLAVE: el modal será el contenedor del botón */
 #disciplineViewerModal .modal-card,
 #piercingViewerModal .modal-card,
 #uniformViewerModal .modal-card{
   position: relative !important;
 }
 
-/* 🔥 BOTÓN PRO (FIX REAL DE POSICIÓN) */
-.behavior-viewer-fab-back{
+/* BOTONES REALES */
+#btnDiscViewerBack,
+#btnPiercViewerBack,
+#btnUniViewerBack{
   position: absolute !important;
+  left: 40px !important;
+  bottom: 85px !important;
+  top: auto !important;
+  right: auto !important;
+  z-index: 9999999 !important;
 
-  left: 40px !important;   /* 👉 más hacia la derecha */
-  bottom: 0 !important;
-
-  transform: translateY(-110px) !important;
-
-  z-index: 999999 !important;
-
-  width: 72px !important;   /* 👉 más grande */
+  width: 72px !important;
   height: 72px !important;
-  border-radius: 24px !important;
+  min-width: 72px !important;
+  min-height: 72px !important;
+  padding: 0 !important;
 
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
 
-  color: #ffffff !important;
+  border-radius: 24px !important;
   opacity: 1 !important;
 
   background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,.4), transparent 40%),
-    linear-gradient(135deg, #2563eb 0%, #0b5fff 60%, #1e3a8a 100%) !important;
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.45), transparent 40%),
+    linear-gradient(135deg, #2563eb 0%, #0b5fff 58%, #1e3a8a 100%) !important;
 
-  border: 1px solid rgba(191,219,254,.8) !important;
+  border: 1px solid rgba(191,219,254,.85) !important;
 
   box-shadow:
-    0 20px 40px rgba(11,95,255,.4),
-    0 12px 28px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.6),
-    inset 0 -12px 20px rgba(0,0,0,.2) !important;
+    0 20px 42px rgba(11,95,255,.42),
+    0 12px 28px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -12px 20px rgba(0,0,0,.22) !important;
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 
   cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+
+  animation: fabBackIn .35s ease-out both;
+  transition:
+    transform .18s cubic-bezier(.2,.8,.2,1),
+    box-shadow .18s ease,
+    filter .18s ease;
 }
 
-/* ✨ brillo animado */
-.behavior-viewer-fab-back::after{
+/* brillo animado */
+#btnDiscViewerBack::after,
+#btnPiercViewerBack::after,
+#btnUniViewerBack::after{
   content: "";
   position: absolute;
   top: -35%;
@@ -2826,47 +2837,55 @@ body.is-admin #registerActions{
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255,255,255,.4),
+    rgba(255,255,255,.42),
     transparent
   );
   transform: rotate(22deg);
   animation: fabBackShine 3s infinite;
 }
 
-/* ✨ glow */
-.behavior-viewer-fab-back::before{
+/* glow */
+#btnDiscViewerBack::before,
+#btnPiercViewerBack::before,
+#btnUniViewerBack::before{
   content: "";
   position: absolute;
   inset: -6px;
-  border-radius: 24px;
-  background: rgba(59,130,246,.25);
+  border-radius: 28px;
+  background: rgba(59,130,246,.28);
   filter: blur(12px);
   z-index: -1;
 }
 
 /* icono */
-.behavior-viewer-fab-back i{
-  font-size: 28px !important;
+#btnDiscViewerBack i,
+#btnPiercViewerBack i,
+#btnUniViewerBack i{
+  font-size: 30px !important;
   color: #ffffff !important;
-  text-shadow: 0 2px 6px rgba(0,0,0,.35);
+  text-shadow: 0 2px 8px rgba(0,0,0,.4);
 }
 
 /* hover */
-.behavior-viewer-fab-back:hover{
-  transform: translateY(-112px) scale(1.05) !important;
+#btnDiscViewerBack:hover,
+#btnPiercViewerBack:hover,
+#btnUniViewerBack:hover{
+  transform: translateY(-2px) scale(1.05) !important;
   filter: brightness(1.08);
 }
 
 /* active */
-.behavior-viewer-fab-back:active{
-  transform: translateY(-108px) scale(.92) !important;
+#btnDiscViewerBack:active,
+#btnPiercViewerBack:active,
+#btnUniViewerBack:active{
+  transform: scale(.92) !important;
 }
 
 /* espacio inferior */
 #disciplineViewerModal .behavior-full-body,
 #piercingViewerModal .behavior-full-body,
 #uniformViewerModal .behavior-full-body{
-  padding-bottom: 140px !important;
+  padding-bottom: 160px !important;
 }
 
 /* NO tocar la X del hub */
@@ -2874,15 +2893,14 @@ body.is-admin #registerActions{
   position: static !important;
 }
 
-/* animaciones */
 @keyframes fabBackIn{
   from{
     opacity: 0;
-    transform: translateY(20px) scale(.8);
+    transform: translateY(20px) scale(.82);
   }
   to{
     opacity: 1;
-    transform: translateY(-110px) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
