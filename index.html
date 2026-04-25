@@ -5013,7 +5013,35 @@ function behaviorItemStudent_(it){
 }
 
 function behaviorItemCourse_(it){
-  return String(it?.course || it?.course_name || it?.courseName || "").trim();
+  const direct = String(
+    it?.course ||
+    it?.curso ||
+    it?.grade ||
+    it?.grado ||
+    it?.course_name ||
+    it?.courseName ||
+    ""
+  ).trim();
+
+  if (direct) return direct;
+
+  const who = Array.isArray(it?.who) ? it.who : [];
+
+  for (const row of who) {
+    const c = String(
+      row?.course ||
+      row?.curso ||
+      row?.grade ||
+      row?.grado ||
+      row?.course_name ||
+      row?.courseName ||
+      ""
+    ).trim();
+
+    if (c) return c;
+  }
+
+  return "";
 }
 
 function behaviorItemLevel_(it){
@@ -5530,21 +5558,50 @@ function renderBehaviorViewer_(kind){
   const prevCourse = String(courseEl && courseEl.value || "").trim();
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
+  function getCoursesFromItem(it){
+    const arr = [];
 
-    console.log("🧪 DEBUG Ver reportes:", {
-    kind,
-    totalItems: items.length,
-    firstItem: items[0],
-    firstItemKeys: items[0] ? Object.keys(items[0]) : [],
-    firstWho: items[0]?.who,
-    coursesDetectadosOriginal: items.map(behaviorItemCourse_).filter(Boolean),
-    courseSelectEl: courseEl,
-    currentCourseValue: courseEl?.value
-  });
+    [
+      it?.course,
+      it?.curso,
+      it?.grade,
+      it?.grado,
+      it?.course_name,
+      it?.courseName
+    ].forEach(v => {
+      const c = String(v || "").trim();
+      if (c) arr.push(c);
+    });
+
+    const who = Array.isArray(it?.who) ? it.who : [];
+    who.forEach(row => {
+      [
+        row?.course,
+        row?.curso,
+        row?.grade,
+        row?.grado,
+        row?.course_name,
+        row?.courseName
+      ].forEach(v => {
+        const c = String(v || "").trim();
+        if (c) arr.push(c);
+      });
+    });
+
+    return arr;
+  }
 
   const courses = Array.from(
-    new Set(items.map(behaviorItemCourse_).filter(Boolean))
+    new Set(items.flatMap(getCoursesFromItem).filter(Boolean))
   ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+
+  console.log("🧪 DEBUG Cursos viewer:", {
+    kind,
+    totalItems: items.length,
+    courses,
+    firstItem: items[0],
+    firstWho: items[0]?.who
+  });
 
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
@@ -5557,7 +5614,7 @@ function renderBehaviorViewer_(kind){
   let filtered = items.slice();
 
   if (selectedCourse) {
-    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
+    filtered = filtered.filter(it => getCoursesFromItem(it).includes(selectedCourse));
   }
 
   const students = Array.from(
