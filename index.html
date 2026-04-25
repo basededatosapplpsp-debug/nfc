@@ -2770,10 +2770,25 @@ body.is-admin #registerActions{
    Celular / Piercing / Uniforme
    ========================================================= */
 
-.viewer-fab-back{
-  position: fixed !important;
+/* =========================================================
+   FIX REAL: botón atrás abajo izquierda dentro del viewer
+   ========================================================= */
+
+#disciplineViewerModal .modal-card,
+#piercingViewerModal .modal-card,
+#uniformViewerModal .modal-card{
+  position: relative !important;
+}
+
+#btnDiscViewerBack,
+#btnPiercViewerBack,
+#btnUniViewerBack{
+  position: absolute !important;
   left: 18px !important;
   bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  top: auto !important;
+  right: auto !important;
+
   z-index: 999999 !important;
 
   width: 54px !important;
@@ -2781,27 +2796,40 @@ body.is-admin #registerActions{
   border-radius: 50% !important;
 
   display: flex !important;
-  align-items: center;
-  justify-content: center;
+  align-items: center !important;
+  justify-content: center !important;
 
-  background: linear-gradient(145deg, rgba(37,50,86,.94), rgba(14,23,43,.94)) !important;
+  background:
+    linear-gradient(145deg, rgba(37,50,86,.92), rgba(14,23,43,.92)) !important;
   border: 1px solid rgba(255,255,255,.14) !important;
 
-  box-shadow: 
+  box-shadow:
     0 14px 34px rgba(0,0,0,.42),
-    inset 0 1px 0 rgba(255,255,255,.10);
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+
+  margin: 0 !important;
 }
 
-.viewer-fab-back i{
-  font-size: 18px;
-  color: white;
+#btnDiscViewerBack i,
+#btnPiercViewerBack i,
+#btnUniViewerBack i{
+  font-size: 18px !important;
+  color: rgba(255,255,255,.94) !important;
 }
 
-.viewer-fab-back:active{
+#btnDiscViewerBack:active,
+#btnPiercViewerBack:active,
+#btnUniViewerBack:active{
   transform: scale(.92);
+}
+
+#disciplineViewerModal .behavior-full-body,
+#piercingViewerModal .behavior-full-body,
+#uniformViewerModal .behavior-full-body{
+  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
 }
 
 
@@ -4123,16 +4151,14 @@ body.is-admin #registerActions{
 <div id="disciplineViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-<button id="btnDiscViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
-  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-</button>
-
-<div class="behavior-full-header">
-  <div class="behavior-full-headtext">
-    <div class="behavior-full-title">Uso inadecuado del celular</div>
-    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-  </div>
-</div>
+      <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Uso inadecuado del celular</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
@@ -4163,16 +4189,14 @@ body.is-admin #registerActions{
 <div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-<button id="btnPiercViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
-  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-</button>
-
-<div class="behavior-full-header">
-  <div class="behavior-full-headtext">
-    <div class="behavior-full-title">Piercing y perforaciones</div>
-    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-  </div>
-</div>
+      <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Piercing y perforaciones</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
@@ -4202,16 +4226,15 @@ body.is-admin #registerActions{
 <!-- ======= VIEWER UNIFORME ======= -->
 <div id="uniformViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-<button id="btnUniViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
-  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-</button>
-
-<div class="behavior-full-header">
-  <div class="behavior-full-headtext">
-    <div class="behavior-full-title">Porte del uniforme</div>
-    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-  </div>
-</div>
+    <div class="behavior-full-header">
+      <button id="btnUniViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Porte del uniforme</div>
+        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+      </div>
+    </div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
@@ -18698,7 +18721,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-96";
+const APP_BUILD = "2026-04-10-94";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
