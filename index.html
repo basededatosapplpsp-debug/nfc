@@ -19292,11 +19292,12 @@ function lateApplyTimes_(times){
   });
 }
 
-async function gsLateArrivalReport(payload){
+async function gsLateArrivalReport(payload){ 
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
       action: "late_arrival_report",
+      month: currentMonthKey_(),
       ...payload,
       key: GS_API_KEY
     })
@@ -19385,40 +19386,45 @@ function bindLateArrivalUI_(){
     });
   });
 
-  if (btnLateReport) {
-    btnLateReport.addEventListener("click", async () => {
-      const profile = loadProfile();
-      const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
-      const course = String(lateCourseEl && lateCourseEl.value || "").trim();
-      const student = String(lateStudentEl && lateStudentEl.value || "").trim();
-      const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
+if (btnLateReport) {
+  btnLateReport.addEventListener("click", async () => {
+    const profile = loadProfile();
+    const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
+    const email = String(profile?.email || "").trim().toLowerCase();
+    const deviceId = getDeviceId_();
 
-      if (!course) return lateSetHint_("Selecciona un curso.");
-      if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
-      if (!__lateTimes) return lateSetHint_("Selecciona si es primera, segunda, tercera o cuarta vez.");
+    const course = String(lateCourseEl && lateCourseEl.value || "").trim();
+    const student = String(lateStudentEl && lateStudentEl.value || "").trim();
+    const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
 
-      try {
-        setLoading(true, "Guardando", "Registrando llegada tarde...");
+    if (!teacher) return lateSetHint_("Falta el docente.");
+    if (!course) return lateSetHint_("Selecciona un curso.");
+    if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
+    if (!__lateTimes) return lateSetHint_("Selecciona si es primera, segunda, tercera o cuarta vez.");
 
-        await gsLateArrivalReport({
-          teacher,
-          course,
-          student,
-          times: __lateTimes,
-          observation,
-          created_at: new Date().toISOString()
-        });
+    try {
+      setLoading(true, "Guardando", "Registrando llegada tarde...");
 
-        showSuccessCheck_("Llegada tarde guardada");
-        closeLateArrivalModal_();
+      await gsLateArrivalReport({
+        teacher,
+        email,
+        device_id: deviceId,
+        course,
+        student,
+        times: __lateTimes,
+        observation
+      });
 
-      } catch (e) {
-        lateSetHint_(String(e && e.message ? e.message : e));
-      } finally {
-        setLoading(false);
-      }
-    });
-  }
+      showSuccessCheck_("Llegada tarde guardada");
+      closeLateArrivalModal_();
+
+    } catch (e) {
+      lateSetHint_(String(e && e.message ? e.message : e));
+    } finally {
+      setLoading(false);
+    }
+  });
+}
 }
 
 // ======= EVENTOS =======
