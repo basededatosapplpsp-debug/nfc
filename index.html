@@ -2764,20 +2764,27 @@ body.is-admin #registerActions{
     top: 16px;
   }
 }
-
 /* =========================================================
    FAB Atrás Pro - Viewer Celular / Piercing / Uniforme
    ========================================================= */
 
+/* 🔥 CLAVE: el modal será el contenedor del botón */
+#disciplineViewerModal .modal-card,
+#piercingViewerModal .modal-card,
+#uniformViewerModal .modal-card{
+  position: relative !important;
+}
+
+/* 🔥 BOTÓN PRO */
 .behavior-viewer-fab-back{
-  position: fixed !important;
-left: 22px !important;
-bottom: 90px !important;
-  z-index: 9999999 !important;
+  position: absolute !important;
+  left: 22px !important;
+  bottom: 90px !important;
+  z-index: 999999 !important;
 
   width: 60px !important;
   height: 60px !important;
-  border-radius: 22px !important;
+  border-radius: 20px !important;
 
   display: flex !important;
   align-items: center !important;
@@ -2805,14 +2812,14 @@ bottom: 90px !important;
   overflow: hidden;
   isolation: isolate;
 
-  animation: fabBackIn .38s cubic-bezier(.2,.8,.2,1) both;
+  animation: fabBackIn .35s ease-out;
   transition:
     transform .18s cubic-bezier(.2,.8,.2,1),
     box-shadow .18s ease,
     filter .18s ease;
 }
 
-/* brillo diagonal */
+/* ✨ brillo animado */
 .behavior-viewer-fab-back::after{
   content: "";
   position: absolute;
@@ -2823,61 +2830,59 @@ bottom: 90px !important;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255,255,255,.42),
+    rgba(255,255,255,.4),
     transparent
   );
   transform: rotate(22deg);
-  z-index: -1;
-  animation: fabBackShine 2.8s ease-in-out infinite;
+  animation: fabBackShine 3s infinite;
 }
 
-/* halo suave */
+/* ✨ glow */
 .behavior-viewer-fab-back::before{
   content: "";
   position: absolute;
-  inset: -8px;
-  border-radius: 26px;
-  background: rgba(59,130,246,.28);
-  filter: blur(14px);
-  z-index: -2;
+  inset: -6px;
+  border-radius: 24px;
+  background: rgba(59,130,246,.25);
+  filter: blur(12px);
+  z-index: -1;
 }
 
+/* icono */
 .behavior-viewer-fab-back i{
   font-size: 24px !important;
   color: #ffffff !important;
-  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+  text-shadow: 0 2px 6px rgba(0,0,0,.35);
 }
 
+/* hover */
 .behavior-viewer-fab-back:hover{
-  transform: translateY(-2px) scale(1.03);
+  transform: translateY(-2px) scale(1.05);
   filter: brightness(1.08);
-  box-shadow:
-    0 22px 42px rgba(11,95,255,.42),
-    0 12px 28px rgba(0,0,0,.50),
-    inset 0 1px 0 rgba(255,255,255,.62) !important;
 }
 
+/* active */
 .behavior-viewer-fab-back:active{
-  transform: translateY(1px) scale(.94);
-  filter: brightness(.98);
+  transform: scale(.92);
 }
 
-/* deja espacio para que no tape contenido */
+/* espacio inferior */
 #disciplineViewerModal .behavior-full-body,
 #piercingViewerModal .behavior-full-body,
 #uniformViewerModal .behavior-full-body{
-padding-bottom: calc(125px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: 140px !important;
 }
 
-/* No mover la X del menú Reportar / Ver reportes */
+/* NO tocar la X del hub */
 #btnBehaviorHubClose{
   position: static !important;
 }
 
+/* animaciones */
 @keyframes fabBackIn{
   from{
     opacity: 0;
-    transform: translateY(18px) scale(.82);
+    transform: translateY(20px) scale(.8);
   }
   to{
     opacity: 1;
@@ -2887,20 +2892,9 @@ padding-bottom: calc(125px + env(safe-area-inset-bottom)) !important;
 
 @keyframes fabBackShine{
   0%{ left: -70%; opacity: 0; }
-  18%{ opacity: 1; }
-  38%{ left: 130%; opacity: 0; }
+  20%{ opacity: 1; }
+  40%{ left: 130%; opacity: 0; }
   100%{ left: 130%; opacity: 0; }
-}
-
-#disciplineViewerModal,
-#piercingViewerModal,
-#uniformViewerModal{
-  overflow: visible !important;
-}
-#btnDiscViewerBack,
-#btnPiercViewerBack,
-#btnUniViewerBack{
-  display: none !important;
 }
 </style>
 </head>
@@ -19042,40 +19036,7 @@ setInterval(async () => {
 
 
 
-function enableSwipeBack(modalId, backBtnId){
-  const modal = document.getElementById(modalId);
-  const backBtn = document.getElementById(backBtnId);
-  if(!modal || !backBtn) return;
 
-  let startX = 0;
-  let startY = 0;
-  let touching = false;
-
-  modal.addEventListener("touchstart", (e) => {
-    const t = e.touches[0];
-    startX = t.clientX;
-    startY = t.clientY;
-    touching = startX < 40; // solo desde el borde izquierdo
-  }, { passive: true });
-
-  modal.addEventListener("touchend", (e) => {
-    if(!touching) return;
-
-    const t = e.changedTouches[0];
-    const diffX = t.clientX - startX;
-    const diffY = Math.abs(t.clientY - startY);
-
-    if(diffX > 80 && diffY < 60){
-      backBtn.click();
-    }
-
-    touching = false;
-  }, { passive: true });
-}
-
-enableSwipeBack("disciplineViewerModal", "btnDiscViewerBack");
-enableSwipeBack("piercingViewerModal", "btnPiercViewerBack");
-enableSwipeBack("uniformViewerModal", "btnUniViewerBack");
 </script>
 
 </body>
