@@ -7786,6 +7786,8 @@ function currentMonthKey_(){
   return `${year}-${month}`;
 }
 
+
+
 function openAdminConfigModal() {
   if (!adminConfigModal) return;
   adminConfigModal.hidden = false;
@@ -19436,7 +19438,7 @@ if (btnLateReport) {
         observation
       });
 
-      showSuccessCheck_("Llegada tarde guardada");
+      showSuccessCheck("Llegada tarde guardada");
       closeLateArrivalModal_();
 
     } catch (e) {
