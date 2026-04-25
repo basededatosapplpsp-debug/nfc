@@ -5043,6 +5043,23 @@ function behaviorItemCourse_(it){
   return "";
 }
 
+function behaviorItemMatchesCourse_(it, selectedCourse){
+  const selected = String(selectedCourse || "").trim();
+  if (!selected) return true;
+
+  if (behaviorItemCourse_(it) === selected) return true;
+
+  const who = Array.isArray(it?.who) ? it.who : [];
+  return who.some(row => {
+    const c = String(
+      row?.course || row?.curso || row?.grade || row?.grado ||
+      row?.course_name || row?.courseName || ""
+    ).trim();
+
+    return c === selected;
+  });
+}
+
 function behaviorItemLevel_(it){
   const fromMax = Number(it?.maxLevel || 0);
   const fromLevel = Number(it?.level || 0);
