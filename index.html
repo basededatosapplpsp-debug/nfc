@@ -2832,44 +2832,7 @@ body.is-admin #registerActions{
   padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
 }
 
-/* ===== FIX: botón atrás abajo izquierda (MODALES PRINCIPALES) ===== */
-/* ✅ Botón abajo izquierda REAL */
-#btnDiscBack,
-#btnPiercBack,
-#btnUniBack{
-  position: fixed !important;
-  left: 16px !important;
-  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 
-  z-index: 999999 !important;
-
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: rgba(20,30,60,.9);
-  border: 1px solid rgba(255,255,255,.15);
-
-  box-shadow: 0 12px 30px rgba(0,0,0,.5);
-}
-
-/* espacio para que no tape contenido */
-#disciplineModal .behavior-full-body,
-#piercingModal .behavior-full-body,
-#uniformModal .behavior-full-body{
-  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-}
-
-/* ❌ Oculta el botón de arriba en estos modales */
-#disciplineModal .behavior-full-header .behavior-full-back,
-#piercingModal .behavior-full-header .behavior-full-back,
-#uniformModal .behavior-full-header .behavior-full-back{
-  display: none !important;
-}
 </style>
 </head>
 
