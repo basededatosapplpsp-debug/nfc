@@ -17242,14 +17242,27 @@ function uniBindUI_() {
   }
 }
 
+function closeBehaviorFormKeepMenu_(){
+  if (disciplineModal) disciplineModal.hidden = true;
+  if (piercingModal) piercingModal.hidden = true;
+  if (uniformModal) uniformModal.hidden = true;
+
+  if (behaviorHubModal) behaviorHubModal.hidden = true;
+
+  if (userMenu) userMenu.hidden = false;
+  if (faltasSubMenu) faltasSubMenu.hidden = false;
+
+  if (btnUserMenu) btnUserMenu.setAttribute("aria-expanded", "true");
+  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+}
+
 if (btnBehaviorHubClose) btnBehaviorHubClose.onclick = closeBehaviorHub_;
 if (btnBehaviorOpenReport) btnBehaviorOpenReport.onclick = openBehaviorReport_;
 if (btnBehaviorOpenViewer) btnBehaviorOpenViewer.onclick = openBehaviorViewer_;
 
-if (btnDiscBack) btnDiscBack.onclick = backToBehaviorHub_;
-if (btnPiercBack) btnPiercBack.onclick = backToBehaviorHub_;
-if (btnUniBack) btnUniBack.onclick = backToBehaviorHub_;
-
+if (btnDiscBack) btnDiscBack.onclick = closeBehaviorFormKeepMenu_;
+if (btnPiercBack) btnPiercBack.onclick = closeBehaviorFormKeepMenu_;
+if (btnUniBack) btnUniBack.onclick = closeBehaviorFormKeepMenu_;
 function behaviorViewerBack_(kind){
   let studentEl = null;
 
