@@ -2774,45 +2774,40 @@ body.is-admin #registerActions{
 #btnPiercViewerBack,
 #btnUniViewerBack{
   position: fixed !important;
-  left: 18px !important;
-  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  left: 16px !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
   z-index: 100000 !important;
 
-  width: 54px !important;
-  height: 54px !important;
+  width: 52px !important;
+  height: 52px !important;
   border-radius: 50% !important;
 
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto !important;
 
-  background: rgba(25,35,65,.85) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
+  background: rgba(20,28,48,.88) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,.35) !important;
 
-  box-shadow:
-    0 12px 30px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.05);
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  transition: all .2s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
-/* Ícono más fino */
-#btnDiscViewerBack i,
-#btnPiercViewerBack i,
-#btnUniViewerBack i{
-  font-size: 18px;
-  color: rgba(255,255,255,.92);
-}
-
-/* interacción pro */
 #btnDiscViewerBack:active,
 #btnPiercViewerBack:active,
 #btnUniViewerBack:active{
   transform: scale(.92);
 }
+
+#disciplineViewerModal .behavior-full-body,
+#piercingViewerModal .behavior-full-body,
+#uniformViewerModal .behavior-full-body{
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
+
 
 </style>
 </head>
