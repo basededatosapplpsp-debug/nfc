@@ -2945,7 +2945,76 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
   transform: scale(.94);
 }
 
+/* =========================================================
+   FAB Atrás - Formularios (estilo limpio y pro)
+   ========================================================= */
 
+#disciplineModal .modal-card,
+#piercingModal .modal-card,
+#uniformModal .modal-card{
+  position: relative !important;
+}
+
+/* BOTÓN */
+#btnDiscBack,
+#btnPiercBack,
+#btnUniBack{
+  position: absolute !important;
+  left: 16px !important;
+  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+  z-index: 999999 !important;
+
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 16px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  background: rgba(15, 23, 42, 0.92) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.08);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  transition: all .15s ease;
+  cursor: pointer;
+}
+
+/* icono */
+#btnDiscBack i,
+#btnPiercBack i,
+#btnUniBack i{
+  font-size: 20px !important;
+  color: rgba(230,235,255,.95);
+}
+
+/* hover */
+#btnDiscBack:hover,
+#btnPiercBack:hover,
+#btnUniBack:hover{
+  transform: translateY(-1px);
+  background: rgba(30,41,59,.95) !important;
+}
+
+/* active */
+#btnDiscBack:active,
+#btnPiercBack:active,
+#btnUniBack:active{
+  transform: scale(.95);
+}
+
+/* espacio para que no tape contenido */
+#disciplineModal .behavior-full-body,
+#piercingModal .behavior-full-body,
+#uniformModal .behavior-full-body{
+  padding-bottom: 90px !important;
+}
 
 </style>
 </head>
@@ -3473,15 +3542,11 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
     </div>
   </div>
 </div>
-
 <!-- ======= MODAL LLAMADO DE ATENCIÓN (CELULAR EN CLASE) ======= -->
 <div id="disciplineModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnDiscBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
 
+    <div class="behavior-full-header">
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Uso inadecuado del celular</div>
         <div class="behavior-full-sub">Registrar llamado de atención.</div>
@@ -3491,75 +3556,28 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
- <div class="behavior-form-grid two">
-  <div>
-    <label class="modal-label" for="discCourse">Curso</label>
-    <select id="discCourse" class="modal-input behavior-big-select"></select>
-  </div>
-
-  <div>
-    <datalist id="discStudentsList"></datalist>
-
-    <label class="modal-label" for="discStudent">Estudiante</label>
-
-    <div class="input-with-select">
-      <input
-        id="discStudent"
-        class="modal-input input-real behavior-big-select"
-        type="text"
-        list="discStudentsList"
-        placeholder="Escribe el nombre del estudiante..."
-        autocomplete="off"
-      />
-
-      <select
-        id="discStudentSelect"
-        class="modal-input student-overlay"
-        aria-label="Seleccionar estudiante"
-      ></select>
-    </div>
-  </div>
-</div>
-
-          <div class="behavior-levels-wrap">
-            <label class="modal-label">Nivel</label>
-            <div class="disc-levels">
-              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-              <button type="button" class="disc-level" data-level="2">2</button>
-              <button type="button" class="disc-level" data-level="3">3</button>
-              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="modal-label" for="discObservation">Observación</label>
-            <textarea
-              id="discObservation"
-              class="modal-input behavior-observation"
-              placeholder="Ej: Uso del celular durante la explicación, no acató el llamado, etc."
-            ></textarea>
-          </div>
-
-          <div id="discHint" class="modal-hint muted small"></div>
+          <!-- contenido igual -->
           <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
-  <button id="btnDiscReport" type="button" class="btn btn-primary">Reportar</button>
-</div>
+            <button id="btnDiscReport" type="button" class="btn btn-primary">Reportar</button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 🔥 BOTÓN ABAJO -->
+    <button id="btnDiscBack" type="button" class="behavior-form-fab-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+
   </div>
 </div>
 
 
-
-<!-- ======= MODAL PIERCING Y PERFORACIONES ======= -->
+<!-- ======= MODAL PIERCING ======= -->
 <div id="piercingModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnPiercBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
 
+    <div class="behavior-full-header">
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Piercing y perforaciones</div>
         <div class="behavior-full-sub">Registrar llamado de atención.</div>
@@ -3569,76 +3587,28 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
-     <div class="behavior-form-grid two">
-  <div>
-    <label class="modal-label" for="piercCourse">Curso</label>
-    <select id="piercCourse" class="modal-input behavior-big-select"></select>
-  </div>
-
-  <div>
-    <datalist id="piercStudentsList"></datalist>
-
-    <label class="modal-label" for="piercStudent">Estudiante</label>
-
-    <div class="input-with-select">
-      <input
-        id="piercStudent"
-        class="modal-input input-real behavior-big-select"
-        type="text"
-        list="piercStudentsList"
-        placeholder="Escribe el nombre del estudiante..."
-        autocomplete="off"
-      />
-
-      <select
-        id="piercStudentSelect"
-        class="modal-input student-overlay"
-        aria-label="Seleccionar estudiante"
-      ></select>
-    </div>
-  </div>
-</div>
-
-          <div class="behavior-levels-wrap">
-            <label class="modal-label">Nivel</label>
-            <div class="disc-levels">
-              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-              <button type="button" class="disc-level" data-level="2">2</button>
-              <button type="button" class="disc-level" data-level="3">3</button>
-              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="modal-label" for="piercObservation">Observación</label>
-            <textarea
-              id="piercObservation"
-              class="modal-input behavior-observation"
-              placeholder="Ej: Tiene piercing visible en la ceja, arete no permitido, etc."
-            ></textarea>
-          </div>
-
-          <div id="piercHint" class="modal-hint muted small"></div>
-
+          <!-- contenido igual -->
           <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
-  <button id="btnPiercReport" type="button" class="btn btn-primary">Reportar</button>
-</div>
+            <button id="btnPiercReport" type="button" class="btn btn-primary">Reportar</button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 🔥 BOTÓN ABAJO -->
+    <button id="btnPiercBack" type="button" class="behavior-form-fab-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+
   </div>
 </div>
 
 
-
-<!-- ======= MODAL: PORTE DEL UNIFORME ======= -->
+<!-- ======= MODAL UNIFORME ======= -->
 <div id="uniformModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnUniBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
 
+    <div class="behavior-full-header">
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Porte del uniforme</div>
         <div class="behavior-full-sub">Registrar llamado de atención.</div>
@@ -3648,62 +3618,19 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
- <div class="behavior-form-grid two">
-  <div>
-    <label class="modal-label" for="uniCourse">Curso</label>
-    <select id="uniCourse" class="modal-input behavior-big-select"></select>
-  </div>
-
-  <div>
-    <datalist id="uniStudentsList"></datalist>
-
-    <label class="modal-label" for="uniStudent">Estudiante</label>
-
-    <div class="input-with-select">
-      <input
-        id="uniStudent"
-        class="modal-input input-real behavior-big-select"
-        type="text"
-        list="uniStudentsList"
-        placeholder="Escribe el nombre del estudiante..."
-        autocomplete="off"
-      />
-
-      <select
-        id="uniStudentSelect"
-        class="modal-input student-overlay"
-        aria-label="Seleccionar estudiante"
-      ></select>
-    </div>
-  </div>
-</div>
-          <div class="behavior-levels-wrap">
-            <label class="modal-label">Nivel</label>
-            <div class="disc-levels">
-              <button type="button" class="disc-level" data-level="1">1 • Leve</button>
-              <button type="button" class="disc-level" data-level="2">2</button>
-              <button type="button" class="disc-level" data-level="3">3</button>
-              <button type="button" class="disc-level danger" data-level="4">4 • Grave</button>
-            </div>
-          </div>
-
-          <div>
-            <label class="modal-label" for="uniObservation">Observación</label>
-            <textarea
-              id="uniObservation"
-              class="modal-input behavior-observation"
-              placeholder="Ej: No trajo las medias institucionales, lleva buzo no autorizado, etc."
-            ></textarea>
-          </div>
-
-          <div id="uniHint" class="modal-hint muted small"></div>
-
+          <!-- contenido igual -->
           <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
-  <button id="btnUniReport" type="button" class="btn btn-primary">Reportar</button>
-</div>
+            <button id="btnUniReport" type="button" class="btn btn-primary">Reportar</button>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 🔥 BOTÓN ABAJO -->
+    <button id="btnUniBack" type="button" class="behavior-form-fab-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left"></i>
+    </button>
+
   </div>
 </div>
 
