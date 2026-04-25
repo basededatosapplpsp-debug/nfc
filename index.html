@@ -891,14 +891,16 @@ body:not(.is-admin) #adminMonthSummary{
 /* padding seguro en móviles (notch/safe-area) */
 #disciplineModal,
 #piercingModal,
-#uniformModal{
+#uniformModal,
+#lateArrivalModal{
   padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
 }
 
 /* el card se adapta a altura y NO scrollea */
 #disciplineModal .modal-card,
 #piercingModal .modal-card,
-#uniformModal .modal-card{
+#uniformModal .modal-card,
+#lateArrivalModal .modal-card
   width: min(720px, 100%);
   max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   display: flex;
@@ -2958,7 +2960,8 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 
 #btnDiscBack,
 #btnPiercBack,
-#btnUniBack{
+#btnUniBack,
+#btnLateBack{
   position: absolute !important;
   left: 16px !important;
   bottom: calc(16px + env(safe-area-inset-bottom)) !important;
@@ -2998,7 +3001,8 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 
 #btnDiscBack i,
 #btnPiercBack i,
-#btnUniBack i{
+#btnUniBack i,
+#btnLateBack i{
   font-size: 20px !important;
   color: rgba(230,235,255,.95) !important;
 }
@@ -3104,6 +3108,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
     <button id="btnDiscipline" class="menu-item" type="button" role="menuitem">Uso del celular</button>
     <button id="btnPiercing" class="menu-item" type="button" role="menuitem">Piercing y perforaciones</button>
     <button id="btnUniform" class="menu-item" type="button" role="menuitem">Porte del uniforme</button>
+    <button id="btnLlegadasTarde" class="menu-item" type="button" role="menuitem">Llegadas tarde</button>
   </div>
 
 <!-- ✅ NUEVO: Botón que abre el submenú "Faltas" (TIPOS) -->
@@ -3820,7 +3825,82 @@ button[data-uni-edit] + button[data-uni-del-one]{
   </div>
 </div>
 
+<!-- ======= MODAL LLEGADAS TARDE ======= -->
+<div id="lateArrivalModal" class="modal-backdrop behavior-full" hidden>
+  <div class="modal-card">
+    <div class="behavior-full-header">
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Llegadas tarde</div>
+        <div class="behavior-full-sub">Registrar llegada tarde del estudiante.</div>
+      </div>
+    </div>
 
+    <div class="behavior-full-body">
+      <div class="behavior-panel">
+        <div class="behavior-panel-card">
+
+          <div class="behavior-form-grid two">
+            <div>
+              <label class="modal-label" for="lateCourse">Curso</label>
+              <select id="lateCourse" class="modal-input behavior-big-select"></select>
+            </div>
+
+            <div>
+              <datalist id="lateStudentsList"></datalist>
+              <label class="modal-label" for="lateStudent">Estudiante</label>
+
+              <div class="input-with-select">
+                <input
+                  id="lateStudent"
+                  class="modal-input input-real behavior-big-select"
+                  type="text"
+                  list="lateStudentsList"
+                  placeholder="Escribe el nombre del estudiante..."
+                  autocomplete="off"
+                />
+
+                <select
+                  id="lateStudentSelect"
+                  class="modal-input student-overlay"
+                  aria-label="Seleccionar estudiante"
+                ></select>
+              </div>
+            </div>
+          </div>
+
+          <div class="behavior-levels-wrap">
+            <label class="modal-label">Veces</label>
+            <div class="disc-levels">
+              <button type="button" class="disc-level" data-late-times="1">Primera vez</button>
+              <button type="button" class="disc-level" data-late-times="2">Segunda vez</button>
+              <button type="button" class="disc-level" data-late-times="3">Tercera vez</button>
+              <button type="button" class="disc-level danger" data-late-times="4">Cuarta vez</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="modal-label" for="lateObservation">Observación</label>
+            <textarea
+              id="lateObservation"
+              class="modal-input behavior-observation"
+              placeholder="Ej: El estudiante llegó tarde al inicio de la jornada."
+            ></textarea>
+          </div>
+
+          <div id="lateHint" class="modal-hint muted small"></div>
+
+          <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
+            <button id="btnLateReport" type="button" class="btn btn-primary">Reportar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button id="btnLateBack" type="button" class="behavior-form-fab-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
+  </div>
+</div>
 
   <!-- ======= MODAL PISOS ======= -->
 <div id="pisosModal" class="modal-backdrop" hidden>
@@ -8095,32 +8175,18 @@ if (btnFaltasMenu) {
 
 // ✅ Si el usuario toca cualquier opción dentro del submenú, lo cerramos
 if (faltasSubMenu) {
-  faltasSubMenu.addEventListener("click", (e) => {
-    e.stopPropagation(); // ✅ evita que se cierre
+  faltasSubMenu.addEventListener("click", () => {
+    closeFaltasSubMenu_();
   });
 }
 
 // ✅ Si tienes una función setMenuOpen(false), el menú se cierra:
 // pero el submenú puede quedar "abierto" en estado => lo reseteamos
 document.addEventListener("click", (e) => {
+  // Si el menú está abierto y haces click fuera, probablemente tu código ya lo cierra.
+  // Aquí solo aseguramos cerrar el submenú si el click fue fuera del bloque.
   if (!faltasSubMenu || !btnFaltasMenu) return;
-
-  const t = e.target;
-
-  const inside =
-    t &&
-    (
-      faltasSubMenu.contains(t) ||
-      btnFaltasMenu.contains(t) ||
-      document.getElementById("behaviorHubModal")?.contains(t) ||
-      document.getElementById("disciplineModal")?.contains(t) ||
-      document.getElementById("piercingModal")?.contains(t) ||
-      document.getElementById("uniformModal")?.contains(t) ||
-      document.getElementById("disciplineViewerModal")?.contains(t) ||
-      document.getElementById("piercingViewerModal")?.contains(t) ||
-      document.getElementById("uniformViewerModal")?.contains(t)
-    );
-
+  const inside = (e.target && (faltasSubMenu.contains(e.target) || btnFaltasMenu.contains(e.target)));
   if (!inside) closeFaltasSubMenu_();
 });
 
@@ -15158,16 +15224,10 @@ function closeDisciplineModal() {
 
 function discBindUI_() {
   if (btnDiscipline) {
-btnDiscipline.onclick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  setMenuOpen(true);
-  if (faltasSubMenu) faltasSubMenu.hidden = false;
-  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-
-  openBehaviorHub_("discipline");
-};
+    btnDiscipline.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("discipline");
+    };
   }
 
   if (disciplineModal) {
@@ -16075,16 +16135,10 @@ function closePiercingModal() {
 
 function piercBindUI_() {
   if (btnPiercing) {
-  btnPiercing.onclick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  setMenuOpen(true);
-  if (faltasSubMenu) faltasSubMenu.hidden = false;
-  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-
-  openBehaviorHub_("piercing");
-};
+    btnPiercing.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("piercing");
+    };
   }
 
   if (piercingModal) {
@@ -17084,16 +17138,10 @@ function closeUniformModal() {
 
 function uniBindUI_() {
   if (btnUniform) {
-btnUniform.onclick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  setMenuOpen(true);
-  if (faltasSubMenu) faltasSubMenu.hidden = false;
-  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-
-  openBehaviorHub_("uniform");
-};
+    btnUniform.onclick = () => {
+      setMenuOpen(false);
+      openBehaviorHub_("uniform");
+    };
   }
 
   if (uniformModal) {
@@ -19130,6 +19178,249 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+// ======= LLEGADAS TARDE =======
+const btnLlegadasTarde = $("btnLlegadasTarde");
+const lateArrivalModal = $("lateArrivalModal");
+const lateCourseEl = $("lateCourse");
+const lateStudentEl = $("lateStudent");
+const lateStudentSelectEl = $("lateStudentSelect");
+const lateStudentsListEl = $("lateStudentsList");
+const lateObservationEl = $("lateObservation");
+const lateHintEl = $("lateHint");
+const btnLateReport = $("btnLateReport");
+const btnLateBack = $("btnLateBack");
+
+let __lateTimes = 0;
+
+function lateSetHint_(msg){
+  if (lateHintEl) lateHintEl.textContent = String(msg || "");
+}
+
+function lateRenderCourses_(courses){
+  if (!lateCourseEl) return;
+
+  const list = (courses || []).map(c => String(c || "").trim()).filter(Boolean);
+  const prev = String(lateCourseEl.value || "").trim();
+
+  lateCourseEl.innerHTML = "";
+
+  list.forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    lateCourseEl.appendChild(opt);
+  });
+
+  if (prev && list.includes(prev)) lateCourseEl.value = prev;
+  else if (list.length) lateCourseEl.value = list[0];
+}
+
+function lateRenderStudents_(students){
+  const list = Array.isArray(students) ? students : [];
+
+  if (lateStudentsListEl) {
+    lateStudentsListEl.innerHTML = "";
+    list.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = String(s || "");
+      lateStudentsListEl.appendChild(opt);
+    });
+  }
+
+  if (lateStudentSelectEl) {
+    lateStudentSelectEl.innerHTML = "";
+
+    const ph = document.createElement("option");
+    ph.value = "";
+    ph.textContent = "";
+    lateStudentSelectEl.appendChild(ph);
+
+    list.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = String(s || "");
+      opt.textContent = String(s || "");
+      lateStudentSelectEl.appendChild(opt);
+    });
+  }
+}
+
+async function lateLoadCourses_(){
+  const resp = await gsCoursesList_();
+
+  const courses =
+    faltasPickArray_(resp, ["courses", "items", "list"]) ||
+    (Array.isArray(resp) ? resp : null);
+
+  if (!Array.isArray(courses)) {
+    throw new Error("No pude cargar cursos.");
+  }
+
+  lateRenderCourses_(courses);
+
+  const firstCourse = String(lateCourseEl && lateCourseEl.value || "").trim();
+  if (firstCourse) await lateLoadStudentsForCourse_(firstCourse);
+}
+
+async function lateLoadStudentsForCourse_(course){
+  const resp = await gsCourseStudents_(course);
+
+  const students =
+    faltasPickArray_(resp, ["students", "items", "list"]) ||
+    (Array.isArray(resp) ? resp : null);
+
+  if (!Array.isArray(students)) {
+    throw new Error("No pude cargar estudiantes.");
+  }
+
+  lateRenderStudents_(students);
+}
+
+function lateClearTimes_(){
+  document.querySelectorAll("[data-late-times]").forEach(btn => {
+    btn.classList.remove("active");
+  });
+}
+
+function lateApplyTimes_(times){
+  __lateTimes = Number(times || 0);
+  lateClearTimes_();
+
+  document.querySelectorAll("[data-late-times]").forEach(btn => {
+    if (Number(btn.getAttribute("data-late-times")) === __lateTimes) {
+      btn.classList.add("active");
+    }
+  });
+}
+
+async function gsLateArrivalReport(payload){
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "late_arrival_report",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  let data = null;
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
+
+  if (!data.ok) throw new Error(data.msg || data.error || "No se pudo guardar la llegada tarde.");
+  return data;
+}
+
+async function openLateArrivalModal_(){
+  if (!lateArrivalModal) return;
+
+  lateArrivalModal.hidden = false;
+  lateArrivalModal.removeAttribute("hidden");
+  lateArrivalModal.style.display = "flex";
+
+  lateSetHint_("");
+  lateApplyTimes_(0);
+
+  if (lateObservationEl) lateObservationEl.value = "";
+  if (lateStudentEl) lateStudentEl.value = "";
+
+  try {
+    setLoading(true, "Cargando cursos", "Preparando estudiantes...");
+    await lateLoadCourses_();
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+function closeLateArrivalModal_(){
+  if (!lateArrivalModal) return;
+
+  lateArrivalModal.hidden = true;
+  lateApplyTimes_(0);
+  lateSetHint_("");
+
+  if (lateObservationEl) lateObservationEl.value = "";
+  if (lateStudentEl) lateStudentEl.value = "";
+}
+
+function bindLateArrivalUI_(){
+  if (btnLlegadasTarde) {
+    btnLlegadasTarde.addEventListener("click", async () => {
+      setMenuOpen(false);
+      await openLateArrivalModal_();
+    });
+  }
+
+  if (btnLateBack) {
+    btnLateBack.addEventListener("click", closeLateArrivalModal_);
+  }
+
+  if (lateCourseEl) {
+    lateCourseEl.addEventListener("change", async () => {
+      const course = String(lateCourseEl.value || "").trim();
+      if (!course) return;
+
+      lateSetHint_("Cargando estudiantes...");
+
+      try {
+        await lateLoadStudentsForCourse_(course);
+        if (lateStudentEl) lateStudentEl.value = "";
+        lateSetHint_("");
+      } catch (e) {
+        lateSetHint_(String(e && e.message ? e.message : e));
+      }
+    });
+  }
+
+  if (lateStudentSelectEl && lateStudentEl) {
+    lateStudentSelectEl.addEventListener("change", () => {
+      lateStudentEl.value = lateStudentSelectEl.value || "";
+    });
+  }
+
+  document.querySelectorAll("[data-late-times]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      lateApplyTimes_(btn.getAttribute("data-late-times"));
+    });
+  });
+
+  if (btnLateReport) {
+    btnLateReport.addEventListener("click", async () => {
+      const profile = loadProfile();
+      const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
+      const course = String(lateCourseEl && lateCourseEl.value || "").trim();
+      const student = String(lateStudentEl && lateStudentEl.value || "").trim();
+      const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
+
+      if (!course) return lateSetHint_("Selecciona un curso.");
+      if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
+      if (!__lateTimes) return lateSetHint_("Selecciona si es primera, segunda, tercera o cuarta vez.");
+
+      try {
+        setLoading(true, "Guardando", "Registrando llegada tarde...");
+
+        await gsLateArrivalReport({
+          teacher,
+          course,
+          student,
+          times: __lateTimes,
+          observation,
+          created_at: new Date().toISOString()
+        });
+
+        showSuccessCheck_("Llegada tarde guardada");
+        closeLateArrivalModal_();
+
+      } catch (e) {
+        lateSetHint_(String(e && e.message ? e.message : e));
+      } finally {
+        setLoading(false);
+      }
+    });
+  }
+}
+
 // ======= EVENTOS =======
 btnEntrada.addEventListener("click", () => register("ENTRADA"));
 btnSalida.addEventListener("click",  () => register("SALIDA"));
@@ -19152,6 +19443,8 @@ uniBindUI_();
 uniStartPolling_();
 
 bindObservationModal_();
+
+bindLateArrivalUI_();
 
 document.body.classList.toggle("is-admin", isAdminMode());
 
