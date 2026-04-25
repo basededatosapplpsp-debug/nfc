@@ -2897,6 +2897,11 @@ padding-bottom: calc(125px + env(safe-area-inset-bottom)) !important;
 #uniformViewerModal{
   overflow: visible !important;
 }
+#btnDiscViewerBack,
+#btnPiercViewerBack,
+#btnUniViewerBack{
+  display: none !important;
+}
 </style>
 </head>
 
@@ -19035,6 +19040,42 @@ setInterval(async () => {
 
 }, 15000);
 
+
+
+function enableSwipeBack(modalId, backBtnId){
+  const modal = document.getElementById(modalId);
+  const backBtn = document.getElementById(backBtnId);
+  if(!modal || !backBtn) return;
+
+  let startX = 0;
+  let startY = 0;
+  let touching = false;
+
+  modal.addEventListener("touchstart", (e) => {
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    touching = startX < 40; // solo desde el borde izquierdo
+  }, { passive: true });
+
+  modal.addEventListener("touchend", (e) => {
+    if(!touching) return;
+
+    const t = e.changedTouches[0];
+    const diffX = t.clientX - startX;
+    const diffY = Math.abs(t.clientY - startY);
+
+    if(diffX > 80 && diffY < 60){
+      backBtn.click();
+    }
+
+    touching = false;
+  }, { passive: true });
+}
+
+enableSwipeBack("disciplineViewerModal", "btnDiscViewerBack");
+enableSwipeBack("piercingViewerModal", "btnPiercViewerBack");
+enableSwipeBack("uniformViewerModal", "btnUniViewerBack");
 </script>
 
 </body>
