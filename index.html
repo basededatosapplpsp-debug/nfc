@@ -3023,11 +3023,10 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 }
 
 /* =========================================================
-   Iconos editar / borrar más pequeños
-   Celular / Piercing / Uniforme
+   Iconos editar / borrar - tamaño compacto PRO
    ========================================================= */
 
-/* Botones generados en los detalles */
+/* Botones */
 button[data-disc-edit],
 button[data-disc-del-one],
 button[data-pierc-edit],
@@ -3036,12 +3035,16 @@ button[data-uni-edit],
 button[data-uni-del-one],
 .behavior-mini-btn.edit,
 .behavior-mini-btn.delete{
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 10px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+
+  border-radius: 8px !important;
+  padding: 0 !important;
 }
 
-/* Iconos internos */
+/* Iconos */
 button[data-disc-edit] i,
 button[data-disc-del-one] i,
 button[data-pierc-edit] i,
@@ -3050,11 +3053,11 @@ button[data-uni-edit] i,
 button[data-uni-del-one] i,
 .behavior-mini-btn.edit i,
 .behavior-mini-btn.delete i{
-  font-size: 13px !important;
+  font-size: 11px !important;
   line-height: 1 !important;
 }
 
-/* Separación más fina entre editar y borrar */
+/* Separación */
 button[data-disc-edit] + button[data-disc-del-one],
 button[data-pierc-edit] + button[data-pierc-del-one],
 button[data-uni-edit] + button[data-uni-del-one]{
