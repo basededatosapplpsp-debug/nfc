@@ -11128,10 +11128,45 @@ function reportesNormalizeCourse_(value) {
     .toUpperCase();
 }
 
+function reportesFindCourseByStudent_(studentName) {
+  const target = String(studentName || "").trim().toLowerCase();
+  if (!target) return "";
+
+  const courses = Array.isArray(__reportesCourses) ? __reportesCourses : [];
+
+  for (const course of courses) {
+    const cached = typeof reportesGetStudentsCached_ === "function"
+      ? reportesGetStudentsCached_(course)
+      : null;
+
+    if (!Array.isArray(cached)) continue;
+
+    const found = cached.some(st => {
+      const name = String(
+        st?.name ||
+        st?.student ||
+        st?.estudiante ||
+        st?.nombre ||
+        st?.full_name ||
+        st ||
+        ""
+      ).trim().toLowerCase();
+
+      return name === target;
+    });
+
+    if (found) return String(course || "").trim();
+  }
+
+  return "";
+}
+
 function reportesGetItemCourse_(item) {
-  return String(
+  const directCourse = String(
     item?.course ||
     item?.curso ||
+    item?.course_name ||
+    item?.courseName ||
     item?.Course ||
     item?.Curso ||
     item?.grade ||
@@ -11144,20 +11179,31 @@ function reportesGetItemCourse_(item) {
     item?.Grupo ||
     ""
   ).trim();
+
+  if (directCourse) return directCourse;
+
+  const studentName = reportesGetItemStudentName_(item);
+  return reportesFindCourseByStudent_(studentName);
 }
 
 function reportesBuildCourseFilter_(items) {
   if (!reportesViewerCourseFilterEl) return;
 
-  const current = String(reportesViewerCourseFilterEl.value || "").trim();
-  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
+  const current = reportesNormalizeCourse_(reportesViewerCourseFilterEl.value || "");
 
-  const courses = Array.from(new Set(
-    (Array.isArray(items) ? items : [])
-      .map(reportesGetItemCourse_)
-      .filter(Boolean)
-      .map(reportesNormalizeCourse_)
-  )).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+  const itemCourses = (Array.isArray(items) ? items : [])
+    .map(reportesGetItemCourse_)
+    .filter(Boolean)
+    .map(reportesNormalizeCourse_);
+
+  const loadedCourses = (Array.isArray(__reportesCourses) ? __reportesCourses : [])
+    .map(reportesNormalizeCourse_)
+    .filter(Boolean);
+
+  const courses = Array.from(new Set([
+    ...loadedCourses,
+    ...itemCourses
+  ])).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
 
   let html = `<option value="">Todos los cursos</option>`;
 
@@ -11167,13 +11213,35 @@ function reportesBuildCourseFilter_(items) {
 
   reportesViewerCourseFilterEl.innerHTML = html;
 
-  if (current && courses.includes(reportesNormalizeCourse_(current))) {
-    reportesViewerCourseFilterEl.value = reportesNormalizeCourse_(current);
-  } else if (profileCourse && courses.includes(profileCourse)) {
-    reportesViewerCourseFilterEl.value = profileCourse;
+  if (current && courses.includes(current)) {
+    reportesViewerCourseFilterEl.value = current;
   } else {
     reportesViewerCourseFilterEl.value = "";
   }
+}
+
+function reportesGetFilteredViewerItems_() {
+  const items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
+
+  const selectedCourse = reportesNormalizeCourse_(
+    reportesViewerCourseFilterEl?.value || ""
+  );
+
+  const selectedSubject = String(
+    reportesViewerSubjectFilterEl?.value || ""
+  ).trim().toLowerCase();
+
+  return items.filter(item => {
+    const itemCourse = reportesNormalizeCourse_(reportesGetItemCourse_(item));
+    const itemSubject = String(reportesGetItemSubject_(item) || "")
+      .trim()
+      .toLowerCase();
+
+    const matchCourse = !selectedCourse || itemCourse === selectedCourse;
+    const matchSubject = !selectedSubject || itemSubject === selectedSubject;
+
+    return matchCourse && matchSubject;
+  });
 }
 
 function reportesBuildSubjectFilter_(items) {
@@ -11230,7 +11298,15 @@ function reportesNormalizeCourse_(value) {
     .toUpperCase();
 }
 
-
+function reportesGetItemCourse_(item) {
+  return String(
+    item?.course ||
+    item?.curso ||
+    item?.grade ||
+    item?.grado ||
+    ""
+  ).trim();
+}
 
 function reportesGetItemStudentName_(item) {
   return String(
@@ -11303,25 +11379,6 @@ function reportesBuildCourseFilter_(items) {
   }
 }
 
-function reportesGetFilteredViewerItems_() {
-  const items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
-  const selectedCourse = reportesNormalizeCourse_(reportesViewerCourseFilterEl?.value || "");
-  const selectedSubject = String(reportesViewerSubjectFilterEl?.value || "").trim().toLowerCase();
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
-  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
-
-  const courseToUse = selectedCourse || (!isAdmin ? profileCourse : "");
-
-  return items.filter(item => {
-    const itemCourse = reportesNormalizeCourse_(reportesGetItemCourse_(item));
-    const itemSubject = String(reportesGetItemSubject_(item) || "").trim().toLowerCase();
-
-    const matchCourse = !courseToUse || itemCourse === courseToUse;
-    const matchSubject = !selectedSubject || itemSubject === selectedSubject;
-
-    return matchCourse && matchSubject;
-  });
-}
 
 function reportesRenderViewerList_() {
   const items = reportesGetFilteredViewerItems_();
