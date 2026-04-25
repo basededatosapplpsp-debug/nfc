@@ -11132,8 +11132,16 @@ function reportesGetItemCourse_(item) {
   return String(
     item?.course ||
     item?.curso ||
+    item?.Course ||
+    item?.Curso ||
     item?.grade ||
     item?.grado ||
+    item?.Grade ||
+    item?.Grado ||
+    item?.group ||
+    item?.grupo ||
+    item?.Group ||
+    item?.Grupo ||
     ""
   ).trim();
 }
@@ -11141,32 +11149,29 @@ function reportesGetItemCourse_(item) {
 function reportesBuildCourseFilter_(items) {
   if (!reportesViewerCourseFilterEl) return;
 
+  const current = String(reportesViewerCourseFilterEl.value || "").trim();
   const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
 
-  const courses = [...new Set(
+  const courses = Array.from(new Set(
     (Array.isArray(items) ? items : [])
       .map(reportesGetItemCourse_)
       .filter(Boolean)
       .map(reportesNormalizeCourse_)
-  )].sort((a, b) => a.localeCompare(b, "es"));
+  )).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
 
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  let html = `<option value="">Todos los cursos</option>`;
 
-  let html = "";
+  html += courses
+    .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+    .join("");
 
-  if (isAdmin) {
-    html += `<option value="">Todos los cursos</option>`;
-  }
+  reportesViewerCourseFilterEl.innerHTML = html;
 
-  html += courses.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-
-  reportesViewerCourseFilterEl.innerHTML = html || `<option value="">Sin cursos</option>`;
-
-  if (profileCourse && courses.includes(profileCourse)) {
+  if (current && courses.includes(reportesNormalizeCourse_(current))) {
+    reportesViewerCourseFilterEl.value = reportesNormalizeCourse_(current);
+  } else if (profileCourse && courses.includes(profileCourse)) {
     reportesViewerCourseFilterEl.value = profileCourse;
-  } else if (!isAdmin && courses.length) {
-    reportesViewerCourseFilterEl.value = courses[0];
-  } else if (isAdmin) {
+  } else {
     reportesViewerCourseFilterEl.value = "";
   }
 }
