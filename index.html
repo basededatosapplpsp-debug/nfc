@@ -2770,49 +2770,73 @@ body.is-admin #registerActions{
    Celular / Piercing / Uniforme
    ========================================================= */
 
+/* =========================================================
+   FORZAR botón a esquina inferior izquierda (real FIX)
+   ========================================================= */
+
 #btnDiscViewerBack,
 #btnPiercViewerBack,
 #btnUniViewerBack{
   position: fixed !important;
-  left: 18px !important;
-  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
-  z-index: 100000 !important;
 
-  width: 54px !important;
-  height: 54px !important;
+  left: 16px !important;
+  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
+
+  top: unset !important;
+  right: unset !important;
+
+  z-index: 999999 !important;
+
+  width: 56px !important;
+  height: 56px !important;
+
   border-radius: 50% !important;
 
   display: flex !important;
   align-items: center;
   justify-content: center;
 
-  background: rgba(25,35,65,.85) !important;
+  background: rgba(25,35,65,.88) !important;
   border: 1px solid rgba(255,255,255,.08) !important;
 
   box-shadow:
-    0 12px 30px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.05);
+    0 14px 32px rgba(0,0,0,.45);
 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
-  transition: all .2s ease;
+  /* 👇 CLAVE: lo saca del flujo del header */
+  margin: 0 !important;
+  transform: none !important;
 }
 
-/* Ícono más fino */
+/* Ícono */
 #btnDiscViewerBack i,
 #btnPiercViewerBack i,
 #btnUniViewerBack i{
   font-size: 18px;
-  color: rgba(255,255,255,.92);
+  color: #fff;
 }
 
-/* interacción pro */
+/* interacción */
 #btnDiscViewerBack:active,
 #btnPiercViewerBack:active,
 #btnUniViewerBack:active{
   transform: scale(.92);
 }
+
+/* espacio para que no tape contenido */
+#disciplineViewerModal .behavior-full-body,
+#piercingViewerModal .behavior-full-body,
+#uniformViewerModal .behavior-full-body{
+  padding-bottom: 90px;
+}
+
+/* evita que el header lo siga controlando */
+.behavior-full-header{
+  position: relative;
+}
+
 
 </style>
 </head>
