@@ -2766,12 +2766,19 @@ body.is-admin #registerActions{
 }
 
 /* =========================================================
-   Mover botón superior a FAB abajo izquierda (sin duplicar)
+   Mover botones de volver a abajo izquierda
+   Scope: Ver reportes Celular / Piercing / Uniforme
    ========================================================= */
 
-#disciplineViewerModal .behavior-full-header .behavior-back-btn,
-#piercingViewerModal .behavior-full-header .behavior-back-btn,
-#uniformViewerModal .behavior-full-header .behavior-back-btn{
+/* 1) Botón Atrás del encabezado */
+#disciplineViewerModal .behavior-full-header .behavior-full-back,
+#piercingViewerModal .behavior-full-header .behavior-full-back,
+#uniformViewerModal .behavior-full-header .behavior-full-back,
+
+/* 2) Botón "volver a la lista" cuando se selecciona un reportado */
+#disciplineViewerModal .behavior-back-btn,
+#piercingViewerModal .behavior-back-btn,
+#uniformViewerModal .behavior-back-btn{
   position: fixed;
   left: 16px;
   bottom: calc(16px + env(safe-area-inset-bottom));
@@ -2779,14 +2786,13 @@ body.is-admin #registerActions{
 
   width: 52px;
   height: 52px;
+  padding: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 50%;
-
-  /* oculta texto original */
   font-size: 0;
 
   background: rgba(20,28,48,.88);
@@ -2795,27 +2801,35 @@ body.is-admin #registerActions{
 
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-
-  transition: all .18s ease;
 }
 
-/* ícono */
-#disciplineViewerModal .behavior-full-header .behavior-back-btn::before,
-#piercingViewerModal .behavior-full-header .behavior-back-btn::before,
-#uniformViewerModal .behavior-full-header .behavior-back-btn::before{
+/* Ícono del botón que devuelve a la lista */
+#disciplineViewerModal .behavior-back-btn::before,
+#piercingViewerModal .behavior-back-btn::before,
+#uniformViewerModal .behavior-back-btn::before{
   content: "←";
   font-size: 20px;
   color: rgba(255,255,255,.9);
 }
 
-/* interacción */
+/* El botón superior ya trae su ícono <i>; solo ajustamos tamaño */
+#disciplineViewerModal .behavior-full-header .behavior-full-back i,
+#piercingViewerModal .behavior-full-header .behavior-full-back i,
+#uniformViewerModal .behavior-full-header .behavior-full-back i{
+  font-size: 20px;
+}
+
+/* Interacción */
+#disciplineViewerModal .behavior-full-back:active,
+#piercingViewerModal .behavior-full-back:active,
+#uniformViewerModal .behavior-full-back:active,
 #disciplineViewerModal .behavior-back-btn:active,
 #piercingViewerModal .behavior-back-btn:active,
 #uniformViewerModal .behavior-back-btn:active{
   transform: scale(.92);
 }
 
-/* espacio para que no tape contenido */
+/* Espacio para que el botón flotante no tape contenido */
 #disciplineViewerModal .behavior-full-body,
 #piercingViewerModal .behavior-full-body,
 #uniformViewerModal .behavior-full-body{
