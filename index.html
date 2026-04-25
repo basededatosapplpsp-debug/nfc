@@ -8096,16 +8096,31 @@ if (btnFaltasMenu) {
 // ✅ Si el usuario toca cualquier opción dentro del submenú, lo cerramos
 if (faltasSubMenu) {
   faltasSubMenu.addEventListener("click", (e) => {
-    e.stopPropagation(); // no cerrar submenú al tocar Celular/Piercing/Uniforme
+    e.stopPropagation(); // ✅ evita que se cierre
   });
 }
+
 // ✅ Si tienes una función setMenuOpen(false), el menú se cierra:
 // pero el submenú puede quedar "abierto" en estado => lo reseteamos
 document.addEventListener("click", (e) => {
-  // Si el menú está abierto y haces click fuera, probablemente tu código ya lo cierra.
-  // Aquí solo aseguramos cerrar el submenú si el click fue fuera del bloque.
   if (!faltasSubMenu || !btnFaltasMenu) return;
-  const inside = (e.target && (faltasSubMenu.contains(e.target) || btnFaltasMenu.contains(e.target)));
+
+  const t = e.target;
+
+  const inside =
+    t &&
+    (
+      faltasSubMenu.contains(t) ||
+      btnFaltasMenu.contains(t) ||
+      document.getElementById("behaviorHubModal")?.contains(t) ||
+      document.getElementById("disciplineModal")?.contains(t) ||
+      document.getElementById("piercingModal")?.contains(t) ||
+      document.getElementById("uniformModal")?.contains(t) ||
+      document.getElementById("disciplineViewerModal")?.contains(t) ||
+      document.getElementById("piercingViewerModal")?.contains(t) ||
+      document.getElementById("uniformViewerModal")?.contains(t)
+    );
+
   if (!inside) closeFaltasSubMenu_();
 });
 
@@ -8150,24 +8165,9 @@ if (faltasTiposSubMenu) {
 
 // ✅ Click fuera => cierra submenú
 document.addEventListener("click", (e) => {
-  if (!faltasSubMenu || !btnFaltasMenu) return;
-
-  const t = e.target;
-  const inside =
-    t &&
-    (
-      faltasSubMenu.contains(t) ||
-      btnFaltasMenu.contains(t) ||
-      (behaviorHubModal && behaviorHubModal.contains(t)) ||
-      (disciplineModal && disciplineModal.contains(t)) ||
-      (piercingModal && piercingModal.contains(t)) ||
-      (uniformModal && uniformModal.contains(t)) ||
-      (disciplineViewerModal && disciplineViewerModal.contains(t)) ||
-      (piercingViewerModal && piercingViewerModal.contains(t)) ||
-      (uniformViewerModal && uniformViewerModal.contains(t))
-    );
-
-  if (!inside) closeFaltasSubMenu_();
+  if (!faltasTiposSubMenu || !btnFaltasTiposMenu) return;
+  const inside = (e.target && (faltasTiposSubMenu.contains(e.target) || btnFaltasTiposMenu.contains(e.target)));
+  if (!inside) closeFaltasTiposSubMenu_();
 });
 
 
@@ -15158,14 +15158,16 @@ function closeDisciplineModal() {
 
 function discBindUI_() {
   if (btnDiscipline) {
-    btnDiscipline.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setMenuOpen(true);
-      if (faltasSubMenu) faltasSubMenu.hidden = false;
-      if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
-      openBehaviorHub_("discipline");
-    };
+btnDiscipline.onclick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+
+  setMenuOpen(true);
+  if (faltasSubMenu) faltasSubMenu.hidden = false;
+  if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+
+  openBehaviorHub_("discipline");
+};
   }
 
   if (disciplineModal) {
@@ -16076,9 +16078,11 @@ function piercBindUI_() {
   btnPiercing.onclick = (e) => {
   e.preventDefault();
   e.stopPropagation();
+
   setMenuOpen(true);
   if (faltasSubMenu) faltasSubMenu.hidden = false;
   if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+
   openBehaviorHub_("piercing");
 };
   }
@@ -17079,12 +17083,15 @@ function closeUniformModal() {
 }
 
 function uniBindUI_() {
+  if (btnUniform) {
 btnUniform.onclick = (e) => {
   e.preventDefault();
   e.stopPropagation();
+
   setMenuOpen(true);
   if (faltasSubMenu) faltasSubMenu.hidden = false;
   if (btnFaltasMenu) btnFaltasMenu.setAttribute("aria-expanded", "true");
+
   openBehaviorHub_("uniform");
 };
   }
