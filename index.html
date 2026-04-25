@@ -2774,21 +2774,12 @@ body.is-admin #registerActions{
    FIX REAL: botón atrás abajo izquierda dentro del viewer
    ========================================================= */
 
-#disciplineViewerModal .modal-card,
-#piercingViewerModal .modal-card,
-#uniformViewerModal .modal-card{
-  position: relative !important;
-}
-
-#btnDiscViewerBack,
-#btnPiercViewerBack,
-#btnUniViewerBack{
-  position: absolute !important;
+.viewer-fab-back{
+  position: fixed !important;
   left: 18px !important;
   bottom: calc(18px + env(safe-area-inset-bottom)) !important;
   top: auto !important;
   right: auto !important;
-
   z-index: 999999 !important;
 
   width: 54px !important;
@@ -2799,30 +2790,20 @@ body.is-admin #registerActions{
   align-items: center !important;
   justify-content: center !important;
 
-  background:
-    linear-gradient(145deg, rgba(37,50,86,.92), rgba(14,23,43,.92)) !important;
+  background: linear-gradient(145deg, rgba(37,50,86,.94), rgba(14,23,43,.94)) !important;
   border: 1px solid rgba(255,255,255,.14) !important;
-
-  box-shadow:
-    0 14px 34px rgba(0,0,0,.42),
-    inset 0 1px 0 rgba(255,255,255,.10) !important;
+  box-shadow: 0 14px 34px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.10) !important;
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-
-  margin: 0 !important;
 }
 
-#btnDiscViewerBack i,
-#btnPiercViewerBack i,
-#btnUniViewerBack i{
+.viewer-fab-back i{
   font-size: 18px !important;
   color: rgba(255,255,255,.94) !important;
 }
 
-#btnDiscViewerBack:active,
-#btnPiercViewerBack:active,
-#btnUniViewerBack:active{
+.viewer-fab-back:active{
   transform: scale(.92);
 }
 
@@ -2831,7 +2812,6 @@ body.is-admin #registerActions{
 #uniformViewerModal .behavior-full-body{
   padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
 }
-
 
 </style>
 </head>
@@ -3520,17 +3500,16 @@ body.is-admin #registerActions{
 <!-- ======= MODAL: PORTE DEL UNIFORME ======= -->
 <div id="uniformModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnUniBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
+<button id="btnUniViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
+  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+</button>
 
-      <div class="behavior-full-headtext">
-        <div class="behavior-full-title">Porte del uniforme</div>
-        <div class="behavior-full-sub">Registrar llamado de atención.</div>
-      </div>
-    </div>
-
+<div class="behavior-full-header">
+  <div class="behavior-full-headtext">
+    <div class="behavior-full-title">Porte del uniforme</div>
+    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+  </div>
+</div>
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
@@ -4151,14 +4130,16 @@ body.is-admin #registerActions{
 <div id="disciplineViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-      <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-      <div class="behavior-full-headtext">
-        <div class="behavior-full-title">Uso inadecuado del celular</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-      </div>
-    </div>
+<button id="btnDiscViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
+  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+</button>
+
+<div class="behavior-full-header">
+  <div class="behavior-full-headtext">
+    <div class="behavior-full-title">Uso inadecuado del celular</div>
+    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+  </div>
+</div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
@@ -4188,15 +4169,16 @@ body.is-admin #registerActions{
 <!-- ======= VIEWER PIERCING ======= -->
 <div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-      <div class="behavior-full-headtext">
-        <div class="behavior-full-title">Piercing y perforaciones</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-      </div>
-    </div>
+<button id="btnPiercViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
+  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+</button>
+
+<div class="behavior-full-header">
+  <div class="behavior-full-headtext">
+    <div class="behavior-full-title">Piercing y perforaciones</div>
+    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+  </div>
+</div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
