@@ -2765,7 +2765,62 @@ body.is-admin #registerActions{
   }
 }
 
+/* =========================================================
+   Mover botón superior a FAB abajo izquierda (sin duplicar)
+   ========================================================= */
 
+#disciplineViewerModal .behavior-full-header .behavior-back-btn,
+#piercingViewerModal .behavior-full-header .behavior-back-btn,
+#uniformViewerModal .behavior-full-header .behavior-back-btn{
+  position: fixed;
+  left: 16px;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: 100000;
+
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  /* oculta texto original */
+  font-size: 0;
+
+  background: rgba(20,28,48,.88);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 10px 28px rgba(0,0,0,.35);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  transition: all .18s ease;
+}
+
+/* ícono */
+#disciplineViewerModal .behavior-full-header .behavior-back-btn::before,
+#piercingViewerModal .behavior-full-header .behavior-back-btn::before,
+#uniformViewerModal .behavior-full-header .behavior-back-btn::before{
+  content: "←";
+  font-size: 20px;
+  color: rgba(255,255,255,.9);
+}
+
+/* interacción */
+#disciplineViewerModal .behavior-back-btn:active,
+#piercingViewerModal .behavior-back-btn:active,
+#uniformViewerModal .behavior-back-btn:active{
+  transform: scale(.92);
+}
+
+/* espacio para que no tape contenido */
+#disciplineViewerModal .behavior-full-body,
+#piercingViewerModal .behavior-full-body,
+#uniformViewerModal .behavior-full-body{
+  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+}
 </style>
 </head>
 
@@ -18654,7 +18709,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-91";
+const APP_BUILD = "2026-04-10-92";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
