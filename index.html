@@ -2771,70 +2771,65 @@ body.is-admin #registerActions{
    ========================================================= */
 
 /* =========================================================
-   FORZAR botón a esquina inferior izquierda (real FIX)
+   FIX REAL: botón atrás abajo izquierda dentro del viewer
    ========================================================= */
+
+#disciplineViewerModal .modal-card,
+#piercingViewerModal .modal-card,
+#uniformViewerModal .modal-card{
+  position: relative !important;
+}
 
 #btnDiscViewerBack,
 #btnPiercViewerBack,
 #btnUniViewerBack{
-  position: fixed !important;
-
-  left: 16px !important;
-  bottom: calc(20px + env(safe-area-inset-bottom)) !important;
-
-  top: unset !important;
-  right: unset !important;
+  position: absolute !important;
+  left: 18px !important;
+  bottom: calc(18px + env(safe-area-inset-bottom)) !important;
+  top: auto !important;
+  right: auto !important;
 
   z-index: 999999 !important;
 
-  width: 56px !important;
-  height: 56px !important;
-
+  width: 54px !important;
+  height: 54px !important;
   border-radius: 50% !important;
 
   display: flex !important;
-  align-items: center;
-  justify-content: center;
+  align-items: center !important;
+  justify-content: center !important;
 
-  background: rgba(25,35,65,.88) !important;
-  border: 1px solid rgba(255,255,255,.08) !important;
+  background:
+    linear-gradient(145deg, rgba(37,50,86,.92), rgba(14,23,43,.92)) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
 
   box-shadow:
-    0 14px 32px rgba(0,0,0,.45);
+    0 14px 34px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 
-  /* 👇 CLAVE: lo saca del flujo del header */
   margin: 0 !important;
-  transform: none !important;
 }
 
-/* Ícono */
 #btnDiscViewerBack i,
 #btnPiercViewerBack i,
 #btnUniViewerBack i{
-  font-size: 18px;
-  color: #fff;
+  font-size: 18px !important;
+  color: rgba(255,255,255,.94) !important;
 }
 
-/* interacción */
 #btnDiscViewerBack:active,
 #btnPiercViewerBack:active,
 #btnUniViewerBack:active{
   transform: scale(.92);
 }
 
-/* espacio para que no tape contenido */
 #disciplineViewerModal .behavior-full-body,
 #piercingViewerModal .behavior-full-body,
 #uniformViewerModal .behavior-full-body{
-  padding-bottom: 90px;
-}
-
-/* evita que el header lo siga controlando */
-.behavior-full-header{
-  position: relative;
+  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
 }
 
 
@@ -18726,7 +18721,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-93";
+const APP_BUILD = "2026-04-10-94";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
