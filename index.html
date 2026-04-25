@@ -5013,51 +5013,7 @@ function behaviorItemStudent_(it){
 }
 
 function behaviorItemCourse_(it){
-  const direct = String(
-    it?.course ||
-    it?.curso ||
-    it?.grade ||
-    it?.grado ||
-    it?.course_name ||
-    it?.courseName ||
-    ""
-  ).trim();
-
-  if (direct) return direct;
-
-  const who = Array.isArray(it?.who) ? it.who : [];
-  for (const row of who) {
-    const c = String(
-      row?.course ||
-      row?.curso ||
-      row?.grade ||
-      row?.grado ||
-      row?.course_name ||
-      row?.courseName ||
-      ""
-    ).trim();
-
-    if (c) return c;
-  }
-
-  return "";
-}
-
-function behaviorItemMatchesCourse_(it, selectedCourse){
-  const selected = String(selectedCourse || "").trim();
-  if (!selected) return true;
-
-  if (behaviorItemCourse_(it) === selected) return true;
-
-  const who = Array.isArray(it?.who) ? it.who : [];
-  return who.some(row => {
-    const c = String(
-      row?.course || row?.curso || row?.grade || row?.grado ||
-      row?.course_name || row?.courseName || ""
-    ).trim();
-
-    return c === selected;
-  });
+  return String(it?.course || it?.course_name || it?.courseName || "").trim();
 }
 
 function behaviorItemLevel_(it){
@@ -5574,6 +5530,18 @@ function renderBehaviorViewer_(kind){
   const prevCourse = String(courseEl && courseEl.value || "").trim();
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
+
+    console.log("🧪 DEBUG Ver reportes:", {
+    kind,
+    totalItems: items.length,
+    firstItem: items[0],
+    firstItemKeys: items[0] ? Object.keys(items[0]) : [],
+    firstWho: items[0]?.who,
+    coursesDetectadosOriginal: items.map(behaviorItemCourse_).filter(Boolean),
+    courseSelectEl: courseEl,
+    currentCourseValue: courseEl?.value
+  });
+
   const courses = Array.from(
     new Set(items.map(behaviorItemCourse_).filter(Boolean))
   ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
@@ -5588,9 +5556,9 @@ function renderBehaviorViewer_(kind){
 
   let filtered = items.slice();
 
-if (selectedCourse) {
-  filtered = filtered.filter(it => behaviorItemMatchesCourse_(it, selectedCourse));
-}
+  if (selectedCourse) {
+    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
+  }
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
@@ -17223,6 +17191,35 @@ if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer
 if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
 
+["focus", "mousedown", "click"].forEach(evt => {
+  discViewerCourse?.addEventListener(evt, () => {
+    console.log("📌 Combo CELULAR abierto/tocado", {
+      value: discViewerCourse.value,
+      options: Array.from(discViewerCourse.options).map(o => o.value),
+      cache: __discCacheList,
+      first: __discCacheList?.[0]
+    });
+  });
+
+  piercViewerCourse?.addEventListener(evt, () => {
+    console.log("📌 Combo PIERCING abierto/tocado", {
+      value: piercViewerCourse.value,
+      options: Array.from(piercViewerCourse.options).map(o => o.value),
+      cache: __piercCacheList,
+      first: __piercCacheList?.[0]
+    });
+  });
+
+  uniViewerCourse?.addEventListener(evt, () => {
+    console.log("📌 Combo UNIFORME abierto/tocado", {
+      value: uniViewerCourse.value,
+      options: Array.from(uniViewerCourse.options).map(o => o.value),
+      cache: __uniCacheList,
+      first: __uniCacheList?.[0]
+    });
+  });
+});
+
 /* ======= Poll ======= */
 function uniStartPolling_() {
   if (__uniPollTimer) return;
@@ -19000,7 +18997,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-94";
+const APP_BUILD = "2026-04-10-93";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
