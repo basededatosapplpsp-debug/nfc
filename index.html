@@ -2770,40 +2770,28 @@ body.is-admin #registerActions{
    Celular / Piercing / Uniforme
    ========================================================= */
 
-/* =========================================================
-   Botón atrás abajo izquierda SOLO en visores
-   Celular / Piercing / Uniforme
-   ========================================================= */
-
-#disciplineViewerModal #btnDiscViewerBack,
-#piercingViewerModal #btnPiercViewerBack,
-#uniformViewerModal #btnUniViewerBack{
+/* FORZAR botones atrás abajo izquierda */
+#btnDiscBack,
+#btnPiercBack,
+#btnUniBack,
+#btnDiscViewerBack,
+#btnPiercViewerBack,
+#btnUniViewerBack{
   position: fixed !important;
   left: 16px !important;
-  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+  bottom: 16px !important;
   top: auto !important;
   right: auto !important;
-  z-index: 1000000 !important;
+  z-index: 9999999 !important;
 
   width: 52px !important;
   height: 52px !important;
   border-radius: 50% !important;
+  opacity: 1 !important;
 }
 
-/* Botón volver a lista cuando seleccionas un reportado */
-#disciplineViewerModal .behavior-back-btn,
-#piercingViewerModal .behavior-back-btn,
-#uniformViewerModal .behavior-back-btn{
-  position: fixed !important;
-  left: 16px !important;
-  bottom: calc(76px + env(safe-area-inset-bottom)) !important;
-  top: auto !important;
-  right: auto !important;
-  z-index: 1000000 !important;
-}
-
-/* No tocar la X del modal Reportar / Ver reportes */
-#behaviorHubModal #btnBehaviorHubClose{
+/* No mover la X del menú Reportar / Ver reportes */
+#btnBehaviorHubClose{
   position: static !important;
 }
 </style>
