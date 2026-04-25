@@ -2778,14 +2778,17 @@ body.is-admin #registerActions{
 /* 🔥 BOTÓN PRO (FIX REAL DE POSICIÓN) */
 .behavior-viewer-fab-back{
   position: absolute !important;
-  left: 22px !important;
-  bottom: 0 !important; /* 👈 base */
-  transform: translateY(-110px) !important; /* 👈 esto lo sube de verdad */
+
+  left: 40px !important;   /* 👉 más hacia la derecha */
+  bottom: 0 !important;
+
+  transform: translateY(-110px) !important;
+
   z-index: 999999 !important;
 
-  width: 60px !important;
-  height: 60px !important;
-  border-radius: 20px !important;
+  width: 72px !important;   /* 👉 más grande */
+  height: 72px !important;
+  border-radius: 24px !important;
 
   display: flex !important;
   align-items: center !important;
@@ -2795,29 +2798,21 @@ body.is-admin #registerActions{
   opacity: 1 !important;
 
   background:
-    radial-gradient(circle at 30% 20%, rgba(255,255,255,.34), transparent 38%),
-    linear-gradient(135deg, #3b82f6 0%, #0b5fff 52%, #1e40af 100%) !important;
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.4), transparent 40%),
+    linear-gradient(135deg, #2563eb 0%, #0b5fff 60%, #1e3a8a 100%) !important;
 
-  border: 1px solid rgba(191,219,254,.65) !important;
+  border: 1px solid rgba(191,219,254,.8) !important;
 
   box-shadow:
-    0 18px 36px rgba(11,95,255,.35),
-    0 10px 24px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.55),
-    inset 0 -10px 18px rgba(0,0,0,.16) !important;
+    0 20px 40px rgba(11,95,255,.4),
+    0 12px 28px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.6),
+    inset 0 -12px 20px rgba(0,0,0,.2) !important;
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 
   cursor: pointer;
-  overflow: hidden;
-  isolation: isolate;
-
-  animation: fabBackIn .35s ease-out;
-  transition:
-    transform .18s cubic-bezier(.2,.8,.2,1),
-    box-shadow .18s ease,
-    filter .18s ease;
 }
 
 /* ✨ brillo animado */
@@ -2851,7 +2846,7 @@ body.is-admin #registerActions{
 
 /* icono */
 .behavior-viewer-fab-back i{
-  font-size: 24px !important;
+  font-size: 28px !important;
   color: #ffffff !important;
   text-shadow: 0 2px 6px rgba(0,0,0,.35);
 }
