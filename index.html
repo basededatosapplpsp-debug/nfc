@@ -5012,7 +5012,9 @@ function behaviorItemStudent_(it){
   return String(it?.student || it?.student_name || it?.studentName || it?.name || "").trim();
 }
 
-
+function behaviorItemCourse_(it){
+  return String(it?.course || it?.course_name || it?.courseName || "").trim();
+}
 
 function behaviorItemLevel_(it){
   const fromMax = Number(it?.maxLevel || 0);
@@ -5502,27 +5504,6 @@ if (deleteStudentListBtn) {
 };
 }
 
-function behaviorItemCourse_(it){
-  return String(
-    it?.course ||
-    it?.curso ||
-    it?.grade ||
-    it?.grado ||
-    it?.course_name ||
-    it?.courseName ||
-    it?.Curso ||
-    it?.Grado ||
-    ""
-  ).trim();
-}
-
-function behaviorCourseKey_(value){
-  return String(value || "")
-    .trim()
-    .replace(/\s+/g, " ")
-    .toUpperCase();
-}
-
 function renderBehaviorViewer_(kind){
   let items = [];
   let courseEl = null;
@@ -5546,33 +5527,25 @@ function renderBehaviorViewer_(kind){
     listEl = uniViewerList;
   }
 
-  const prevCourseKey = behaviorCourseKey_(courseEl && courseEl.value);
+  const prevCourse = String(courseEl && courseEl.value || "").trim();
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
-  const courseMap = new Map();
-
-  items.forEach(it => {
-    const course = behaviorItemCourse_(it);
-    const key = behaviorCourseKey_(course);
-    if (key && !courseMap.has(key)) courseMap.set(key, course);
-  });
-
-  const courses = Array.from(courseMap.values())
-    .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+  const courses = Array.from(
+    new Set(items.map(behaviorItemCourse_).filter(Boolean))
+  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
-  if (courseEl && prevCourseKey) {
-    const foundCourse = courses.find(c => behaviorCourseKey_(c) === prevCourseKey);
-    if (foundCourse) courseEl.value = foundCourse;
+  if (courseEl && prevCourse && courses.includes(prevCourse)) {
+    courseEl.value = prevCourse;
   }
 
-  const selectedCourseKey = behaviorCourseKey_(courseEl && courseEl.value);
+  const selectedCourse = String(courseEl && courseEl.value || "").trim();
 
   let filtered = items.slice();
 
-  if (selectedCourseKey) {
-    filtered = filtered.filter(it => behaviorCourseKey_(behaviorItemCourse_(it)) === selectedCourseKey);
+  if (selectedCourse) {
+    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
   }
 
   const students = Array.from(
@@ -6275,7 +6248,7 @@ const subject = reportesGetItemSubject_(item);
         <span class="lvl-dot lvl-2"></span>
         <div style="min-width:0;">
           <div class="name">${item.student || "Sin nombre"}</div>
-          <div class="muted small">${item.course || ""}${subject ? ` • ${subject}` : ""} • Debe ${total}</div>
+       <div class="muted small">${reportesGetItemCourse_(item)}${subject ? ` • ${subject}` : ""} • Debe ${total}</div>
           <div class="reportes-detalle" hidden style="margin-top:8px;">
             ${detalleHtml}
           </div>
@@ -11161,16 +11134,6 @@ function reportesGetItemCourse_(item) {
     item?.curso ||
     item?.grade ||
     item?.grado ||
-    item?.Curso ||
-    item?.Grado ||
-    item?.COURSE ||
-    item?.GRADO ||
-    item?.student_course ||
-    item?.studentCourse ||
-    item?.curso_estudiante ||
-    item?.cursoEstudiante ||
-    item?.course_name ||
-    item?.courseName ||
     ""
   ).trim();
 }
@@ -11178,32 +11141,36 @@ function reportesGetItemCourse_(item) {
 function reportesBuildCourseFilter_(items) {
   if (!reportesViewerCourseFilterEl) return;
 
-  const currentKey = reportesNormalizeCourse_(reportesViewerCourseFilterEl.value || "");
-  const courseMap = new Map();
+  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
 
-  (Array.isArray(items) ? items : []).forEach(item => {
-    const rawCourse = reportesGetItemCourse_(item);
-    const key = reportesNormalizeCourse_(rawCourse);
-    if (key && !courseMap.has(key)) {
-      courseMap.set(key, rawCourse);
-    }
-  });
+  const courses = [...new Set(
+    (Array.isArray(items) ? items : [])
+      .map(reportesGetItemCourse_)
+      .filter(Boolean)
+      .map(reportesNormalizeCourse_)
+  )].sort((a, b) => a.localeCompare(b, "es"));
 
-  const courses = Array.from(courseMap.values())
-    .sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
 
-  let html = `<option value="">Todos los cursos</option>`;
-  html += courses
-    .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
-    .join("");
+  let html = "";
 
-  reportesViewerCourseFilterEl.innerHTML = html;
+  if (isAdmin) {
+    html += `<option value="">Todos los cursos</option>`;
+  }
 
-  if (currentKey) {
-    const found = courses.find(c => reportesNormalizeCourse_(c) === currentKey);
-    if (found) reportesViewerCourseFilterEl.value = found;
+  html += courses.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+
+  reportesViewerCourseFilterEl.innerHTML = html || `<option value="">Sin cursos</option>`;
+
+  if (profileCourse && courses.includes(profileCourse)) {
+    reportesViewerCourseFilterEl.value = profileCourse;
+  } else if (!isAdmin && courses.length) {
+    reportesViewerCourseFilterEl.value = courses[0];
+  } else if (isAdmin) {
+    reportesViewerCourseFilterEl.value = "";
   }
 }
+
 function reportesBuildSubjectFilter_(items) {
   if (!reportesViewerSubjectFilterEl) return;
 
@@ -11343,16 +11310,12 @@ function reportesGetFilteredViewerItems_() {
   const items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
   const selectedCourse = reportesNormalizeCourse_(reportesViewerCourseFilterEl?.value || "");
   const selectedSubject = String(reportesViewerSubjectFilterEl?.value || "").trim().toLowerCase();
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
-  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
-
-  const courseToUse = selectedCourse || (!isAdmin ? profileCourse : "");
 
   return items.filter(item => {
     const itemCourse = reportesNormalizeCourse_(reportesGetItemCourse_(item));
     const itemSubject = String(reportesGetItemSubject_(item) || "").trim().toLowerCase();
 
-    const matchCourse = !courseToUse || itemCourse === courseToUse;
+    const matchCourse = !selectedCourse || itemCourse === selectedCourse;
     const matchSubject = !selectedSubject || itemSubject === selectedSubject;
 
     return matchCourse && matchSubject;
