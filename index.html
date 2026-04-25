@@ -6248,7 +6248,7 @@ const subject = reportesGetItemSubject_(item);
         <span class="lvl-dot lvl-2"></span>
         <div style="min-width:0;">
           <div class="name">${item.student || "Sin nombre"}</div>
-       <div class="muted small">${reportesGetItemCourse_(item)}${subject ? ` • ${subject}` : ""} • Debe ${total}</div>
+          <div class="muted small">${item.course || ""}${subject ? ` • ${subject}` : ""} • Debe ${total}</div>
           <div class="reportes-detalle" hidden style="margin-top:8px;">
             ${detalleHtml}
           </div>
@@ -11310,12 +11310,16 @@ function reportesGetFilteredViewerItems_() {
   const items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
   const selectedCourse = reportesNormalizeCourse_(reportesViewerCourseFilterEl?.value || "");
   const selectedSubject = String(reportesViewerSubjectFilterEl?.value || "").trim().toLowerCase();
+  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
+  const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
+
+  const courseToUse = selectedCourse || (!isAdmin ? profileCourse : "");
 
   return items.filter(item => {
     const itemCourse = reportesNormalizeCourse_(reportesGetItemCourse_(item));
     const itemSubject = String(reportesGetItemSubject_(item) || "").trim().toLowerCase();
 
-    const matchCourse = !selectedCourse || itemCourse === selectedCourse;
+    const matchCourse = !courseToUse || itemCourse === courseToUse;
     const matchSubject = !selectedSubject || itemSubject === selectedSubject;
 
     return matchCourse && matchSubject;
