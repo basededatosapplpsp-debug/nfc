@@ -2765,65 +2765,6 @@ body.is-admin #registerActions{
   }
 }
 
-/* =========================================================
-   FAB: solo ícono (Volver) - minimal pro
-   ========================================================= */
-
-#disciplineViewerModal .behavior-back-btn,
-#piercingViewerModal .behavior-back-btn,
-#uniformViewerModal .behavior-back-btn{
-  position: fixed;
-  left: 16px;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  z-index: 100000;
-
-  width: 52px;
-  height: 52px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  /* oculta el texto */
-  font-size: 0;
-
-  background: rgba(20,28,48,.85);
-  border: 1px solid rgba(255,255,255,.14);
-
-  box-shadow: 0 10px 28px rgba(0,0,0,.35);
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-
-  transition: all .18s ease;
-}
-
-/* ícono (flecha) */
-#disciplineViewerModal .behavior-back-btn::before,
-#piercingViewerModal .behavior-back-btn::before,
-#uniformViewerModal .behavior-back-btn::before{
-  content: "←";
-  font-size: 20px;
-  color: rgba(255,255,255,.9);
-}
-
-/* interacción */
-#disciplineViewerModal .behavior-back-btn:active,
-#piercingViewerModal .behavior-back-btn:active,
-#uniformViewerModal .behavior-back-btn:active{
-  transform: scale(.92);
-  box-shadow: 0 6px 16px rgba(0,0,0,.4);
-}
-
-/* evita que tape contenido */
-#disciplineViewerModal .behavior-viewer-list,
-#piercingViewerModal .behavior-viewer-list,
-#uniformViewerModal .behavior-viewer-list{
-  padding-bottom: calc(90px + env(safe-area-inset-bottom));
-}
-
 
 </style>
 </head>
@@ -5080,11 +5021,7 @@ function behaviorViewerDetailHtml_(item, kind){
 
       ${rowsHtml}
 
-      <div style="margin-top:14px; display:flex; justify-content:flex-end;">
-        <div class="behavior-back-btn" data-action="back">
-          ← Volver a la lista
-        </div>
-      </div>
+
 
     </div>
   `;
@@ -16909,9 +16846,27 @@ if (btnDiscBack) btnDiscBack.onclick = backToBehaviorHub_;
 if (btnPiercBack) btnPiercBack.onclick = backToBehaviorHub_;
 if (btnUniBack) btnUniBack.onclick = backToBehaviorHub_;
 
-if (btnDiscViewerBack) btnDiscViewerBack.onclick = backToBehaviorHub_;
-if (btnPiercViewerBack) btnPiercViewerBack.onclick = backToBehaviorHub_;
-if (btnUniViewerBack) btnUniViewerBack.onclick = backToBehaviorHub_;
+function behaviorViewerBack_(kind){
+  let studentEl = null;
+
+  if (kind === "discipline") studentEl = discViewerStudent;
+  if (kind === "piercing") studentEl = piercViewerStudent;
+  if (kind === "uniform") studentEl = uniViewerStudent;
+
+  // Si estoy viendo el detalle de un estudiante, vuelvo a la lista
+  if (studentEl && String(studentEl.value || "").trim()) {
+    studentEl.value = "";
+    renderBehaviorViewer_(kind);
+    return;
+  }
+
+  // Si ya estoy en la lista, vuelvo al hub Reportar / Ver reportes
+  backToBehaviorHub_();
+}
+
+if (btnDiscViewerBack) btnDiscViewerBack.onclick = () => behaviorViewerBack_("discipline");
+if (btnPiercViewerBack) btnPiercViewerBack.onclick = () => behaviorViewerBack_("piercing");
+if (btnUniViewerBack) btnUniViewerBack.onclick = () => behaviorViewerBack_("uniform");
 
 if (discViewerCourse) discViewerCourse.onchange = () => renderBehaviorViewer_("discipline");
 if (discViewerStudent) discViewerStudent.onchange = () => renderBehaviorViewer_("discipline");
@@ -18699,7 +18654,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-90";
+const APP_BUILD = "2026-04-10-91";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
