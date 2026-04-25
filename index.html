@@ -5012,24 +5012,7 @@ function behaviorItemStudent_(it){
   return String(it?.student || it?.student_name || it?.studentName || it?.name || "").trim();
 }
 
-function behaviorItemCourse_(it){
-  return String(
-    it?.course ||
-    it?.curso ||
-    it?.grade ||
-    it?.grado ||
-    it?.course_name ||
-    it?.courseName ||
-    ""
-  ).trim();
-}
 
-function behaviorCourseKey_(value){
-  return String(value || "")
-    .trim()
-    .replace(/\s+/g, " ")
-    .toLowerCase();
-}
 
 function behaviorItemLevel_(it){
   const fromMax = Number(it?.maxLevel || 0);
@@ -5519,6 +5502,27 @@ if (deleteStudentListBtn) {
 };
 }
 
+function behaviorItemCourse_(it){
+  return String(
+    it?.course ||
+    it?.curso ||
+    it?.grade ||
+    it?.grado ||
+    it?.course_name ||
+    it?.courseName ||
+    it?.Curso ||
+    it?.Grado ||
+    ""
+  ).trim();
+}
+
+function behaviorCourseKey_(value){
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toUpperCase();
+}
+
 function renderBehaviorViewer_(kind){
   let items = [];
   let courseEl = null;
@@ -5542,27 +5546,34 @@ function renderBehaviorViewer_(kind){
     listEl = uniViewerList;
   }
 
-  const prevCourse = String(courseEl && courseEl.value || "").trim();
+  const prevCourseKey = behaviorCourseKey_(courseEl && courseEl.value);
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
-  const courses = Array.from(
-    new Set(items.map(behaviorItemCourse_).filter(Boolean))
-  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+  const courseMap = new Map();
+
+  items.forEach(it => {
+    const course = behaviorItemCourse_(it);
+    const key = behaviorCourseKey_(course);
+    if (key && !courseMap.has(key)) courseMap.set(key, course);
+  });
+
+  const courses = Array.from(courseMap.values())
+    .sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
-  if (courseEl && prevCourse && courses.includes(prevCourse)) {
-    courseEl.value = prevCourse;
+  if (courseEl && prevCourseKey) {
+    const foundCourse = courses.find(c => behaviorCourseKey_(c) === prevCourseKey);
+    if (foundCourse) courseEl.value = foundCourse;
   }
 
-  const selectedCourse = String(courseEl && courseEl.value || "").trim();
+  const selectedCourseKey = behaviorCourseKey_(courseEl && courseEl.value);
 
   let filtered = items.slice();
 
-if (selectedCourse) {
-  const selectedCourseKey = behaviorCourseKey_(selectedCourse);
-  filtered = filtered.filter(it => behaviorCourseKey_(behaviorItemCourse_(it)) === selectedCourseKey);
-}
+  if (selectedCourseKey) {
+    filtered = filtered.filter(it => behaviorCourseKey_(behaviorItemCourse_(it)) === selectedCourseKey);
+  }
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
