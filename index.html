@@ -5013,35 +5013,7 @@ function behaviorItemStudent_(it){
 }
 
 function behaviorItemCourse_(it){
-  const direct = String(
-    it?.course ||
-    it?.curso ||
-    it?.grade ||
-    it?.grado ||
-    it?.course_name ||
-    it?.courseName ||
-    ""
-  ).trim();
-
-  if (direct) return direct;
-
-  const who = Array.isArray(it?.who) ? it.who : [];
-
-  for (const row of who) {
-    const c = String(
-      row?.course ||
-      row?.curso ||
-      row?.grade ||
-      row?.grado ||
-      row?.course_name ||
-      row?.courseName ||
-      ""
-    ).trim();
-
-    if (c) return c;
-  }
-
-  return "";
+  return String(it?.course || it?.course_name || it?.courseName || "").trim();
 }
 
 function behaviorItemLevel_(it){
@@ -5532,6 +5504,72 @@ if (deleteStudentListBtn) {
 };
 }
 
+function behaviorCoursesOf_(it){
+  const out = [];
+
+  [
+    it?.course,
+    it?.curso,
+    it?.grade,
+    it?.grado,
+    it?.course_name,
+    it?.courseName
+  ].forEach(v => {
+    const c = String(v || "").trim();
+    if (c) out.push(c);
+  });
+
+  const who = Array.isArray(it?.who) ? it.who : [];
+  who.forEach(row => {
+    [
+      row?.course,
+      row?.curso,
+      row?.grade,
+      row?.grado,
+      row?.course_name,
+      row?.courseName
+    ].forEach(v => {
+      const c = String(v || "").trim();
+      if (c) out.push(c);
+    });
+  });
+
+  return Array.from(new Set(out));
+}
+
+function behaviorItemMatchesCourse_(it, course){
+  const c = String(course || "").trim();
+  if (!c) return true;
+  return behaviorCoursesOf_(it).includes(c);
+}
+
+function behaviorAttachCourseToItems_(items, student, course){
+  const s = String(student || "").trim();
+  const c = String(course || "").trim();
+
+  if (!Array.isArray(items) || !s || !c) return Array.isArray(items) ? items : [];
+
+  return items.map(it => {
+    const itemStudent = String(
+      it?.student || it?.name || it?.student_name || ""
+    ).trim();
+
+    if (itemStudent !== s) return it;
+
+    const next = { ...it, course: it.course || c };
+
+    if (Array.isArray(next.who)) {
+      next.who = next.who.map(row => ({
+        ...row,
+        course: row.course || c
+      }));
+    }
+
+    return next;
+  });
+}
+
+
 function renderBehaviorViewer_(kind){
   let items = [];
   let courseEl = null;
@@ -5558,50 +5596,9 @@ function renderBehaviorViewer_(kind){
   const prevCourse = String(courseEl && courseEl.value || "").trim();
   const prevStudent = String(studentEl && studentEl.value || "").trim();
 
-  function getCoursesFromItem(it){
-    const arr = [];
-
-    [
-      it?.course,
-      it?.curso,
-      it?.grade,
-      it?.grado,
-      it?.course_name,
-      it?.courseName
-    ].forEach(v => {
-      const c = String(v || "").trim();
-      if (c) arr.push(c);
-    });
-
-    const who = Array.isArray(it?.who) ? it.who : [];
-    who.forEach(row => {
-      [
-        row?.course,
-        row?.curso,
-        row?.grade,
-        row?.grado,
-        row?.course_name,
-        row?.courseName
-      ].forEach(v => {
-        const c = String(v || "").trim();
-        if (c) arr.push(c);
-      });
-    });
-
-    return arr;
-  }
-
-  const courses = Array.from(
-    new Set(items.flatMap(getCoursesFromItem).filter(Boolean))
-  ).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
-
-  console.log("🧪 DEBUG Cursos viewer:", {
-    kind,
-    totalItems: items.length,
-    courses,
-    firstItem: items[0],
-    firstWho: items[0]?.who
-  });
+const courses = Array.from(
+  new Set(items.flatMap(behaviorCoursesOf_).filter(Boolean))
+).sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
 
   populateSimpleSelect_(courseEl, "Todos los cursos", courses);
 
@@ -5613,9 +5610,9 @@ function renderBehaviorViewer_(kind){
 
   let filtered = items.slice();
 
-  if (selectedCourse) {
-    filtered = filtered.filter(it => getCoursesFromItem(it).includes(selectedCourse));
-  }
+ if (selectedCourse) {
+  filtered = filtered.filter(it => behaviorItemMatchesCourse_(it, selectedCourse));
+}
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
@@ -15033,11 +15030,19 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const selectedCourse = String(discCourseEl ? discCourseEl.value : "").trim();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("discipline", resp.list);
+  behaviorKindSetCache_(
+    "discipline",
+    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
+  );
 } else {
   const items = await gsDisciplineList(discMonthKey_());
-  behaviorKindSetCache_("discipline", items);
+  behaviorKindSetCache_(
+    "discipline",
+    behaviorAttachCourseToItems_(items, student, selectedCourse)
+  );
 }
 
 behaviorRefreshOpenUI_("discipline");
@@ -16023,11 +16028,19 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const selectedCourse = String(piercCourseEl ? piercCourseEl.value : "").trim();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("piercing", resp.list);
+  behaviorKindSetCache_(
+    "piercing",
+    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
+  );
 } else {
   const items = await gsPiercingList(piercMonthKey_());
-  behaviorKindSetCache_("piercing", items);
+  behaviorKindSetCache_(
+    "piercing",
+    behaviorAttachCourseToItems_(items, student, selectedCourse)
+  );
 }
 
 behaviorRefreshOpenUI_("piercing");
@@ -17051,11 +17064,19 @@ async function uniSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const selectedCourse = String(uniCourseEl ? uniCourseEl.value : "").trim();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("uniform", resp.list);
+  behaviorKindSetCache_(
+    "uniform",
+    behaviorAttachCourseToItems_(resp.list, student, selectedCourse)
+  );
 } else {
   const items = await gsUniformList(uniMonthKey_());
-  behaviorKindSetCache_("uniform", items);
+  behaviorKindSetCache_(
+    "uniform",
+    behaviorAttachCourseToItems_(items, student, selectedCourse)
+  );
 }
 
 behaviorRefreshOpenUI_("uniform");
@@ -17247,35 +17268,6 @@ if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer
 
 if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
-
-["focus", "mousedown", "click"].forEach(evt => {
-  discViewerCourse?.addEventListener(evt, () => {
-    console.log("📌 Combo CELULAR abierto/tocado", {
-      value: discViewerCourse.value,
-      options: Array.from(discViewerCourse.options).map(o => o.value),
-      cache: __discCacheList,
-      first: __discCacheList?.[0]
-    });
-  });
-
-  piercViewerCourse?.addEventListener(evt, () => {
-    console.log("📌 Combo PIERCING abierto/tocado", {
-      value: piercViewerCourse.value,
-      options: Array.from(piercViewerCourse.options).map(o => o.value),
-      cache: __piercCacheList,
-      first: __piercCacheList?.[0]
-    });
-  });
-
-  uniViewerCourse?.addEventListener(evt, () => {
-    console.log("📌 Combo UNIFORME abierto/tocado", {
-      value: uniViewerCourse.value,
-      options: Array.from(uniViewerCourse.options).map(o => o.value),
-      cache: __uniCacheList,
-      first: __uniCacheList?.[0]
-    });
-  });
-});
 
 /* ======= Poll ======= */
 function uniStartPolling_() {
