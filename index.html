@@ -5013,8 +5013,36 @@ function behaviorItemStudent_(it){
 }
 
 function behaviorItemCourse_(it){
-  return String(it?.course || it?.course_name || it?.courseName || "").trim();
+  const direct = String(
+    it?.course ||
+    it?.curso ||
+    it?.grade ||
+    it?.grado ||
+    it?.course_name ||
+    it?.courseName ||
+    ""
+  ).trim();
+
+  if (direct) return direct;
+
+  const who = Array.isArray(it?.who) ? it.who : [];
+  for (const row of who) {
+    const c = String(
+      row?.course ||
+      row?.curso ||
+      row?.grade ||
+      row?.grado ||
+      row?.course_name ||
+      row?.courseName ||
+      ""
+    ).trim();
+
+    if (c) return c;
+  }
+
+  return "";
 }
+
 function behaviorItemLevel_(it){
   const fromMax = Number(it?.maxLevel || 0);
   const fromLevel = Number(it?.level || 0);
@@ -5543,9 +5571,9 @@ function renderBehaviorViewer_(kind){
 
   let filtered = items.slice();
 
-  if (selectedCourse) {
-    filtered = filtered.filter(it => behaviorItemCourse_(it) === selectedCourse);
-  }
+if (selectedCourse) {
+  filtered = filtered.filter(it => behaviorItemMatchesCourse_(it, selectedCourse));
+}
 
   const students = Array.from(
     new Set(filtered.map(behaviorItemStudent_).filter(Boolean))
@@ -5565,6 +5593,7 @@ function renderBehaviorViewer_(kind){
 
   renderBehaviorViewerList_(listEl, filtered);
 }
+
 function initQrUi_() {
   // IMPORTANTE: $() debe existir antes de esto
   qrModal = $("qrModal");
@@ -18954,7 +18983,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-93";
+const APP_BUILD = "2026-04-10-94";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
