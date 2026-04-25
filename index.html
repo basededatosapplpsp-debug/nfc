@@ -2770,16 +2770,10 @@ body.is-admin #registerActions{
    Celular / Piercing / Uniforme
    ========================================================= */
 
-/* =========================================================
-   FIX REAL: botón atrás abajo izquierda dentro del viewer
-   ========================================================= */
-
 .viewer-fab-back{
   position: fixed !important;
   left: 18px !important;
   bottom: calc(18px + env(safe-area-inset-bottom)) !important;
-  top: auto !important;
-  right: auto !important;
   z-index: 999999 !important;
 
   width: 54px !important;
@@ -2787,31 +2781,29 @@ body.is-admin #registerActions{
   border-radius: 50% !important;
 
   display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  align-items: center;
+  justify-content: center;
 
   background: linear-gradient(145deg, rgba(37,50,86,.94), rgba(14,23,43,.94)) !important;
   border: 1px solid rgba(255,255,255,.14) !important;
-  box-shadow: 0 14px 34px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.10) !important;
+
+  box-shadow: 
+    0 14px 34px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.10);
 
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
 .viewer-fab-back i{
-  font-size: 18px !important;
-  color: rgba(255,255,255,.94) !important;
+  font-size: 18px;
+  color: white;
 }
 
 .viewer-fab-back:active{
   transform: scale(.92);
 }
 
-#disciplineViewerModal .behavior-full-body,
-#piercingViewerModal .behavior-full-body,
-#uniformViewerModal .behavior-full-body{
-  padding-bottom: calc(92px + env(safe-area-inset-bottom)) !important;
-}
 
 </style>
 </head>
@@ -3500,16 +3492,17 @@ body.is-admin #registerActions{
 <!-- ======= MODAL: PORTE DEL UNIFORME ======= -->
 <div id="uniformModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-<button id="btnUniViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
-  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-</button>
+    <div class="behavior-full-header">
+      <button id="btnUniBack" type="button" class="behavior-full-back" aria-label="Atrás">
+        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+      </button>
 
-<div class="behavior-full-header">
-  <div class="behavior-full-headtext">
-    <div class="behavior-full-title">Porte del uniforme</div>
-    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-  </div>
-</div>
+      <div class="behavior-full-headtext">
+        <div class="behavior-full-title">Porte del uniforme</div>
+        <div class="behavior-full-sub">Registrar llamado de atención.</div>
+      </div>
+    </div>
+
     <div class="behavior-full-body">
       <div class="behavior-panel">
         <div class="behavior-panel-card">
@@ -4169,6 +4162,7 @@ body.is-admin #registerActions{
 <!-- ======= VIEWER PIERCING ======= -->
 <div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
+    <div class="behavior-full-header">
 <button id="btnPiercViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
   <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
 </button>
@@ -4208,15 +4202,16 @@ body.is-admin #registerActions{
 <!-- ======= VIEWER UNIFORME ======= -->
 <div id="uniformViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
-    <div class="behavior-full-header">
-      <button id="btnUniViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-      <div class="behavior-full-headtext">
-        <div class="behavior-full-title">Porte del uniforme</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
-      </div>
-    </div>
+<button id="btnUniViewerBack" type="button" class="behavior-full-back viewer-fab-back" aria-label="Atrás">
+  <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+</button>
+
+<div class="behavior-full-header">
+  <div class="behavior-full-headtext">
+    <div class="behavior-full-title">Porte del uniforme</div>
+    <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+  </div>
+</div>
 
     <div class="behavior-full-body">
       <div class="behavior-panel">
@@ -18703,7 +18698,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-94";
+const APP_BUILD = "2026-04-10-96";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 async function hardRefreshPWA() {
