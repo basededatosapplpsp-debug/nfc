@@ -4782,6 +4782,14 @@ function lateNormalizeKey_(v){
     .replace(/\s+/g, " ");
 }
 
+
+function lateNormalizeCourse_(v){
+  return String(v || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
+
 function lateFindInCache_(student){
   const key = lateNormalizeKey_(student);
   return (__lateCacheList || []).find(x => lateNormalizeKey_(x.student) === key) || null;
@@ -4819,19 +4827,18 @@ function lateCurrentCourseFilter_(){
 }
 
 function lateFilteredList_(){
-  const selectedCourse = lateCurrentCourseFilter_();
-
+  const selectedCourse = String(lateCourseEl && lateCourseEl.value || "__ALL__").trim();
   const list = Array.isArray(__lateCacheList) ? __lateCacheList : [];
 
   if (!selectedCourse || selectedCourse === "__ALL__") {
     return list;
   }
 
-  const selectedKey = normalizeCourseKey(selectedCourse);
+  const selectedKey = lateNormalizeCourse_(selectedCourse);
 
   return list.filter(item => {
-    const course = String(item.course || "").trim();
-    return normalizeCourseKey(course) === selectedKey;
+    const itemCourse = String(item.course || item.course_name || "").trim();
+    return lateNormalizeCourse_(itemCourse) === selectedKey;
   });
 }
 
@@ -19608,6 +19615,8 @@ if (lateCourseEl) {
     const course = String(lateCourseEl.value || "").trim();
 
     if (lateStudentEl) lateStudentEl.value = "";
+    if (lateStudentSelectEl) lateStudentSelectEl.value = "";
+
     __lateCurrentStudent = "";
 
     lateRenderReportedList_();
@@ -19619,12 +19628,13 @@ if (lateCourseEl) {
       return;
     }
 
-    lateSetHint_("Cargando estudiantes.");
+    lateSetHint_("Cargando estudiantes...");
 
     try {
       await lateLoadStudentsForCourse_(course);
       lateSetHint_("");
     } catch (e) {
+      lateRenderStudents_([]);
       lateSetHint_(String(e && e.message ? e.message : e));
     }
   });
