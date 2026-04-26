@@ -3199,6 +3199,69 @@ button[data-uni-edit] + button[data-uni-del-one]{
   border-radius: 6px;
 }
 
+/* ===== Detalle llegadas tarde ===== */
+#lateArrivalModal .late-detail-box{
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(0,0,0,.12);
+}
+
+#lateArrivalModal .late-detail-head{
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+#lateArrivalModal .late-detail-title{
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+#lateArrivalModal .late-detail-list{
+  display: grid;
+  gap: 10px;
+  max-height: 190px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+
+#lateArrivalModal .late-detail-item{
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,.05);
+}
+
+#lateArrivalModal .late-detail-row-top{
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+#lateArrivalModal .late-detail-teacher{
+  font-weight: 900;
+}
+
+#lateArrivalModal .late-detail-meta{
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#lateArrivalModal .late-detail-obs{
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+
 </style>
 </head>
 
@@ -4022,6 +4085,17 @@ button[data-uni-edit] + button[data-uni-del-one]{
           </div>
 
           <div id="lateHint" class="modal-hint muted small"></div>
+
+          <div id="lateDetailBox" class="late-detail-box" hidden>
+  <div class="late-detail-head">
+    <div>
+      <div id="lateDetailTitle" class="late-detail-title">Detalle</div>
+      <div id="lateDetailSub" class="muted small"></div>
+    </div>
+  </div>
+
+  <div id="lateDetailList" class="late-detail-list"></div>
+</div>
 
           <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
             <button id="btnLateReport" type="button" class="btn btn-primary">Reportar</button>
@@ -4852,6 +4926,11 @@ const lateAutoTitleEl = $("lateAutoTitle");
 const lateAutoSubEl = $("lateAutoSub");
 const lateAutoDotEl = $("lateAutoDot");
 
+const lateDetailBoxEl = $("lateDetailBox");
+const lateDetailTitleEl = $("lateDetailTitle");
+const lateDetailSubEl = $("lateDetailSub");
+const lateDetailListEl = $("lateDetailList");
+
 let __lateCacheList = [];
 let __lateCurrentStudent = "";
 
@@ -4875,6 +4954,64 @@ function lateNormalizeCourse_(v){
 function lateFindInCache_(student){
   const key = lateNormalizeKey_(student);
   return (__lateCacheList || []).find(x => lateNormalizeKey_(x.student) === key) || null;
+}
+
+function lateClearDetail_(){
+  if (lateDetailBoxEl) lateDetailBoxEl.hidden = true;
+  if (lateDetailTitleEl) lateDetailTitleEl.textContent = "Detalle";
+  if (lateDetailSubEl) lateDetailSubEl.textContent = "";
+  if (lateDetailListEl) lateDetailListEl.innerHTML = "";
+}
+
+function lateRenderDetail_(student){
+  const item = lateFindInCache_(student);
+
+  if (!lateDetailBoxEl || !lateDetailTitleEl || !lateDetailSubEl || !lateDetailListEl) return;
+
+  if (!item) {
+    lateClearDetail_();
+    return;
+  }
+
+  const studentName = String(item.student || student || "").trim();
+  const course = String(item.course || "").trim();
+  const maxTimes = Number(item.maxTimes || 0);
+  const who = Array.isArray(item.who) ? item.who : [];
+
+  lateDetailBoxEl.hidden = false;
+  lateDetailTitleEl.textContent = studentName;
+  lateDetailSubEl.textContent = `${course} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde`;
+
+  if (!who.length) {
+    lateDetailListEl.innerHTML = `<div class="muted small">No hay detalles disponibles.</div>`;
+    return;
+  }
+
+  lateDetailListEl.innerHTML = who.map(x => {
+    const teacher = String(x.teacher || "").trim() || "Docente";
+    const times = Number(x.times || x.level || 0);
+    const observation = String(x.observation || "").trim();
+    const date = String(x.date || "").trim();
+    const time = String(x.time || "").trim();
+    const dt = String(x.dt || "").trim();
+    const when = date && time ? `${date} • ${time}` : (dt || "Sin fecha");
+
+    return `
+      <div class="late-detail-item">
+        <div class="late-detail-row-top">
+          <div>
+            <div class="late-detail-teacher">${escapeHtml(teacher)}</div>
+            <div class="late-detail-meta">${escapeHtml(when)} ${times ? `• ${times}ª vez` : ""}</div>
+          </div>
+          <span class="badge ${times >= 4 ? "badge-late" : "badge-neutral"}">${times || "-"}/4</span>
+        </div>
+
+        <div class="late-detail-obs">
+          ${observation ? escapeHtml(observation) : `<span class="muted small">Sin observación.</span>`}
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
 function lateUpdateAutoBox_(){
@@ -4961,14 +5098,23 @@ function lateRenderReportedList_(){
     `;
   }).join("");
 
-  lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
-    el.addEventListener("click", () => {
-      const student = el.getAttribute("data-late-student") || "";
-      if (lateStudentEl) lateStudentEl.value = student;
-      __lateCurrentStudent = student;
-      lateUpdateAutoBox_();
+lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
+  el.addEventListener("click", () => {
+    const student = el.getAttribute("data-late-student") || "";
+
+    lateReportedListEl.querySelectorAll(".disc-item").forEach(x => {
+      x.classList.remove("selected");
     });
+
+    el.classList.add("selected");
+
+    if (lateStudentEl) lateStudentEl.value = student;
+    __lateCurrentStudent = student;
+
+    lateUpdateAutoBox_();
+    lateRenderDetail_(student);
   });
+});
 }
 
 async function lateRefreshList_(){
@@ -19654,6 +19800,7 @@ async function openLateArrivalModal_(){
 
   lateSetHint_("");
   lateApplyTimes_(0);
+  lateClearDetail_();
 
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
@@ -19675,6 +19822,7 @@ function closeLateArrivalModal_(){
   lateArrivalModal.hidden = true;
   lateApplyTimes_(0);
   lateSetHint_("");
+  lateClearDetail_();
 
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
@@ -19731,10 +19879,11 @@ if (lateCourseEl) {
   }
 
   if (lateStudentEl) {
-    lateStudentEl.addEventListener("input", () => {
-      __lateCurrentStudent = lateStudentEl.value || "";
-      lateUpdateAutoBox_();
-    });
+  lateStudentEl.addEventListener("input", () => {
+  __lateCurrentStudent = lateStudentEl.value || "";
+  lateUpdateAutoBox_();
+  lateRenderDetail_(__lateCurrentStudent);
+});
   }
 
   if (btnLateReport) {
