@@ -5110,8 +5110,6 @@ backBtn.onclick = () => {
     lateCourseEl.value = returnCourse;
   }
 
-  __lateListFilterOverride = null;
-
   lateClearDetail_();
   lateRenderReportedList_();
 
@@ -5210,15 +5208,12 @@ async function lateSelectReportedStudent_(student){
   const item = lateFindInCache_(student);
   if (!item) return;
 
-  /* ✅ Guardar dónde estaba la lista ANTES de cambiar al curso del estudiante */
+  /* Guarda el filtro actual ANTES de cambiar al curso del estudiante */
   __lateReturnCourseFilter = String(
-    __lateListFilterOverride || (lateCourseEl && lateCourseEl.value) || "__ALL__"
+    (lateCourseEl && lateCourseEl.value) || "__ALL__"
   ).trim();
 
   __lateReturnListScrollTop = lateReportedListEl ? lateReportedListEl.scrollTop : 0;
-
-  /* ✅ Al seleccionar, quitamos override para que el formulario use el curso real */
-  __lateListFilterOverride = null;
 
   const studentName = String(item.student || student || "").trim();
   const course = String(item.course || item.course_name || "").trim();
@@ -5249,7 +5244,6 @@ async function lateSelectReportedStudent_(student){
 
   __lateCurrentStudent = studentName;
 
-  lateRenderReportedList_();
   lateUpdateAutoBox_();
   lateRenderDetail_(studentName);
   lateSetHint_("");
