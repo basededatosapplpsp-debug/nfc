@@ -5298,6 +5298,36 @@ async function lateRefreshList_(){
   lateRenderReportedList_();
   lateUpdateAutoBox_();
 }
+
+let __latePollToken = "";
+
+function lateStartPolling_(){
+  if (__latePollTimer) return;
+
+  __latePollTimer = setInterval(async () => {
+    const p = loadProfile();
+    const admin = isAdminMode();
+    if (!p && !admin) return;
+    if (!lateArrivalModal || lateArrivalModal.hidden) return;
+
+    try {
+      const token = await gsLateArrivalChangesToken();
+
+      if (token && token !== __latePollToken) {
+        __latePollToken = token;
+
+        await lateRefreshList_();
+
+        if (__lateCurrentStudent) {
+          lateRenderDetail_(__lateCurrentStudent);
+        }
+      }
+    } catch {
+      // silencioso
+    }
+  }, 4000);
+}
+
 let __behaviorKind = "";
 
 let __behaviorLoadPromises = {
@@ -19806,6 +19836,11 @@ const btnLateReport = $("btnLateReport");
 const btnLateBack = $("btnLateBack");
 
 let __lateTimes = 0;
+let __latePollTimer = null;
+
+let __lateSaving = false;
+let __lateLastSubmitKey = "";
+let __lateLastSubmitAt = 0;
 
 function lateSetHint_(msg){
   if (lateHintEl) lateHintEl.textContent = String(msg || "");
@@ -19967,7 +20002,22 @@ async function gsLateArrivalList(){
   return Array.isArray(data.items) ? data.items : [];
 }
 
-async function openLateArrivalModal_(){
+async function gsLateArrivalChangesToken(){
+  const resp = await apiPost({
+    action: "late_arrival_changes_token",
+    month: lateMonthKey_()
+  });
+
+  if (!resp || resp.ok === false) {
+    throw new Error(resp?.msg || resp?.error || "No se pudo consultar cambios.");
+  }
+
+  return String(resp.token || "");
+}
+
+
+
+async function openLateArrivalModal_(){ 
   if (!lateArrivalModal) return;
 
   lateArrivalModal.hidden = false;
@@ -19985,6 +20035,15 @@ async function openLateArrivalModal_(){
     setLoading(true, "Cargando cursos", "Preparando estudiantes...");
     await lateLoadCourses_();
     await lateRefreshList_();
+
+    /* ✅ Inicializa token después de cargar la lista */
+    try {
+      __latePollToken = await gsLateArrivalChangesToken();
+    } catch {}
+
+    /* ✅ Asegura que el polling quede activo */
+    lateStartPolling_();
+
   } catch (e) {
     lateSetHint_(String(e && e.message ? e.message : e));
   } finally {
@@ -20062,83 +20121,112 @@ if (lateCourseEl) {
 });
   }
 
-  if (btnLateReport) {
-    btnLateReport.addEventListener("click", async () => {
-      const profile = loadProfile();
-      const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
-      const email = String(profile?.email || "").trim().toLowerCase();
+if (btnLateReport) {
+  btnLateReport.addEventListener("click", async () => {
+    if (__lateSaving) return;
 
-      const course = String(lateCourseEl && lateCourseEl.value || "").trim();
-      const student = String(lateStudentEl && lateStudentEl.value || "").trim();
-      const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
+    const profile = loadProfile();
+    const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
+    const email = String(profile?.email || "").trim().toLowerCase();
 
-      const item = lateFindInCache_(student);
-      const current = item ? Number(item.maxTimes || 0) : 0;
+    const course = String(lateCourseEl && lateCourseEl.value || "").trim();
+    const student = String(lateStudentEl && lateStudentEl.value || "").trim();
+    const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
 
-      if (!teacher) return lateSetHint_("Falta el docente.");
-      if (!course || course === "__ALL__") {
-  return lateSetHint_("Selecciona un curso específico para reportar.");
+    const item = lateFindInCache_(student);
+    const current = item ? Number(item.maxTimes || 0) : 0;
+
+    if (!teacher) return lateSetHint_("Falta el docente.");
+
+    if (!course || course === "__ALL__") {
+      return lateSetHint_("Selecciona un curso específico para reportar.");
+    }
+
+    if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
+
+    if (current >= 4) {
+      return lateSetHint_("Este estudiante ya tiene 4 llegadas tarde este mes.");
+    }
+
+    const submitKey = [
+      lateMonthKey_(),
+      lateNormalizeCourse_(course),
+      lateNormalizeKey_(student),
+      lateNormalizeKey_(teacher),
+      observation
+    ].join("|");
+
+    const now = Date.now();
+
+    if (__lateLastSubmitKey === submitKey && now - __lateLastSubmitAt < 8000) {
+      return lateSetHint_("Este reporte ya se está guardando. Espera un momento.");
+    }
+
+    __lateSaving = true;
+    __lateLastSubmitKey = submitKey;
+    __lateLastSubmitAt = now;
+
+    btnLateReport.disabled = true;
+    btnLateReport.textContent = "Guardando...";
+
+    try {
+      setLoading(true, "Guardando", "Registrando llegada tarde.");
+
+      const resp = await gsLateArrivalReport({
+        teacher,
+        email,
+        device_id: lateDeviceId_(),
+        course,
+        student,
+        observation
+      });
+
+      if (Array.isArray(resp.list)) {
+        __lateCacheList = resp.list;
+      } else {
+        await lateRefreshList_();
+      }
+
+      lateRenderReportedList_();
+      lateUpdateAutoBox_();
+      lateRenderDetail_(student);
+
+      if (lateObservationEl) lateObservationEl.value = "";
+
+      if (typeof showSuccessCheck_ === "function") {
+        showSuccessCheck_(resp.msg || "Llegada tarde guardada");
+      } else if (typeof showSuccessCheck === "function") {
+        showSuccessCheck(resp.msg || "Llegada tarde guardada");
+      } else {
+        lateSetHint_(resp.msg || "Llegada tarde guardada ✅");
+      }
+
+      if (resp && resp.justReported && String(resp.wa_msg || "").trim()) {
+        const msg = String(resp.wa_msg || "").trim();
+
+        if (typeof confirmAndShareReport_ === "function") {
+          await confirmAndShareReport_({
+            student,
+            msg,
+            title: "Compartir reporte (Llegadas tarde)"
+          });
+        } else if (navigator.share) {
+          await navigator.share({ text: msg });
+        } else {
+          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+        }
+      }
+
+    } catch (e) {
+      lateSetHint_(String(e && e.message ? e.message : e));
+    } finally {
+      __lateSaving = false;
+      btnLateReport.disabled = false;
+      btnLateReport.textContent = "Reportar";
+      setLoading(false);
+    }
+  });
 }
-      if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
-
-      if (current >= 4) {
-        return lateSetHint_("Este estudiante ya tiene 4 llegadas tarde este mes.");
-      }
-
-      try {
-        setLoading(true, "Guardando", "Registrando llegada tarde...");
-
-        const resp = await gsLateArrivalReport({
-          teacher,
-          email,
-          device_id: lateDeviceId_(),
-          course,
-          student,
-          observation
-        });
-
-        if (Array.isArray(resp.list)) {
-          __lateCacheList = resp.list;
-        } else {
-          await lateRefreshList_();
-        }
-
-        lateRenderReportedList_();
-        lateUpdateAutoBox_();
-
-        if (lateObservationEl) lateObservationEl.value = "";
-
-        if (typeof showSuccessCheck_ === "function") {
-          showSuccessCheck_(resp.msg || "Llegada tarde guardada");
-        } else if (typeof showSuccessCheck === "function") {
-          showSuccessCheck(resp.msg || "Llegada tarde guardada");
-        } else {
-          lateSetHint_(resp.msg || "Llegada tarde guardada ✅");
-        }
-
-        if (resp && resp.justReported && String(resp.wa_msg || "").trim()) {
-          const msg = String(resp.wa_msg || "").trim();
-
-          if (typeof confirmAndShareReport_ === "function") {
-            await confirmAndShareReport_({
-              student,
-              msg,
-              title: "Compartir reporte (Llegadas tarde)"
-            });
-          } else if (navigator.share) {
-            await navigator.share({ text: msg });
-          } else {
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
-          }
-        }
-
-      } catch (e) {
-        lateSetHint_(String(e && e.message ? e.message : e));
-      } finally {
-        setLoading(false);
-      }
-    });
-  }
 }
 
 // ======= EVENTOS =======
@@ -20165,6 +20253,8 @@ uniStartPolling_();
 bindObservationModal_();
 
 bindLateArrivalUI_();
+
+lateStartPolling_();
 
 document.body.classList.toggle("is-admin", isAdminMode());
 
