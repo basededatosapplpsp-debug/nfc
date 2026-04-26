@@ -5062,6 +5062,45 @@ function lateFilteredList_(){
 }
 
 
+async function lateSelectReportedStudent_(student){
+  const item = lateFindInCache_(student);
+  if (!item) return;
+
+  const course = String(item.course || item.course_name || "").trim();
+  const studentName = String(item.student || student || "").trim();
+
+  if (course && lateCourseEl) {
+    const exists = Array.from(lateCourseEl.options || []).some(opt => opt.value === course);
+
+    if (!exists) {
+      const opt = document.createElement("option");
+      opt.value = course;
+      opt.textContent = course;
+      lateCourseEl.appendChild(opt);
+    }
+
+    lateCourseEl.value = course;
+  }
+
+  if (course && course !== "__ALL__") {
+    try {
+      await lateLoadStudentsForCourse_(course);
+    } catch (e) {
+      console.warn("No se pudieron cargar estudiantes del curso:", e);
+    }
+  }
+
+  if (lateStudentEl) lateStudentEl.value = studentName;
+  if (lateStudentSelectEl) lateStudentSelectEl.value = studentName;
+
+  __lateCurrentStudent = studentName;
+
+  lateRenderReportedList_();
+  lateUpdateAutoBox_();
+  lateRenderDetail_(studentName);
+  lateSetHint_("");
+}
+
 
 function lateRenderReportedList_(){
   if (!lateReportedListEl) return;
@@ -5080,7 +5119,7 @@ function lateRenderReportedList_(){
     const obs = String(item.lastObservation || "").trim();
 
     return `
-      <div class="disc-item" data-late-student="${escapeHtml(student)}">
+      <div class="disc-item ${lateNormalizeKey_(student) === lateNormalizeKey_(__lateCurrentStudent) ? "selected" : ""}" data-late-student="${escapeHtml(student)}">
         <div class="left">
           <span class="lvl-dot lvl-${Math.max(1, Math.min(maxTimes, 4))}"></span>
           <div style="min-width:0; flex:1;">
@@ -5099,20 +5138,9 @@ function lateRenderReportedList_(){
   }).join("");
 
 lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
-  el.addEventListener("click", () => {
+  el.addEventListener("click", async () => {
     const student = el.getAttribute("data-late-student") || "";
-
-    lateReportedListEl.querySelectorAll(".disc-item").forEach(x => {
-      x.classList.remove("selected");
-    });
-
-    el.classList.add("selected");
-
-    if (lateStudentEl) lateStudentEl.value = student;
-    __lateCurrentStudent = student;
-
-    lateUpdateAutoBox_();
-    lateRenderDetail_(student);
+    await lateSelectReportedStudent_(student);
   });
 });
 }
