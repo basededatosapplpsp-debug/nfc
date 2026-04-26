@@ -20054,24 +20054,29 @@ async function openLateArrivalModal_(){
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
 
-  try {
-    setLoading(true, "Cargando cursos", "Preparando estudiantes...");
-    await lateLoadCourses_();
-    await lateRefreshList_();
+  /* ✅ Pintar de inmediato lo que ya está en memoria */
+  lateRenderReportedList_();
+  lateUpdateAutoBox_();
 
-    /* ✅ Inicializa token después de cargar la lista */
+  /* ✅ Arrancar polling sin bloquear apertura */
+  lateStartPolling_();
+
+  /* ✅ Cargar cursos/lista en segundo plano */
+  (async () => {
     try {
-      __latePollToken = await gsLateArrivalChangesToken();
-    } catch {}
+      await lateLoadCourses_();
 
-    /* ✅ Asegura que el polling quede activo */
-    lateStartPolling_();
+      const token = await gsLateArrivalChangesToken();
 
-  } catch (e) {
-    lateSetHint_(String(e && e.message ? e.message : e));
-  } finally {
-    setLoading(false);
-  }
+      if (!__latePollToken || token !== __latePollToken) {
+        __latePollToken = token;
+        await lateRefreshList_();
+      }
+
+    } catch (e) {
+      lateSetHint_(String(e && e.message ? e.message : e));
+    }
+  })();
 }
 
 function closeLateArrivalModal_(){
