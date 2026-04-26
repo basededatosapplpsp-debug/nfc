@@ -5035,6 +5035,11 @@ const lateDetailListEl = $("lateDetailList");
 let __lateCacheList = [];
 let __lateCurrentStudent = "";
 
+/* ✅ Guarda el filtro/lista desde donde se abrió el detalle */
+let __lateReturnCourseFilter = null;
+let __lateReturnListScrollTop = 0;
+let __lateListFilterOverride = null;
+
 function lateNormalizeKey_(v){
   return String(v || "")
     .trim()
@@ -5098,10 +5103,18 @@ function lateRenderDetail_(student){
 
   const backBtn = document.getElementById("btnLateDetailBack");
   if (backBtn) {
-    backBtn.onclick = () => {
-      lateClearDetail_();
-      lateRenderReportedList_();
-    };
+  backBtn.onclick = () => {
+  __lateListFilterOverride = __lateReturnCourseFilter || "__ALL__";
+
+  lateClearDetail_();
+  lateRenderReportedList_();
+
+  setTimeout(() => {
+    if (lateReportedListEl) {
+      lateReportedListEl.scrollTop = __lateReturnListScrollTop || 0;
+    }
+  }, 0);
+};
   }
 
   if (!who.length) {
@@ -5168,7 +5181,10 @@ function lateCurrentCourseFilter_(){
 }
 
 function lateFilteredList_(){
-  const selectedCourse = String(lateCourseEl && lateCourseEl.value || "__ALL__").trim();
+  const selectedCourse = String(
+    __lateListFilterOverride || (lateCourseEl && lateCourseEl.value) || "__ALL__"
+  ).trim();
+
   const list = Array.isArray(__lateCacheList) ? __lateCacheList : [];
 
   if (!selectedCourse || selectedCourse === "__ALL__") {
@@ -5188,8 +5204,18 @@ async function lateSelectReportedStudent_(student){
   const item = lateFindInCache_(student);
   if (!item) return;
 
-  const course = String(item.course || item.course_name || "").trim();
+  /* ✅ Guardar dónde estaba la lista ANTES de cambiar al curso del estudiante */
+  __lateReturnCourseFilter = String(
+    __lateListFilterOverride || (lateCourseEl && lateCourseEl.value) || "__ALL__"
+  ).trim();
+
+  __lateReturnListScrollTop = lateReportedListEl ? lateReportedListEl.scrollTop : 0;
+
+  /* ✅ Al seleccionar, quitamos override para que el formulario use el curso real */
+  __lateListFilterOverride = null;
+
   const studentName = String(item.student || student || "").trim();
+  const course = String(item.course || item.course_name || "").trim();
 
   if (course && lateCourseEl) {
     const exists = Array.from(lateCourseEl.options || []).some(opt => opt.value === course);
