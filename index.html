@@ -5038,7 +5038,7 @@ let __lateCurrentStudent = "";
 /* ✅ Guarda el filtro/lista desde donde se abrió el detalle */
 let __lateReturnCourseFilter = null;
 let __lateReturnListScrollTop = 0;
-let __lateListFilterOverride = null;
+
 
 function lateNormalizeKey_(v){
   return String(v || "")
@@ -5103,8 +5103,14 @@ function lateRenderDetail_(student){
 
   const backBtn = document.getElementById("btnLateDetailBack");
   if (backBtn) {
-  backBtn.onclick = () => {
-  __lateListFilterOverride = __lateReturnCourseFilter || "__ALL__";
+backBtn.onclick = () => {
+  const returnCourse = __lateReturnCourseFilter || "__ALL__";
+
+  if (lateCourseEl) {
+    lateCourseEl.value = returnCourse;
+  }
+
+  __lateListFilterOverride = null;
 
   lateClearDetail_();
   lateRenderReportedList_();
@@ -5182,7 +5188,7 @@ function lateCurrentCourseFilter_(){
 
 function lateFilteredList_(){
   const selectedCourse = String(
-    __lateListFilterOverride || (lateCourseEl && lateCourseEl.value) || "__ALL__"
+    (lateCourseEl && lateCourseEl.value) || "__ALL__"
   ).trim();
 
   const list = Array.isArray(__lateCacheList) ? __lateCacheList : [];
