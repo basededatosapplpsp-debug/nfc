@@ -3174,52 +3174,30 @@ button[data-uni-edit] + button[data-uni-del-one]{
   }
 }
 
-/* ===== Llegadas tarde: cursos tipo chips ===== */
-#lateArrivalModal #lateCourse{
-  position:absolute;
-  opacity:0;
-  pointer-events:none;
-  width:1px;
-  height:1px;
+/* ===== Scroll interno para reportados (Llegadas tarde) ===== */
+#lateArrivalModal .disc-reported{
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-#lateArrivalModal .late-course-box{
-  min-width: 0;
+#lateArrivalModal #lateReportedList{
+  max-height: 220px; /* 👈 ajusta si quieres más alto */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding-right: 4px; /* espacio para scrollbar */
 }
 
-#lateArrivalModal .late-course-chips{
-  display:flex;
-  gap:6px;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  max-width:100%;
-  padding-bottom:2px;
+/* Scroll más bonito */
+#lateArrivalModal #lateReportedList::-webkit-scrollbar{
+  width: 6px;
 }
 
-#lateArrivalModal .late-course-chips::-webkit-scrollbar{
-  display:none;
+#lateArrivalModal #lateReportedList::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.2);
+  border-radius: 6px;
 }
-
-#lateArrivalModal .late-course-chip{
-  flex:0 0 auto;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  border-radius:999px;
-  padding:9px 10px;
-  font-size:12px;
-  font-weight:900;
-  cursor:pointer;
-  white-space:nowrap;
-}
-
-#lateArrivalModal .late-course-chip.active{
-  background:rgba(11,95,255,.22);
-  border-color:rgba(11,95,255,.55);
-  box-shadow:0 0 0 3px rgba(11,95,255,.12);
-}
-
 
 </style>
 </head>
@@ -3996,7 +3974,6 @@ button[data-uni-edit] + button[data-uni-del-one]{
   <div class="late-course-box">
     <label class="modal-label" for="lateCourse">Curso</label>
     <select id="lateCourse" class="modal-input behavior-big-select"></select>
-    <div id="lateCourseChips" class="late-course-chips"></div>
   </div>
 
   <div class="late-student-box">
@@ -19498,7 +19475,6 @@ if ("serviceWorker" in navigator) {
 const btnLlegadasTarde = $("btnLlegadasTarde");
 const lateArrivalModal = $("lateArrivalModal");
 const lateCourseEl = $("lateCourse");
-const lateCourseChipsEl = $("lateCourseChips");
 const lateStudentEl = $("lateStudent");
 const lateStudentSelectEl = $("lateStudentSelect");
 const lateStudentsListEl = $("lateStudentsList");
@@ -19511,33 +19487,6 @@ let __lateTimes = 0;
 
 function lateSetHint_(msg){
   if (lateHintEl) lateHintEl.textContent = String(msg || "");
-}
-function lateRenderCourseChips_(){
-  if (!lateCourseEl || !lateCourseChipsEl) return;
-
-  const selected = String(lateCourseEl.value || "__ALL__").trim();
-  const options = Array.from(lateCourseEl.options || []);
-
-  lateCourseChipsEl.innerHTML = options.map(opt => {
-    const value = String(opt.value || "").trim();
-    const label = String(opt.textContent || value).trim();
-    const active = value === selected ? " active" : "";
-
-    return `
-      <button type="button" class="late-course-chip${active}" data-late-course-chip="${escapeHtml(value)}">
-        ${escapeHtml(label)}
-      </button>
-    `;
-  }).join("");
-
-  lateCourseChipsEl.querySelectorAll("[data-late-course-chip]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const value = btn.getAttribute("data-late-course-chip") || "__ALL__";
-      lateCourseEl.value = value;
-      lateRenderCourseChips_();
-      lateCourseEl.dispatchEvent(new Event("change"));
-    });
-  });
 }
 
 function lateRenderCourses_(courses){
@@ -19560,13 +19509,11 @@ function lateRenderCourses_(courses){
     lateCourseEl.appendChild(opt);
   });
 
- if (prev && (prev === "__ALL__" || list.includes(prev))) {
-  lateCourseEl.value = prev;
-} else {
-  lateCourseEl.value = "__ALL__";
-}
-
-lateRenderCourseChips_();
+  if (prev && (prev === "__ALL__" || list.includes(prev))) {
+    lateCourseEl.value = prev;
+  } else {
+    lateCourseEl.value = "__ALL__";
+  }
 }
 
 function lateRenderStudents_(students){
@@ -19748,7 +19695,6 @@ function bindLateArrivalUI_(){
 if (lateCourseEl) {
   lateCourseEl.addEventListener("change", async () => {
     const course = String(lateCourseEl.value || "").trim();
-    lateRenderCourseChips_();
 
     if (lateStudentEl) lateStudentEl.value = "";
     if (lateStudentSelectEl) lateStudentSelectEl.value = "";
