@@ -4814,10 +4814,33 @@ function lateUpdateAutoBox_(){
   lateAutoSubEl.textContent = `${student} tiene ${current} registrada(s) este mes. Se guardará como ${labels[next].toLowerCase()}.`;
 }
 
+function lateCurrentCourseFilter_(){
+  return String(lateCourseEl && lateCourseEl.value || "__ALL__").trim();
+}
+
+function lateFilteredList_(){
+  const selectedCourse = lateCurrentCourseFilter_();
+
+  const list = Array.isArray(__lateCacheList) ? __lateCacheList : [];
+
+  if (!selectedCourse || selectedCourse === "__ALL__") {
+    return list;
+  }
+
+  const selectedKey = normalizeCourseKey(selectedCourse);
+
+  return list.filter(item => {
+    const course = String(item.course || "").trim();
+    return normalizeCourseKey(course) === selectedKey;
+  });
+}
+
+
+
 function lateRenderReportedList_(){
   if (!lateReportedListEl) return;
 
-  const list = Array.isArray(__lateCacheList) ? __lateCacheList : [];
+  const list = lateFilteredList_();
 
   if (!list.length) {
     lateReportedListEl.innerHTML = `<div class="muted small">No hay llegadas tarde este mes.</div>`;
@@ -19385,6 +19408,11 @@ function lateRenderCourses_(courses){
 
   lateCourseEl.innerHTML = "";
 
+  const optAll = document.createElement("option");
+  optAll.value = "__ALL__";
+  optAll.textContent = "Todos los cursos";
+  lateCourseEl.appendChild(optAll);
+
   list.forEach(c => {
     const opt = document.createElement("option");
     opt.value = c;
@@ -19392,8 +19420,11 @@ function lateRenderCourses_(courses){
     lateCourseEl.appendChild(opt);
   });
 
-  if (prev && list.includes(prev)) lateCourseEl.value = prev;
-  else if (list.length) lateCourseEl.value = list[0];
+  if (prev && (prev === "__ALL__" || list.includes(prev))) {
+    lateCourseEl.value = prev;
+  } else {
+    lateCourseEl.value = "__ALL__";
+  }
 }
 
 function lateRenderStudents_(students){
@@ -19438,8 +19469,13 @@ async function lateLoadCourses_(){
 
   lateRenderCourses_(courses);
 
-  const firstCourse = String(lateCourseEl && lateCourseEl.value || "").trim();
-  if (firstCourse) await lateLoadStudentsForCourse_(firstCourse);
+ const firstCourse = String(lateCourseEl && lateCourseEl.value || "").trim();
+
+if (firstCourse && firstCourse !== "__ALL__") {
+  await lateLoadStudentsForCourse_(firstCourse);
+} else {
+  lateRenderStudents_([]);
+}
 }
 
 async function lateLoadStudentsForCourse_(course){
@@ -19567,26 +19603,32 @@ function bindLateArrivalUI_(){
     btnLateBack.addEventListener("click", closeLateArrivalModal_);
   }
 
-  if (lateCourseEl) {
-    lateCourseEl.addEventListener("change", async () => {
-      const course = String(lateCourseEl.value || "").trim();
-      if (!course) return;
+if (lateCourseEl) {
+  lateCourseEl.addEventListener("change", async () => {
+    const course = String(lateCourseEl.value || "").trim();
 
-      lateSetHint_("Cargando estudiantes...");
+    if (lateStudentEl) lateStudentEl.value = "";
+    __lateCurrentStudent = "";
 
-      try {
-        await lateLoadStudentsForCourse_(course);
+    lateRenderReportedList_();
+    lateUpdateAutoBox_();
 
-        if (lateStudentEl) lateStudentEl.value = "";
-        __lateCurrentStudent = "";
+    if (!course || course === "__ALL__") {
+      lateRenderStudents_([]);
+      lateSetHint_("Selecciona un curso específico para cargar estudiantes.");
+      return;
+    }
 
-        lateUpdateAutoBox_();
-        lateSetHint_("");
-      } catch (e) {
-        lateSetHint_(String(e && e.message ? e.message : e));
-      }
-    });
-  }
+    lateSetHint_("Cargando estudiantes.");
+
+    try {
+      await lateLoadStudentsForCourse_(course);
+      lateSetHint_("");
+    } catch (e) {
+      lateSetHint_(String(e && e.message ? e.message : e));
+    }
+  });
+}
 
   if (lateStudentSelectEl && lateStudentEl) {
     lateStudentSelectEl.addEventListener("change", () => {
@@ -19617,7 +19659,9 @@ function bindLateArrivalUI_(){
       const current = item ? Number(item.maxTimes || 0) : 0;
 
       if (!teacher) return lateSetHint_("Falta el docente.");
-      if (!course) return lateSetHint_("Selecciona un curso.");
+      if (!course || course === "__ALL__") {
+  return lateSetHint_("Selecciona un curso específico para reportar.");
+}
       if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
 
       if (current >= 4) {
