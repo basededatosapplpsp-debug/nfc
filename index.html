@@ -3261,6 +3261,32 @@ button[data-uni-edit] + button[data-uni-del-one]{
   white-space: pre-wrap;
 }
 
+/* ===== Llegadas tarde: modo detalle seleccionado ===== */
+#lateArrivalModal.late-detail-mode .disc-reported{
+  display: none !important;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-box{
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: none;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-list{
+  max-height: calc(100dvh - 390px);
+  min-height: 260px;
+}
+
+#lateArrivalModal .late-detail-back{
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-weight: 900;
+  cursor: pointer;
+}
 
 </style>
 </head>
@@ -4956,7 +4982,14 @@ function lateFindInCache_(student){
   return (__lateCacheList || []).find(x => lateNormalizeKey_(x.student) === key) || null;
 }
 
+function lateSetDetailMode_(on){
+  if (!lateArrivalModal) return;
+  lateArrivalModal.classList.toggle("late-detail-mode", !!on);
+}
+
 function lateClearDetail_(){
+  lateSetDetailMode_(false);
+
   if (lateDetailBoxEl) lateDetailBoxEl.hidden = true;
   if (lateDetailTitleEl) lateDetailTitleEl.textContent = "Detalle";
   if (lateDetailSubEl) lateDetailSubEl.textContent = "";
@@ -4978,9 +5011,23 @@ function lateRenderDetail_(student){
   const maxTimes = Number(item.maxTimes || 0);
   const who = Array.isArray(item.who) ? item.who : [];
 
+  lateSetDetailMode_(true);
+
   lateDetailBoxEl.hidden = false;
-  lateDetailTitleEl.textContent = studentName;
+  lateDetailTitleEl.innerHTML = `
+    <button type="button" class="late-detail-back" id="btnLateDetailBack">← Lista del mes</button>
+    <div style="margin-top:10px;">${escapeHtml(studentName)}</div>
+  `;
+
   lateDetailSubEl.textContent = `${course} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde`;
+
+  const backBtn = document.getElementById("btnLateDetailBack");
+  if (backBtn) {
+    backBtn.onclick = () => {
+      lateClearDetail_();
+      lateRenderReportedList_();
+    };
+  }
 
   if (!who.length) {
     lateDetailListEl.innerHTML = `<div class="muted small">No hay detalles disponibles.</div>`;
