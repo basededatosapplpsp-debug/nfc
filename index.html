@@ -3119,8 +3119,8 @@ button[data-uni-edit] + button[data-uni-del-one]{
 /* ===== Llegadas tarde: fila compacta curso + estudiante ===== */
 #lateArrivalModal .late-compact-row{
   display: grid;
-  grid-template-columns: 118px 1fr;
-  gap: 10px;
+  grid-template-columns: 80px 1fr; /* 👈 base */
+  gap: 8px;
   align-items: end;
 }
 
@@ -3130,14 +3130,14 @@ button[data-uni-edit] + button[data-uni-del-one]{
 }
 
 #lateArrivalModal #lateCourse{
-  min-height: 48px;
-  padding-left: 10px;
-  padding-right: 28px;
-  font-size: 14px;
+  min-height: 44px;
+  font-size: 13px;
+  padding-left: 8px;
+  padding-right: 24px;
 }
 
 #lateArrivalModal #lateStudent{
-  min-height: 48px;
+  min-height: 50px;
   font-size: 14px;
 }
 
@@ -3159,11 +3159,16 @@ button[data-uni-edit] + button[data-uni-del-one]{
 
 @media (max-width: 360px){
   #lateArrivalModal .late-compact-row{
-    grid-template-columns: 104px 1fr;
-    gap: 8px;
+    grid-template-columns: 72px 1fr; /* 👈 más pequeño el curso */
+    gap: 6px;
   }
 
-  #lateArrivalModal #lateCourse,
+  #lateArrivalModal #lateCourse{
+    font-size: 12px;
+    padding-left: 6px;
+    padding-right: 20px;
+  }
+
   #lateArrivalModal #lateStudent{
     font-size: 13px;
   }
