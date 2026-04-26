@@ -3266,16 +3266,61 @@ button[data-uni-edit] + button[data-uni-del-one]{
   display: none !important;
 }
 
-#lateArrivalModal.late-detail-mode .late-detail-box{
+/* ===== Llegadas tarde: detalle ajustado y con scroll interno ===== */
+#lateArrivalModal.late-detail-mode .behavior-full-body{
+  overflow: hidden !important;
+}
+
+#lateArrivalModal.late-detail-mode .behavior-panel-card{
+  height: calc(100dvh - 112px);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  max-height: none;
+  padding-bottom: 86px !important;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-box{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 #lateArrivalModal.late-detail-mode .late-detail-list{
-  max-height: calc(100dvh - 390px);
-  min-height: 260px;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
+}
+
+/* Las tarjetas del detalle se ajustan al contenido */
+#lateArrivalModal.late-detail-mode .late-detail-item{
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 10px !important;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-obs{
+  margin-top: 6px !important;
+  min-height: 0 !important;
+}
+
+/* Botón Reportar fijo abajo, al lado del botón atrás */
+#lateArrivalModal.late-detail-mode .modal-actions{
+  position: absolute !important;
+  right: 16px !important;
+  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
+  z-index: 9999999 !important;
+  margin: 0 !important;
+}
+
+#lateArrivalModal.late-detail-mode #btnLateReport{
+  height: 52px;
+  border-radius: 16px;
+  padding: 0 22px;
 }
 
 #lateArrivalModal .late-detail-back{
