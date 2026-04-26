@@ -5301,14 +5301,26 @@ async function lateRefreshList_(){
 
 let __latePollToken = "";
 
+let __latePollingBusy = false;
+
 function lateStartPolling_(){
   if (__latePollTimer) return;
 
   __latePollTimer = setInterval(async () => {
+    if (__latePollingBusy) return;
+
     const p = loadProfile();
     const admin = isAdminMode();
     if (!p && !admin) return;
-    if (!lateArrivalModal || lateArrivalModal.hidden) return;
+
+    const modalVisible =
+      lateArrivalModal &&
+      lateArrivalModal.style.display !== "none" &&
+      lateArrivalModal.hidden !== true;
+
+    if (!modalVisible) return;
+
+    __latePollingBusy = true;
 
     try {
       const token = await gsLateArrivalChangesToken();
@@ -5322,12 +5334,13 @@ function lateStartPolling_(){
           lateRenderDetail_(__lateCurrentStudent);
         }
       }
-    } catch {
-      // silencioso
+    } catch (e) {
+      console.warn("Polling llegadas tarde falló:", e);
+    } finally {
+      __latePollingBusy = false;
     }
   }, 4000);
 }
-
 let __behaviorKind = "";
 
 let __behaviorLoadPromises = {
@@ -20003,16 +20016,26 @@ async function gsLateArrivalList(){
 }
 
 async function gsLateArrivalChangesToken(){
-  const resp = await apiPost({
-    action: "late_arrival_changes_token",
-    month: lateMonthKey_()
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "late_arrival_changes_token",
+      month: lateMonthKey_(),
+      key: GS_API_KEY
+    })
   });
 
-  if (!resp || resp.ok === false) {
-    throw new Error(resp?.msg || resp?.error || "No se pudo consultar cambios.");
+  const data = await res.json().catch(() => null);
+
+  if (!data) {
+    throw new Error("Respuesta inválida del servidor");
   }
 
-  return String(resp.token || "");
+  if (!data.ok) {
+    throw new Error(data.msg || data.error || "No se pudo consultar cambios de llegadas tarde.");
+  }
+
+  return String(data.token || "");
 }
 
 
