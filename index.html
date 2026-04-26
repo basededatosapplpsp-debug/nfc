@@ -3378,6 +3378,19 @@ button[data-uni-edit] + button[data-uni-del-one]{
   line-height: 1 !important;
 }
 
+.late-edit-card{
+  width: min(460px, 100%);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 45%),
+    #0b1220;
+}
+
+.late-edit-card textarea{
+  min-height: 140px;
+  resize: vertical;
+}
+
 
 </style>
 </head>
@@ -20282,6 +20295,53 @@ async function lateDeleteOne_(student, row){
   }
 }
 
+function latePromptObservationPro_(currentObs){
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-backdrop";
+    overlay.style.zIndex = "10000001";
+
+    overlay.innerHTML = `
+      <div class="modal-card late-edit-card">
+        <h2 class="modal-title">Editar observación</h2>
+        <p class="modal-sub">Actualiza la observación de esta llegada tarde.</p>
+
+        <label class="modal-label">Observación</label>
+        <textarea id="lateEditObsInput" class="modal-input behavior-observation">${escapeHtml(currentObs || "")}</textarea>
+
+        <div class="modal-actions" style="justify-content:flex-end;">
+          <button type="button" class="btn btn-ghost" id="btnLateEditCancel">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnLateEditSave">Guardar</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = overlay.querySelector("#lateEditObsInput");
+    const btnCancel = overlay.querySelector("#btnLateEditCancel");
+    const btnSave = overlay.querySelector("#btnLateEditSave");
+
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }, 50);
+
+    function close(value){
+      overlay.remove();
+      resolve(value);
+    }
+
+    btnCancel.onclick = () => close(null);
+    btnSave.onclick = () => close(input.value);
+
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) close(null);
+    });
+  });
+}
+
+
 async function lateEditOne_(student, row){
   student = String(student || "").trim();
   if (!student || !row) return;
@@ -20291,7 +20351,7 @@ async function lateEditOne_(student, row){
   const dt = String(row.dt || "").trim();
   const currentObs = String(row.observation || "").trim();
 
-  const observation = prompt("Editar observación:", currentObs);
+ const observation = await latePromptObservationPro_(currentObs);
   if (observation === null) return;
 
   try {
