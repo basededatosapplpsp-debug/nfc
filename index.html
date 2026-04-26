@@ -3363,6 +3363,22 @@ button[data-uni-edit] + button[data-uni-del-one]{
   cursor: pointer;
 }
 
+
+#lateArrivalModal .behavior-mini-btn{
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+#lateArrivalModal .behavior-mini-btn i{
+  font-size: 11px !important;
+  line-height: 1 !important;
+}
+
+
 </style>
 </head>
 
@@ -5124,29 +5140,50 @@ function lateRenderDetail_(student){
   lateDetailBoxEl.hidden = false;
   lateDetailTitleEl.innerHTML = `
     <button type="button" class="late-detail-back" id="btnLateDetailBack">← Lista del mes</button>
-    <div style="margin-top:10px;">${escapeHtml(studentName)}</div>
+
+    <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+      <span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(studentName)}</span>
+
+      <button
+        type="button"
+        class="behavior-mini-btn delete"
+        id="btnLateDeleteStudent"
+        title="Eliminar todos los reportes"
+      >
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    </div>
   `;
 
   lateDetailSubEl.textContent = `${course} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde`;
 
   const backBtn = document.getElementById("btnLateDetailBack");
   if (backBtn) {
-backBtn.onclick = () => {
-  const returnCourse = __lateReturnCourseFilter || "__ALL__";
+    backBtn.onclick = () => {
+      const returnCourse = __lateReturnCourseFilter || "__ALL__";
 
-  if (lateCourseEl) {
-    lateCourseEl.value = returnCourse;
+      if (lateCourseEl) {
+        lateCourseEl.value = returnCourse;
+      }
+
+      lateClearDetail_();
+      lateRenderReportedList_();
+
+      setTimeout(() => {
+        if (lateReportedListEl) {
+          lateReportedListEl.scrollTop = __lateReturnListScrollTop || 0;
+        }
+      }, 0);
+    };
   }
 
-  lateClearDetail_();
-  lateRenderReportedList_();
-
-  setTimeout(() => {
-    if (lateReportedListEl) {
-      lateReportedListEl.scrollTop = __lateReturnListScrollTop || 0;
-    }
-  }, 0);
-};
+  const deleteStudentBtn = document.getElementById("btnLateDeleteStudent");
+  if (deleteStudentBtn) {
+    deleteStudentBtn.onclick = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await lateDeleteStudent_(studentName);
+    };
   }
 
   if (!who.length) {
@@ -5154,7 +5191,7 @@ backBtn.onclick = () => {
     return;
   }
 
-  lateDetailListEl.innerHTML = who.map(x => {
+  lateDetailListEl.innerHTML = who.map((x, idx) => {
     const teacher = String(x.teacher || "").trim() || "Docente";
     const times = Number(x.times || x.level || 0);
     const observation = String(x.observation || "").trim();
@@ -5170,7 +5207,28 @@ backBtn.onclick = () => {
             <div class="late-detail-teacher">${escapeHtml(teacher)}</div>
             <div class="late-detail-meta">${escapeHtml(when)} ${times ? `• ${times}ª vez` : ""}</div>
           </div>
-          <span class="badge ${times >= 4 ? "badge-late" : "badge-neutral"}">${times || "-"}/4</span>
+
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge ${times >= 4 ? "badge-late" : "badge-neutral"}">${times || "-"}/4</span>
+
+            <button
+              type="button"
+              class="behavior-mini-btn edit"
+              data-late-edit-one="${idx}"
+              title="Editar observación"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+
+            <button
+              type="button"
+              class="behavior-mini-btn delete"
+              data-late-delete-one="${idx}"
+              title="Eliminar este reporte"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </div>
 
         <div class="late-detail-obs">
@@ -5179,8 +5237,29 @@ backBtn.onclick = () => {
       </div>
     `;
   }).join("");
-}
 
+  lateDetailListEl.querySelectorAll("[data-late-edit-one]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const idx = Number(btn.getAttribute("data-late-edit-one") || -1);
+      const row = who[idx];
+      await lateEditOne_(studentName, row);
+    });
+  });
+
+  lateDetailListEl.querySelectorAll("[data-late-delete-one]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const idx = Number(btn.getAttribute("data-late-delete-one") || -1);
+      const row = who[idx];
+      await lateDeleteOne_(studentName, row);
+    });
+  });
+}
 function lateUpdateAutoBox_(){
   const student = String(lateStudentEl?.value || __lateCurrentStudent || "").trim();
   const item = student ? lateFindInCache_(student) : null;
@@ -5306,19 +5385,39 @@ function lateRenderReportedList_(){
             ${obs ? `<div class="muted small" style="margin-top:4px;">${escapeHtml(obs)}</div>` : ""}
           </div>
         </div>
+
         <div class="right">
           <span class="badge ${maxTimes >= 4 ? "badge-late" : "badge-neutral"}">${maxTimes}/4</span>
+
+          <button
+            type="button"
+            class="behavior-mini-btn delete"
+            data-late-delete-student="${escapeHtml(student)}"
+            title="Eliminar todos los reportes"
+          >
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
     `;
   }).join("");
 
-lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
-  el.addEventListener("click", async () => {
-    const student = el.getAttribute("data-late-student") || "";
-    await lateSelectReportedStudent_(student);
+  lateReportedListEl.querySelectorAll("[data-late-delete-student]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const student = btn.getAttribute("data-late-delete-student") || "";
+      await lateDeleteStudent_(student);
+    });
   });
-});
+
+  lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
+    el.addEventListener("click", async () => {
+      const student = el.getAttribute("data-late-student") || "";
+      await lateSelectReportedStudent_(student);
+    });
+  });
 }
 
 async function lateRefreshList_(){
@@ -20073,7 +20172,146 @@ async function gsLateArrivalChangesToken(){
   return String(data.token || "");
 }
 
+async function gsLateArrivalAction_(suffix, payload){
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: `late_arrival_${suffix}`,
+      month: lateMonthKey_(),
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
 
+  const data = await res.json().catch(() => null);
+
+  if (!data) throw new Error("Respuesta inválida del servidor");
+  if (!data.ok) throw new Error(data.msg || data.error || "Error en llegadas tarde");
+
+  return data;
+}
+
+async function lateApplyMutationResp_(resp, student){
+  if (Array.isArray(resp.list)) {
+    __lateCacheList = resp.list;
+  } else {
+    await lateRefreshList_();
+  }
+
+  try {
+    __latePollToken = await gsLateArrivalChangesToken();
+  } catch {}
+
+  if (typeof lateSaveCacheToStorage_ === "function") {
+    lateSaveCacheToStorage_();
+  }
+
+  lateRenderReportedList_();
+  lateUpdateAutoBox_();
+
+  if (student && lateFindInCache_(student)) {
+    lateRenderDetail_(student);
+  } else {
+    lateClearDetail_();
+  }
+}
+
+async function lateDeleteStudent_(student){
+  student = String(student || "").trim();
+  if (!student) return;
+
+  const ok = typeof confirmPro === "function"
+    ? await confirmPro({
+        title: "Eliminar reportes",
+        msg: `¿Seguro que deseas borrar TODOS los reportes de llegada tarde de "${student}" este mes?`,
+        okText: "Sí, eliminar",
+        cancelText: "Cancelar",
+        danger: true
+      })
+    : confirm(`¿Borrar TODOS los reportes de llegada tarde de "${student}" este mes?`);
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando", "Borrando reportes de llegadas tarde...");
+    const resp = await gsLateArrivalAction_("delete_student", { student });
+    await lateApplyMutationResp_(resp, "");
+    lateSetHint_(resp.msg || "Reportes eliminados ✅");
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function lateDeleteOne_(student, row){
+  student = String(student || "").trim();
+  if (!student || !row) return;
+
+  const teacher = String(row.teacher || "").trim();
+  const times = Number(row.times || 0);
+  const dt = String(row.dt || "").trim();
+
+  const ok = typeof confirmPro === "function"
+    ? await confirmPro({
+        title: "Eliminar reporte",
+        msg: `¿Eliminar la ${times}ª llegada tarde de "${student}" reportada por ${teacher}?`,
+        okText: "Sí, eliminar",
+        cancelText: "Cancelar",
+        danger: true
+      })
+    : confirm(`¿Eliminar la ${times}ª llegada tarde de "${student}"?`);
+
+  if (!ok) return;
+
+  try {
+    setLoading(true, "Eliminando", "Borrando reporte individual...");
+    const resp = await gsLateArrivalAction_("delete_one", {
+      student,
+      teacher,
+      times,
+      dt
+    });
+
+    await lateApplyMutationResp_(resp, student);
+    lateSetHint_(resp.msg || "Reporte eliminado ✅");
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function lateEditOne_(student, row){
+  student = String(student || "").trim();
+  if (!student || !row) return;
+
+  const teacher = String(row.teacher || "").trim();
+  const times = Number(row.times || 0);
+  const dt = String(row.dt || "").trim();
+  const currentObs = String(row.observation || "").trim();
+
+  const observation = prompt("Editar observación:", currentObs);
+  if (observation === null) return;
+
+  try {
+    setLoading(true, "Actualizando", "Guardando cambio...");
+    const resp = await gsLateArrivalAction_("update_one", {
+      student,
+      teacher,
+      times,
+      dt,
+      observation
+    });
+
+    await lateApplyMutationResp_(resp, student);
+    lateSetHint_(resp.msg || "Reporte actualizado ✅");
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
 
 async function openLateArrivalModal_(){ 
   if (!lateArrivalModal) return;
