@@ -3094,7 +3094,6 @@ button[data-uni-edit] + button[data-uni-del-one]{
   margin-left: 2px !important;
 }
 
-
 #lateArrivalModal .disc-item{
   max-width: 100%;
   overflow: hidden;
@@ -3119,7 +3118,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
 /* ===== Llegadas tarde: fila compacta curso + estudiante ===== */
 #lateArrivalModal .late-compact-row{
   display: grid;
-  grid-template-columns: 80px 1fr; /* 👈 base */
+  grid-template-columns: 80px 1fr;
   gap: 8px;
   align-items: end;
 }
@@ -3159,7 +3158,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
 
 @media (max-width: 360px){
   #lateArrivalModal .late-compact-row{
-    grid-template-columns: 72px 1fr; /* 👈 más pequeño el curso */
+    grid-template-columns: 72px 1fr;
     gap: 6px;
   }
 
@@ -3174,7 +3173,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
   }
 }
 
-/* ===== Scroll interno para reportados (Llegadas tarde) ===== */
+/* ===== Scroll interno reportados ===== */
 #lateArrivalModal .disc-reported{
   display: flex;
   flex-direction: column;
@@ -3182,14 +3181,12 @@ button[data-uni-edit] + button[data-uni-del-one]{
 }
 
 #lateArrivalModal #lateReportedList{
-  max-height: 220px; /* 👈 ajusta si quieres más alto */
+  max-height: 220px;
   overflow-y: auto;
   overflow-x: hidden;
-
-  padding-right: 4px; /* espacio para scrollbar */
+  padding-right: 4px;
 }
 
-/* Scroll más bonito */
 #lateArrivalModal #lateReportedList::-webkit-scrollbar{
   width: 6px;
 }
@@ -3199,7 +3196,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
   border-radius: 6px;
 }
 
-/* ===== Detalle llegadas tarde ===== */
+/* ===== DETALLE ===== */
 #lateArrivalModal .late-detail-box{
   margin-top: 12px;
   border: 1px solid rgba(255,255,255,.12);
@@ -3261,12 +3258,11 @@ button[data-uni-edit] + button[data-uni-del-one]{
   white-space: pre-wrap;
 }
 
-/* ===== Llegadas tarde: modo detalle seleccionado ===== */
+/* ===== MODO DETALLE (FIX FINAL) ===== */
 #lateArrivalModal.late-detail-mode .disc-reported{
   display: none !important;
 }
 
-/* ===== Llegadas tarde: detalle ajustado y con scroll interno ===== */
 #lateArrivalModal.late-detail-mode .behavior-full-body{
   overflow: hidden !important;
 }
@@ -3276,7 +3272,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding-bottom: 86px !important;
+  overflow: hidden;
 }
 
 #lateArrivalModal.late-detail-mode .late-detail-box{
@@ -3292,29 +3288,62 @@ button[data-uni-edit] + button[data-uni-del-one]{
   min-height: 0;
   max-height: none !important;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding-right: 4px;
+
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px;
 }
 
-/* Las tarjetas del detalle se ajustan al contenido */
 #lateArrivalModal.late-detail-mode .late-detail-item{
+  flex: 0 0 auto !important;
   min-height: 0 !important;
   height: auto !important;
   padding: 10px !important;
+  display: block !important;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-row-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-row-top > div{
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+#lateArrivalModal.late-detail-mode .late-detail-teacher,
+#lateArrivalModal.late-detail-mode .late-detail-meta,
+#lateArrivalModal.late-detail-mode .late-detail-obs{
+  position: static !important;
+  transform: none !important;
 }
 
 #lateArrivalModal.late-detail-mode .late-detail-obs{
-  margin-top: 6px !important;
+  display: block;
+  margin-top: 8px !important;
   min-height: 0 !important;
+  height: auto !important;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-/* Botón Reportar fijo abajo, al lado del botón atrás */
+/* BOTÓN DENTRO DEL MODAL */
 #lateArrivalModal.late-detail-mode .modal-actions{
-  position: absolute !important;
-  right: 16px !important;
-  bottom: calc(16px + env(safe-area-inset-bottom)) !important;
-  z-index: 9999999 !important;
-  margin: 0 !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 20 !important;
+  margin-top: 10px !important;
+  padding-top: 10px;
+  display: flex !important;
+  justify-content: flex-end !important;
+  background: #121a2b;
 }
 
 #lateArrivalModal.late-detail-mode #btnLateReport{
@@ -3323,6 +3352,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
   padding: 0 22px;
 }
 
+/* BOTÓN VOLVER */
 #lateArrivalModal .late-detail-back{
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
