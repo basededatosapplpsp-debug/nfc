@@ -5035,6 +5035,34 @@ const lateDetailListEl = $("lateDetailList");
 let __lateCacheList = [];
 let __lateCurrentStudent = "";
 
+function lateCacheKey_(){
+  return `late_arrivals_cache_${lateMonthKey_()}`;
+}
+
+function lateTokenKey_(){
+  return `late_arrivals_token_${lateMonthKey_()}`;
+}
+
+function lateLoadCacheFromStorage_(){
+  try {
+    const raw = localStorage.getItem(lateCacheKey_());
+    const list = raw ? JSON.parse(raw) : [];
+    __lateCacheList = Array.isArray(list) ? list : [];
+
+    __latePollToken = localStorage.getItem(lateTokenKey_()) || "";
+  } catch {
+    __lateCacheList = [];
+    __latePollToken = "";
+  }
+}
+
+function lateSaveCacheToStorage_(){
+  try {
+    localStorage.setItem(lateCacheKey_(), JSON.stringify(__lateCacheList || []));
+    localStorage.setItem(lateTokenKey_(), String(__latePollToken || ""));
+  } catch {}
+}
+
 /* ✅ Guarda el filtro/lista desde donde se abrió el detalle */
 let __lateReturnCourseFilter = null;
 let __lateReturnListScrollTop = 0;
@@ -5295,6 +5323,13 @@ lateReportedListEl.querySelectorAll("[data-late-student]").forEach(el => {
 
 async function lateRefreshList_(){
   __lateCacheList = await gsLateArrivalList();
+
+  try {
+    __latePollToken = await gsLateArrivalChangesToken();
+  } catch {}
+
+  lateSaveCacheToStorage_();
+
   lateRenderReportedList_();
   lateUpdateAutoBox_();
 }
@@ -20054,14 +20089,15 @@ async function openLateArrivalModal_(){
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
 
-  /* ✅ Pintar de inmediato lo que ya está en memoria */
+  /* ✅ Carga instantánea desde localStorage */
+  lateLoadCacheFromStorage_();
   lateRenderReportedList_();
   lateUpdateAutoBox_();
 
-  /* ✅ Arrancar polling sin bloquear apertura */
+  /* ✅ Polling activo */
   lateStartPolling_();
 
-  /* ✅ Cargar cursos/lista en segundo plano */
+  /* ✅ Cursos y actualización real en segundo plano */
   (async () => {
     try {
       await lateLoadCourses_();
@@ -20072,7 +20108,6 @@ async function openLateArrivalModal_(){
         __latePollToken = token;
         await lateRefreshList_();
       }
-
     } catch (e) {
       lateSetHint_(String(e && e.message ? e.message : e));
     }
@@ -20215,6 +20250,12 @@ if (btnLateReport) {
         await lateRefreshList_();
       }
 
+      try {
+  __latePollToken = await gsLateArrivalChangesToken();
+} catch {}
+
+lateSaveCacheToStorage_();
+
       lateRenderReportedList_();
       lateUpdateAutoBox_();
       lateRenderDetail_(student);
@@ -20282,6 +20323,7 @@ bindObservationModal_();
 
 bindLateArrivalUI_();
 
+lateLoadCacheFromStorage_();
 lateStartPolling_();
 
 document.body.classList.toggle("is-admin", isAdminMode());
