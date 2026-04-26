@@ -3116,6 +3116,59 @@ button[data-uni-edit] + button[data-uni-del-one]{
   white-space: nowrap;
 }
 
+/* ===== Llegadas tarde: fila compacta curso + estudiante ===== */
+#lateArrivalModal .late-compact-row{
+  display: grid;
+  grid-template-columns: 118px 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+#lateArrivalModal .late-course-box,
+#lateArrivalModal .late-student-box{
+  min-width: 0;
+}
+
+#lateArrivalModal #lateCourse{
+  min-height: 48px;
+  padding-left: 10px;
+  padding-right: 28px;
+  font-size: 14px;
+}
+
+#lateArrivalModal #lateStudent{
+  min-height: 48px;
+  font-size: 14px;
+}
+
+#lateArrivalModal .behavior-levels-wrap{
+  margin-top: 10px;
+}
+
+#lateArrivalModal .behavior-observation{
+  min-height: 78px;
+}
+
+#lateArrivalModal .modal-actions{
+  margin-top: 10px !important;
+}
+
+#lateArrivalModal .disc-reported{
+  margin-top: 12px !important;
+}
+
+@media (max-width: 360px){
+  #lateArrivalModal .late-compact-row{
+    grid-template-columns: 104px 1fr;
+    gap: 8px;
+  }
+
+  #lateArrivalModal #lateCourse,
+  #lateArrivalModal #lateStudent{
+    font-size: 13px;
+  }
+}
+
 
 </style>
 </head>
@@ -3888,34 +3941,34 @@ button[data-uni-edit] + button[data-uni-del-one]{
       <div class="behavior-panel">
         <div class="behavior-panel-card">
 
-          <div class="behavior-form-grid two">
-            <div>
-              <label class="modal-label" for="lateCourse">Curso</label>
-              <select id="lateCourse" class="modal-input behavior-big-select"></select>
-            </div>
+        <div class="late-compact-row">
+  <div class="late-course-box">
+    <label class="modal-label" for="lateCourse">Curso</label>
+    <select id="lateCourse" class="modal-input behavior-big-select"></select>
+  </div>
 
-            <div>
-              <datalist id="lateStudentsList"></datalist>
-              <label class="modal-label" for="lateStudent">Estudiante</label>
+  <div class="late-student-box">
+    <datalist id="lateStudentsList"></datalist>
+    <label class="modal-label" for="lateStudent">Estudiante</label>
 
-              <div class="input-with-select">
-                <input
-                  id="lateStudent"
-                  class="modal-input input-real behavior-big-select"
-                  type="text"
-                  list="lateStudentsList"
-                  placeholder="Escribe el nombre del estudiante..."
-                  autocomplete="off"
-                />
+    <div class="input-with-select">
+      <input
+        id="lateStudent"
+        class="modal-input input-real behavior-big-select"
+        type="text"
+        list="lateStudentsList"
+        placeholder="Escribe o selecciona estudiante..."
+        autocomplete="off"
+      />
 
-                <select
-                  id="lateStudentSelect"
-                  class="modal-input student-overlay"
-                  aria-label="Seleccionar estudiante"
-                ></select>
-              </div>
-            </div>
-          </div>
+      <select
+        id="lateStudentSelect"
+        class="modal-input student-overlay"
+        aria-label="Seleccionar estudiante"
+      ></select>
+    </div>
+  </div>
+</div>
 
     <div class="behavior-levels-wrap">
   <label class="modal-label">Conteo automático</label>
