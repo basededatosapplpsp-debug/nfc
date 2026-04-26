@@ -5133,6 +5133,25 @@ function lateClearDetail_(){
   if (lateDetailListEl) lateDetailListEl.innerHTML = "";
 }
 
+
+function lateBackToMonthlyList_(){
+  const returnCourse = __lateReturnCourseFilter || "__ALL__";
+
+  if (lateCourseEl) {
+    lateCourseEl.value = returnCourse;
+  }
+
+  lateClearDetail_();
+  lateRenderReportedList_();
+
+  setTimeout(() => {
+    if (lateReportedListEl) {
+      lateReportedListEl.scrollTop = __lateReturnListScrollTop || 0;
+    }
+  }, 0);
+}
+
+
 function lateRenderDetail_(student){
   const item = lateFindInCache_(student);
 
@@ -5151,44 +5170,26 @@ function lateRenderDetail_(student){
   lateSetDetailMode_(true);
 
   lateDetailBoxEl.hidden = false;
-  lateDetailTitleEl.innerHTML = `
-    <button type="button" class="late-detail-back" id="btnLateDetailBack">← Lista del mes</button>
+lateDetailTitleEl.innerHTML = `
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+    <span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">
+      ${escapeHtml(studentName)}
+    </span>
 
-    <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-      <span style="min-width:0; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(studentName)}</span>
-
-      <button
-        type="button"
-        class="behavior-mini-btn delete"
-        id="btnLateDeleteStudent"
-        title="Eliminar todos los reportes"
-      >
-        <i class="fa-solid fa-trash"></i>
-      </button>
-    </div>
-  `;
+    <button
+      type="button"
+      class="behavior-mini-btn delete"
+      id="btnLateDeleteStudent"
+      title="Eliminar todos los reportes"
+    >
+      <i class="fa-solid fa-trash"></i>
+    </button>
+  </div>
+`;
 
   lateDetailSubEl.textContent = `${course} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde`;
 
-  const backBtn = document.getElementById("btnLateDetailBack");
-  if (backBtn) {
-    backBtn.onclick = () => {
-      const returnCourse = __lateReturnCourseFilter || "__ALL__";
 
-      if (lateCourseEl) {
-        lateCourseEl.value = returnCourse;
-      }
-
-      lateClearDetail_();
-      lateRenderReportedList_();
-
-      setTimeout(() => {
-        if (lateReportedListEl) {
-          lateReportedListEl.scrollTop = __lateReturnListScrollTop || 0;
-        }
-      }, 0);
-    };
-  }
 
   const deleteStudentBtn = document.getElementById("btnLateDeleteStudent");
   if (deleteStudentBtn) {
@@ -20432,9 +20433,16 @@ function bindLateArrivalUI_(){
     });
   }
 
-  if (btnLateBack) {
-    btnLateBack.addEventListener("click", closeLateArrivalModal_);
-  }
+if (btnLateBack) {
+  btnLateBack.addEventListener("click", () => {
+    if (lateArrivalModal && lateArrivalModal.classList.contains("late-detail-mode")) {
+      lateBackToMonthlyList_();
+      return;
+    }
+
+    closeLateArrivalModal_();
+  });
+}
 
 if (lateCourseEl) {
   lateCourseEl.addEventListener("change", async () => {
