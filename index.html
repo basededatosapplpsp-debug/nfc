@@ -3093,6 +3093,8 @@ button[data-pierc-edit] + button[data-pierc-del-one],
 button[data-uni-edit] + button[data-uni-del-one]{
   margin-left: 2px !important;
 }
+
+
 #lateArrivalModal .disc-item{
   max-width: 100%;
   overflow: hidden;
@@ -3117,7 +3119,7 @@ button[data-uni-edit] + button[data-uni-del-one]{
 /* ===== Llegadas tarde: fila compacta curso + estudiante ===== */
 #lateArrivalModal .late-compact-row{
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px 1fr; /* 👈 base */
   gap: 8px;
   align-items: end;
 }
@@ -3153,18 +3155,41 @@ button[data-uni-edit] + button[data-uni-del-one]{
 
 #lateArrivalModal .disc-reported{
   margin-top: 12px !important;
+}
+
+@media (max-width: 360px){
+  #lateArrivalModal .late-compact-row{
+    grid-template-columns: 72px 1fr; /* 👈 más pequeño el curso */
+    gap: 6px;
+  }
+
+  #lateArrivalModal #lateCourse{
+    font-size: 12px;
+    padding-left: 6px;
+    padding-right: 20px;
+  }
+
+  #lateArrivalModal #lateStudent{
+    font-size: 13px;
+  }
+}
+
+/* ===== Scroll interno para reportados (Llegadas tarde) ===== */
+#lateArrivalModal .disc-reported{
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
 #lateArrivalModal #lateReportedList{
-  max-height: 220px;
+  max-height: 220px; /* 👈 ajusta si quieres más alto */
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+
+  padding-right: 4px; /* espacio para scrollbar */
 }
 
+/* Scroll más bonito */
 #lateArrivalModal #lateReportedList::-webkit-scrollbar{
   width: 6px;
 }
@@ -3174,29 +3199,35 @@ button[data-uni-edit] + button[data-uni-del-one]{
   border-radius: 6px;
 }
 
-/* ===== Detalle inline dentro de lista llegadas tarde ===== */
-#lateArrivalModal .late-detail-inline{
-  display: grid;
-  gap: 12px;
-}
-
-#lateArrivalModal .late-detail-main{
-  border: 1px solid rgba(11,95,255,.35);
-  background: rgba(11,95,255,.12);
+/* ===== Detalle llegadas tarde ===== */
+#lateArrivalModal .late-detail-box{
+  margin-top: 12px;
+  border: 1px solid rgba(255,255,255,.12);
   border-radius: 16px;
   padding: 12px;
+  background: rgba(0,0,0,.12);
+}
+
+#lateArrivalModal .late-detail-head{
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 #lateArrivalModal .late-detail-title{
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 950;
   color: var(--text);
-  line-height: 1.25;
 }
 
-#lateArrivalModal .late-detail-records{
+#lateArrivalModal .late-detail-list{
   display: grid;
   gap: 10px;
+  max-height: 190px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px;
 }
 
 #lateArrivalModal .late-detail-item{
@@ -3230,22 +3261,6 @@ button[data-uni-edit] + button[data-uni-del-one]{
   white-space: pre-wrap;
 }
 
-@media (max-width: 360px){
-  #lateArrivalModal .late-compact-row{
-    grid-template-columns: 72px 1fr;
-    gap: 6px;
-  }
-
-  #lateArrivalModal #lateCourse{
-    font-size: 12px;
-    padding-left: 6px;
-    padding-right: 20px;
-  }
-
-  #lateArrivalModal #lateStudent{
-    font-size: 13px;
-  }
-}
 
 </style>
 </head>
@@ -4071,7 +4086,16 @@ button[data-uni-edit] + button[data-uni-del-one]{
 
           <div id="lateHint" class="modal-hint muted small"></div>
 
+          <div id="lateDetailBox" class="late-detail-box" hidden>
+  <div class="late-detail-head">
+    <div>
+      <div id="lateDetailTitle" class="late-detail-title">Detalle</div>
+      <div id="lateDetailSub" class="muted small"></div>
+    </div>
+  </div>
 
+  <div id="lateDetailList" class="late-detail-list"></div>
+</div>
 
           <div class="modal-actions" style="justify-content:flex-end; margin-top:14px;">
             <button id="btnLateReport" type="button" class="btn btn-primary">Reportar</button>
@@ -4902,12 +4926,13 @@ const lateAutoTitleEl = $("lateAutoTitle");
 const lateAutoSubEl = $("lateAutoSub");
 const lateAutoDotEl = $("lateAutoDot");
 
-
+const lateDetailBoxEl = $("lateDetailBox");
+const lateDetailTitleEl = $("lateDetailTitle");
+const lateDetailSubEl = $("lateDetailSub");
+const lateDetailListEl = $("lateDetailList");
 
 let __lateCacheList = [];
 let __lateCurrentStudent = "";
-
-let __lateShowingDetail = false;
 
 function lateNormalizeKey_(v){
   return String(v || "")
@@ -4931,9 +4956,63 @@ function lateFindInCache_(student){
   return (__lateCacheList || []).find(x => lateNormalizeKey_(x.student) === key) || null;
 }
 
+function lateClearDetail_(){
+  if (lateDetailBoxEl) lateDetailBoxEl.hidden = true;
+  if (lateDetailTitleEl) lateDetailTitleEl.textContent = "Detalle";
+  if (lateDetailSubEl) lateDetailSubEl.textContent = "";
+  if (lateDetailListEl) lateDetailListEl.innerHTML = "";
+}
 
+function lateRenderDetail_(student){
+  const item = lateFindInCache_(student);
 
+  if (!lateDetailBoxEl || !lateDetailTitleEl || !lateDetailSubEl || !lateDetailListEl) return;
 
+  if (!item) {
+    lateClearDetail_();
+    return;
+  }
+
+  const studentName = String(item.student || student || "").trim();
+  const course = String(item.course || "").trim();
+  const maxTimes = Number(item.maxTimes || 0);
+  const who = Array.isArray(item.who) ? item.who : [];
+
+  lateDetailBoxEl.hidden = false;
+  lateDetailTitleEl.textContent = studentName;
+  lateDetailSubEl.textContent = `${course} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde`;
+
+  if (!who.length) {
+    lateDetailListEl.innerHTML = `<div class="muted small">No hay detalles disponibles.</div>`;
+    return;
+  }
+
+  lateDetailListEl.innerHTML = who.map(x => {
+    const teacher = String(x.teacher || "").trim() || "Docente";
+    const times = Number(x.times || x.level || 0);
+    const observation = String(x.observation || "").trim();
+    const date = String(x.date || "").trim();
+    const time = String(x.time || "").trim();
+    const dt = String(x.dt || "").trim();
+    const when = date && time ? `${date} • ${time}` : (dt || "Sin fecha");
+
+    return `
+      <div class="late-detail-item">
+        <div class="late-detail-row-top">
+          <div>
+            <div class="late-detail-teacher">${escapeHtml(teacher)}</div>
+            <div class="late-detail-meta">${escapeHtml(when)} ${times ? `• ${times}ª vez` : ""}</div>
+          </div>
+          <span class="badge ${times >= 4 ? "badge-late" : "badge-neutral"}">${times || "-"}/4</span>
+        </div>
+
+        <div class="late-detail-obs">
+          ${observation ? escapeHtml(observation) : `<span class="muted small">Sin observación.</span>`}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
 
 function lateUpdateAutoBox_(){
   const student = String(lateStudentEl?.value || __lateCurrentStudent || "").trim();
@@ -5022,104 +5101,6 @@ async function lateSelectReportedStudent_(student){
   lateSetHint_("");
 }
 
-
-function lateShowListView_(){
-  __lateShowingDetail = false;
-  lateRenderReportedList_();
-}
-
-async function lateSelectReportedStudent_(student){
-  const item = lateFindInCache_(student);
-  if (!item) return;
-
-  const course = String(item.course || item.course_name || "").trim();
-  const studentName = String(item.student || student || "").trim();
-
-  if (course && lateCourseEl) {
-    const exists = Array.from(lateCourseEl.options || []).some(opt => opt.value === course);
-
-    if (!exists) {
-      const opt = document.createElement("option");
-      opt.value = course;
-      opt.textContent = course;
-      lateCourseEl.appendChild(opt);
-    }
-
-    lateCourseEl.value = course;
-  }
-
-  if (course && course !== "__ALL__") {
-    try {
-      await lateLoadStudentsForCourse_(course);
-    } catch (e) {
-      console.warn("No se pudieron cargar estudiantes del curso:", e);
-    }
-  }
-
-  if (lateStudentEl) lateStudentEl.value = studentName;
-  if (lateStudentSelectEl) lateStudentSelectEl.value = studentName;
-
-  __lateCurrentStudent = studentName;
-
-  lateUpdateAutoBox_();
-  lateRenderReportedDetail_(studentName);
-  lateSetHint_("");
-}
-
-function lateRenderReportedDetail_(student){
-  if (!lateReportedListEl) return;
-
-  const item = lateFindInCache_(student);
-  if (!item) return;
-
-  __lateShowingDetail = true;
-
-  const studentName = String(item.student || student || "").trim();
-  const course = String(item.course || "").trim();
-  const maxTimes = Number(item.maxTimes || 0);
-  const who = Array.isArray(item.who) ? item.who : [];
-
-  lateReportedListEl.innerHTML = `
-    <div class="late-detail-inline">
-      <div class="late-detail-main">
-        <div class="late-detail-title">${escapeHtml(studentName)}</div>
-        <div class="muted small">${escapeHtml(course)} • ${maxTimes}/4 llegada${maxTimes === 1 ? "" : "s"} tarde</div>
-      </div>
-
-      <div class="late-detail-records">
-        ${
-          who.length
-            ? who.map(x => {
-                const teacher = String(x.teacher || "").trim() || "Docente";
-                const times = Number(x.times || x.level || 0);
-                const observation = String(x.observation || "").trim();
-                const date = String(x.date || "").trim();
-                const time = String(x.time || "").trim();
-                const dt = String(x.dt || "").trim();
-                const when = date && time ? `${date} • ${time}` : (dt || "Sin fecha");
-
-                return `
-                  <div class="late-detail-item">
-                    <div class="late-detail-row-top">
-                      <div>
-                        <div class="late-detail-teacher">${escapeHtml(teacher)}</div>
-                        <div class="late-detail-meta">${escapeHtml(when)} ${times ? `• ${times}ª vez` : ""}</div>
-                      </div>
-                      <span class="badge ${times >= 4 ? "badge-late" : "badge-neutral"}">${times || "-"}/4</span>
-                    </div>
-
-                    <div class="late-detail-obs">
-                      ${observation ? escapeHtml(observation) : `<span class="muted small">Sin observación.</span>`}
-                    </div>
-                  </div>
-                `;
-              }).join("")
-            : `<div class="muted small">No hay detalles disponibles.</div>`
-        }
-      </div>
-    </div>
-  `;
-}
 
 function lateRenderReportedList_(){
   if (!lateReportedListEl) return;
@@ -19846,7 +19827,6 @@ async function openLateArrivalModal_(){
   lateArrivalModal.style.display = "flex";
 
   lateSetHint_("");
-  __lateShowingDetail = false;
   lateApplyTimes_(0);
   lateClearDetail_();
 
@@ -19870,7 +19850,6 @@ function closeLateArrivalModal_(){
   lateArrivalModal.hidden = true;
   lateApplyTimes_(0);
   lateSetHint_("");
-  __lateShowingDetail = false;
   lateClearDetail_();
 
   if (lateObservationEl) lateObservationEl.value = "";
@@ -19885,16 +19864,9 @@ function bindLateArrivalUI_(){
     });
   }
 
- if (btnLateBack) {
-  btnLateBack.addEventListener("click", () => {
-    if (__lateShowingDetail) {
-      lateShowListView_();
-      return;
-    }
-
-    closeLateArrivalModal_();
-  });
-}
+  if (btnLateBack) {
+    btnLateBack.addEventListener("click", closeLateArrivalModal_);
+  }
 
 if (lateCourseEl) {
   lateCourseEl.addEventListener("change", async () => {
