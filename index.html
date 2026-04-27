@@ -5064,6 +5064,8 @@ const lateDetailListEl = $("lateDetailList");
 let __lateCacheList = [];
 let __lateCurrentStudent = "";
 
+let __isHardRefreshing = false;
+
 function lateCacheKey_(){
   return `late_arrivals_cache_${lateMonthKey_()}`;
 }
@@ -19845,11 +19847,18 @@ btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hid
 const APP_BUILD = "2026-04-10-93";
 
 // ======= Reset / Refresh Service Worker + Cache =======
+let __hardRefreshRunning = false;
+
 async function hardRefreshPWA() {
+  if (__hardRefreshRunning) return;
+  __hardRefreshRunning = true;
+
   try {
     setStatus("warn", "Actualizando…", "Borrando caché y reiniciando la app.");
 
-    // 🔥 orden de suicidio al SW activo
+    // ✅ Marca que este reload viene de una actualización controlada
+    sessionStorage.setItem("showRefreshAfterReload", "1");
+
     if ("serviceWorker" in navigator) {
       const reg = await navigator.serviceWorker.getRegistration();
       if (reg && reg.active) {
@@ -19857,35 +19866,28 @@ async function hardRefreshPWA() {
       }
     }
 
-    // 🧹 borrar caches desde la app
     if ("caches" in window) {
       const keys = await caches.keys();
       await Promise.all(keys.map(k => caches.delete(k)));
     }
 
-    // 🔄 romper caché del navegador
     const url = new URL(location.href);
     url.searchParams.set("v", Date.now().toString());
     location.replace(url.toString());
 
   } catch (e) {
+    __hardRefreshRunning = false;
     setStatus("bad", "No se pudo actualizar", "Cierra la app y ábrela de nuevo.");
   }
 }
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    // ✅ guardar flag para mostrar animación después del reload
-    sessionStorage.setItem("showRefreshAfterReload", "1");
-
-    // ✅ mostrar animación actual
     showRefreshSpin("Actualizando…");
 
-    // pequeño delay para que se vea antes del reload
     await new Promise(resolve => requestAnimationFrame(() => resolve()));
     await new Promise(resolve => setTimeout(resolve, 60));
 
-    // ✅ refrescar inmediatamente
     await hardRefreshPWA();
 
   } catch (e) {
@@ -19894,7 +19896,7 @@ btnRefreshSW.addEventListener("click", async () => {
   }
 });
 
-// ✅ NUEVO: al abrir la app, ejecutar la misma actualización del botón
+// ✅ Al abrir la app: hace hard refresh UNA sola vez por sesión
 window.addEventListener("load", async () => {
   try {
     const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
@@ -19902,7 +19904,11 @@ window.addEventListener("load", async () => {
     if (alreadyAutoRefreshed === "1") return;
 
     sessionStorage.setItem("didAutoRefreshOnOpen", "1");
-    sessionStorage.setItem("showRefreshAfterReload", "1");
+
+    showRefreshSpin("Actualizando…");
+
+    await new Promise(resolve => requestAnimationFrame(() => resolve()));
+    await new Promise(resolve => setTimeout(resolve, 60));
 
     await hardRefreshPWA();
   } catch (e) {
@@ -19913,6 +19919,7 @@ window.addEventListener("load", async () => {
 if (btnLogout) {
   btnLogout.addEventListener("click", () => {
     sessionStorage.removeItem("didAutoRefreshOnOpen");
+    sessionStorage.removeItem("showRefreshAfterReload");
     logout();
   });
 }
@@ -19926,13 +19933,11 @@ if ("serviceWorker" in navigator) {
     try {
       const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
 
-      // primera vez: solo guardar versión actual
       if (!savedBuild) {
         localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
         return;
       }
 
-      // si cambió el build del HTML, hacer hard refresh una sola vez
       if (savedBuild !== APP_BUILD) {
         if (__autoBuildRefreshRunning) return;
         __autoBuildRefreshRunning = true;
@@ -19943,32 +19948,23 @@ if ("serviceWorker" in navigator) {
     } catch {}
   }
 
-  async function registerAndUpdateSW_() {
-    try {
-      const reg = await navigator.serviceWorker.register(`./sw.js?v=${encodeURIComponent(APP_BUILD)}`);
-      try { await reg.update(); } catch {}
-
-      if (reg.waiting) {
-        reg.waiting.postMessage({ type: "SKIP_WAITING" });
-      }
-
-      reg.addEventListener("updatefound", () => {
-        const newWorker = reg.installing;
-        if (!newWorker) return;
-
-        newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-            newWorker.postMessage({ type: "SKIP_WAITING" });
-          }
-        });
-      });
-    } catch {}
-  }
-
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (__swReloading) return;
+
+    const controlledRefresh =
+      sessionStorage.getItem("showRefreshAfterReload") === "1";
+
+    if (!controlledRefresh) return;
+
     __swReloading = true;
-    location.reload();
+    sessionStorage.removeItem("showRefreshAfterReload");
+
+    // ✅ evita segundo reload inmediato si hardRefreshPWA ya hizo location.replace
+    setTimeout(() => {
+      if (!__hardRefreshRunning) {
+        location.reload();
+      }
+    }, 250);
   });
 
   window.addEventListener("load", async () => {
