@@ -2813,7 +2813,8 @@ body.is-admin #registerActions{
 /* BOTONES REALES */
 #btnDiscViewerBack,
 #btnPiercViewerBack,
-#btnUniViewerBack{
+#btnUniViewerBack,
+#btnBehaviorHubClose{
   position: absolute !important;
 left: 16px !important;
 bottom: calc(16px + env(safe-area-inset-bottom)) !important;
@@ -2862,7 +2863,8 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 /* icono */
 #btnDiscViewerBack i,
 #btnPiercViewerBack i,
-#btnUniViewerBack i{
+#btnUniViewerBack i,
+#btnBehaviorHubClose i{
   font-size: 22px !important;
   color: rgba(233,238,252,.96) !important;
   text-shadow: none !important;
@@ -2871,7 +2873,8 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 /* hover */
 #btnDiscViewerBack:hover,
 #btnPiercViewerBack:hover,
-#btnUniViewerBack:hover{
+#btnUniViewerBack:hover,
+#btnBehaviorHubClose:hover{
   transform: translateY(-2px) scale(1.05) !important;
   filter: brightness(1.08);
 }
@@ -2879,7 +2882,8 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
 /* active */
 #btnDiscViewerBack:active,
 #btnPiercViewerBack:active,
-#btnUniViewerBack:active{
+#btnUniViewerBack:active,
+#btnBehaviorHubClose:active{
   transform: scale(.92) !important;
 }
 
@@ -2890,10 +2894,6 @@ bottom: calc(16px + env(safe-area-inset-bottom)) !important;
   padding-bottom: 160px !important;
 }
 
-/* NO tocar la X del hub */
-#btnBehaviorHubClose{
-  position: static !important;
-}
 
 @keyframes fabBackIn{
   from{
