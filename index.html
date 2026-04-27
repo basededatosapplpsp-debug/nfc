@@ -7352,11 +7352,16 @@ function hideRefreshSpin() {
 
 
 
-function showSuccessCheck(message = "¡Registro guardado!", ms = 3200) {
+function showSuccessCheck(message = "¡Registro guardado!", ms = 3200, opts = {}) {
   const box = document.getElementById("successCheck");
   const text = document.getElementById("successCheckText");
 
   if (!box || !text) return;
+
+  const fast = opts.fast === true;
+
+  // ⏱️ si es rápido, ignora el ms normal
+  const duration = fast ? 500 : ms;
 
   text.textContent = message;
 
@@ -7365,18 +7370,21 @@ function showSuccessCheck(message = "¡Registro guardado!", ms = 3200) {
     __successCheckTimer = null;
   }
 
-  // reiniciar animaciones
+  // reiniciar animación
   box.hidden = true;
   void box.offsetWidth;
   box.hidden = false;
 
-  vibrateSuccess_();
-  playSuccessTone_();
+  // 🔇 opcional: si quieres que en rápido no vibre ni suene
+  if (!fast) {
+    vibrateSuccess_();
+    playSuccessTone_();
+  }
 
   __successCheckTimer = setTimeout(() => {
     box.hidden = true;
     __successCheckTimer = null;
-  }, ms);
+  }, duration);
 }
 
 /**
@@ -20633,16 +20641,16 @@ lateSaveCacheToStorage_();
 
       if (lateObservationEl) lateObservationEl.value = "";
 
-  if (typeof showSuccessCheck_ === "function") {
-  showSuccessCheck_(resp.msg || "Llegada tarde guardada");
+if (typeof showSuccessCheck_ === "function") {
+  showSuccessCheck_(resp.msg || "✔", 3200, { fast: true });
 } else if (typeof showSuccessCheck === "function") {
-  showSuccessCheck(resp.msg || "Llegada tarde guardada");
+  showSuccessCheck(resp.msg || "✔", 3200, { fast: true });
 } else {
-  lateSetHint_(resp.msg || "Llegada tarde guardada ✅");
+  lateSetHint_("✔");
 
   setTimeout(() => {
     lateSetHint_("");
-  }, 100);
+  }, 400);
 }
 
       if (resp && resp.justReported && String(resp.wa_msg || "").trim()) {
