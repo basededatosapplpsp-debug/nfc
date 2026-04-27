@@ -20633,18 +20633,16 @@ lateSaveCacheToStorage_();
 
       if (lateObservationEl) lateObservationEl.value = "";
 
-  if (typeof confirmPro === "function") {
-  await confirmPro({
-    title: "Registro exitoso",
-    msg: resp.msg || "Llegada tarde guardada",
-    okText: "Aceptar"
-  });
-} else if (typeof showSuccessCheck_ === "function") {
+  if (typeof showSuccessCheck_ === "function") {
   showSuccessCheck_(resp.msg || "Llegada tarde guardada");
 } else if (typeof showSuccessCheck === "function") {
   showSuccessCheck(resp.msg || "Llegada tarde guardada");
 } else {
   lateSetHint_(resp.msg || "Llegada tarde guardada ✅");
+
+  setTimeout(() => {
+    lateSetHint_("");
+  }, 1200);
 }
 
       if (resp && resp.justReported && String(resp.wa_msg || "").trim()) {
