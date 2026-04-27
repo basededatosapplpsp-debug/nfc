@@ -5276,6 +5276,54 @@ lateDetailTitleEl.innerHTML = `
     });
   });
 }
+
+function lateBuildShareMessage_(student){
+  const item = lateFindInCache_(student);
+  if (!item) return "";
+
+  const studentName = String(item.student || student || "").trim();
+  const month = lateMonthKey_();
+  const who = Array.isArray(item.who) ? item.who : [];
+
+  return (
+    `Hola profe,\n\n` +
+    `El estudiante "${studentName}" alcanzó la cuarta llegada tarde.\n\n` +
+    `Mes: ${month}\n\n` +
+    `Registros:\n` +
+    who
+      .slice()
+      .sort((a, b) => Number(a.times || 0) - Number(b.times || 0))
+      .map(x => {
+        const teacher = String(x.teacher || "Docente").trim();
+        const times = Number(x.times || 0);
+        const obs = String(x.observation || "").trim();
+        return `- ${teacher} (${times}ª vez)${obs ? `: ${obs}` : ""}`;
+      })
+      .join("\n")
+  );
+}
+
+async function lateShareReachedFour_(student){
+  const msg = lateBuildShareMessage_(student);
+
+  if (!msg.trim()) {
+    lateSetHint_("No hay mensaje para compartir.");
+    return;
+  }
+
+  if (typeof confirmAndShareReport_ === "function") {
+    await confirmAndShareReport_({
+      student,
+      msg,
+      title: "Reenviar reporte (Llegadas tarde)"
+    });
+  } else if (navigator.share) {
+    await navigator.share({ text: msg });
+  } else {
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  }
+}
+
 function lateUpdateAutoBox_(){
   const student = String(lateStudentEl?.value || __lateCurrentStudent || "").trim();
   const item = student ? lateFindInCache_(student) : null;
@@ -5289,18 +5337,38 @@ function lateUpdateAutoBox_(){
   if (!student) {
     lateAutoTitleEl.textContent = "Selecciona un estudiante";
     lateAutoSubEl.textContent = "La app calculará automáticamente la próxima llegada tarde.";
+
+    if (btnLateReport) {
+      btnLateReport.textContent = "Reportar";
+      btnLateReport.classList.remove("btn-secondary");
+      btnLateReport.classList.add("btn-primary");
+    }
+
     return;
   }
 
   if (current >= 4) {
     lateAutoTitleEl.textContent = "Ya alcanzó 4 llegadas tarde";
-    lateAutoSubEl.textContent = "No se registrarán más llegadas tarde para este mes.";
+    lateAutoSubEl.textContent = "Puedes reenviar el reporte para compartirlo nuevamente.";
+
+    if (btnLateReport) {
+      btnLateReport.textContent = "Reenviar";
+      btnLateReport.classList.remove("btn-primary");
+      btnLateReport.classList.add("btn-secondary");
+    }
+
     return;
   }
 
   const labels = ["", "Primera vez", "Segunda vez", "Tercera vez", "Cuarta vez"];
   lateAutoTitleEl.textContent = labels[next];
   lateAutoSubEl.textContent = `${student} tiene ${current} registrada(s) este mes. Se guardará como ${labels[next].toLowerCase()}.`;
+
+  if (btnLateReport) {
+    btnLateReport.textContent = "Reportar";
+    btnLateReport.classList.remove("btn-secondary");
+    btnLateReport.classList.add("btn-primary");
+  }
 }
 
 function lateCurrentCourseFilter_(){
@@ -20509,9 +20577,10 @@ if (btnLateReport) {
 
     if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
 
-    if (current >= 4) {
-      return lateSetHint_("Este estudiante ya tiene 4 llegadas tarde este mes.");
-    }
+   if (current >= 4) {
+  await lateShareReachedFour_(student);
+  return;
+}
 
     const submitKey = [
       lateMonthKey_(),
