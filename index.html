@@ -3391,80 +3391,89 @@ button[data-uni-edit] + button[data-uni-del-one]{
   resize: vertical;
 }
 
-.late-success-toast{
+.late-success-backdrop{
   position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -40%) scale(.96);
+  inset: 0;
   z-index: 10000050;
-  opacity: 0;
+  display: grid;
+  place-items: center;
   pointer-events: none;
-
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  width: min(92vw, 360px);
-  padding: 12px 14px;
-  border-radius: 18px;
-
-  background:
-    radial-gradient(circle at top left, rgba(34,197,94,.20), transparent 42%),
-    rgba(15,23,42,.96);
-
-  border: 1px solid rgba(34,197,94,.28);
-  box-shadow:
-    0 18px 38px rgba(0,0,0,.42),
-    inset 0 1px 0 rgba(255,255,255,.08);
-
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-
-  transition:
-    opacity .18s ease,
-    transform .18s ease;
+  opacity: 0;
+  background: rgba(0,0,0,.24);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .18s ease;
 }
 
-.late-success-toast.show{
+.late-success-backdrop.show{
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
+}
+
+.late-success-toast{
+  width: min(86vw, 300px);
+  padding: 22px 18px;
+  border-radius: 26px;
+  text-align: center;
+
+  background:
+    radial-gradient(circle at top left, rgba(34,197,94,.22), transparent 44%),
+    rgba(15,23,42,.94);
+
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow:
+    0 22px 55px rgba(0,0,0,.48),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  transform: scale(.78);
+  opacity: 0;
+
+  transition:
+    transform .26s cubic-bezier(.2,.9,.2,1),
+    opacity .18s ease;
+}
+
+.late-success-backdrop.show .late-success-toast{
+  transform: scale(1);
+  opacity: 1;
 }
 
 .late-success-icon{
-  width: 42px;
-  height: 42px;
-  min-width: 42px;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 14px;
   border-radius: 999px;
   display: grid;
   place-items: center;
 
   color: #dcfce7;
-  font-size: 26px;
+  font-size: 46px;
   font-weight: 950;
 
   background: rgba(34,197,94,.20);
-  border: 1px solid rgba(34,197,94,.38);
-  box-shadow: 0 0 0 6px rgba(34,197,94,.10);
+  border: 1px solid rgba(34,197,94,.42);
+  box-shadow:
+    0 0 0 8px rgba(34,197,94,.10),
+    0 0 32px rgba(34,197,94,.20);
 
   animation: lateToastPop .34s cubic-bezier(.2,.9,.2,1);
 }
 
 .late-success-title{
   font-weight: 950;
-  font-size: 14px;
+  font-size: 17px;
   color: #f8fafc;
 }
 
 .late-success-sub{
-  margin-top: 2px;
-  font-size: 12px;
+  margin-top: 5px;
+  font-size: 13px;
   font-weight: 800;
   color: rgba(203,213,225,.92);
 }
 
 @keyframes lateToastPop{
   0%{ transform: scale(.55); opacity: .2; }
-  65%{ transform: scale(1.16); opacity: 1; }
+  65%{ transform: scale(1.14); opacity: 1; }
   100%{ transform: scale(1); opacity: 1; }
 }
 
@@ -5480,30 +5489,28 @@ function lateSuccessToast_(times){
     4: "Cuarta llegada tarde"
   };
 
-  const old = document.getElementById("lateSuccessToast");
+  const old = document.getElementById("lateSuccessToastBackdrop");
   if (old) old.remove();
 
-  const el = document.createElement("div");
-  el.id = "lateSuccessToast";
-  el.className = "late-success-toast";
-  el.innerHTML = `
-    <div class="late-success-icon">✓</div>
-    <div>
+  const overlay = document.createElement("div");
+  overlay.id = "lateSuccessToastBackdrop";
+  overlay.className = "late-success-backdrop";
+  overlay.innerHTML = `
+    <div id="lateSuccessToast" class="late-success-toast">
+      <div class="late-success-icon">✓</div>
       <div class="late-success-title">Reporte registrado</div>
       <div class="late-success-sub">${escapeHtml(labels[n] || "Llegada tarde registrada")}</div>
     </div>
   `;
 
-  document.body.appendChild(el);
+  document.body.appendChild(overlay);
+
+  setTimeout(() => overlay.classList.add("show"), 10);
 
   setTimeout(() => {
-    el.classList.add("show");
-  }, 10);
-
-  setTimeout(() => {
-    el.classList.remove("show");
-    setTimeout(() => el.remove(), 180);
-  }, 900);
+    overlay.classList.remove("show");
+    setTimeout(() => overlay.remove(), 220);
+  }, 1200); // 👈 cambia este número para que dure más o menos
 }
 
 async function lateSelectReportedStudent_(student){
