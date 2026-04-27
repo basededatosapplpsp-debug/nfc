@@ -160,11 +160,18 @@ h2{font-size:16px; margin:0 0 12px}
 .table tr:hover td{background: rgba(255,255,255,.03)}
 
 .footer{
-  flex: 0 0 auto;
-  padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+
+  min-height: 42px;
+  padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
-  background: rgba(11,18,32,.75);
+  background: rgba(11,18,32,.86);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
   display:flex;
   justify-content:center;
@@ -3475,6 +3482,14 @@ button[data-uni-edit] + button[data-uni-del-one]{
   0%{ transform: scale(.55); opacity: .2; }
   65%{ transform: scale(1.14); opacity: 1; }
   100%{ transform: scale(1); opacity: 1; }
+}
+
+body{
+  padding-bottom: calc(46px + env(safe-area-inset-bottom));
+}
+
+.container{
+  padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
 }
 
 
