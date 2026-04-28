@@ -674,40 +674,55 @@ body.is-loading{
 }
 
 
-/* ===== Layout sin scroll global + scroll solo en Registros ===== */
+/* ===== FIX FINAL: Registros ocupa todo hasta el footer ===== */
 
-/* que el área principal use el alto visible */
-.container{
-  max-height: calc(100vh - 120px); /* header+footer aprox */
-  overflow: hidden;                 /* ✅ el main NO scrollea */
+:root{
+  --footer-h: calc(46px + env(safe-area-inset-bottom));
 }
 
-/* el panel de registros es el que scrollea */
+body{
+  height: 100dvh;
+  overflow: hidden;
+  padding-bottom: var(--footer-h);
+}
+
+.footer{
+  min-height: var(--footer-h);
+}
+
+.container{
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin: 12px auto 0;
+  padding-bottom: 0 !important;
+}
+
+.container > .card:not(#recordsPanel){
+  flex: 0 0 auto;
+}
+
 #recordsPanel{
-  max-height: calc(100vh - 220px); /* deja espacio para header + tarjeta registrar + footer */
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-/* cuando registros está oculto, nada scrollea */
 #recordsPanel[hidden]{
-  overflow: hidden;
+  display: none !important;
 }
 
-
-/* ✅ Scroll solo en el panel de registros */
-#recordsPanel{
-  flex: 1 1 auto;         /* toma el espacio restante cuando está abierto */
-  min-height: 0;          /* ✅ CLAVE para overflow */
-  overflow: auto;         /* ✅ aquí sí hay scroll */
-  -webkit-overflow-scrolling: touch;
+#recordsList{
+  padding-bottom: 12px;
 }
-
-/* si está oculto, no ocupa espacio */
-#recordsPanel[hidden]{
-  overflow: hidden;
-}
-
 
 
 /* ===== Admin Registros: resumen del mes + filtros compactos ===== */
@@ -3490,7 +3505,7 @@ body{
 }
 
 .container{
-  padding-bottom: calc(58px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: 0 !important;
 }
 
 #btnBehaviorHubClose{
@@ -20078,7 +20093,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-93";
+const APP_BUILD = "2026-04-10-97";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
