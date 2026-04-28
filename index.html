@@ -171,39 +171,12 @@ h2{font-size:16px; margin:0 0 12px}
   border-top: 1px solid var(--line);
   background: rgba(11,18,32,.86);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
-  display: flex;
-  align-items: center;
-  justify-content: center; /* 🔥 centra el texto */
-  text-align: center;
-}
-
-/* texto centrado real */
-.footer-text{
-  font-size: 13px;
-  color: var(--muted);
-  pointer-events: none;
-}
-
-/* logo flotante a la derecha */
-.footer-logo{
-  position: absolute;
-  right: 14px;
-  bottom: 6px;
-
-  height: 32px;
-  width: auto;
-
-  opacity: .95;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
-}
-
-/* móvil */
-@media (max-width: 480px){
-  .footer-logo{
-    height: 28px;
-    right: 10px;
-  }
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
 }
 
 
@@ -3560,102 +3533,145 @@ body{
   -webkit-backdrop-filter: blur(10px);
 }
 
-/* ===== Logo en header ===== */
-.app-logo{
-  height: 34px;
-  width: auto;
-  object-fit: contain;
-
-  /* estilo visual pro */
-  opacity: .95;
-
-  /* evita que se deforme */
-  flex: 0 0 auto;
-   filter: drop-shadow(0 2px 6px rgba(0,0,0,.3));
+/* ===== Footer interactivo + temas ===== */
+.footer-click{
+  cursor: pointer;
+  user-select: none;
 }
 
-/* mejor alineación del header */
-.header-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-
-/* móvil */
-@media (max-width: 480px){
-  .app-logo{
-    height: 28px;
-  }
-}
-
-
-
-.summary-block{
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-}
-
-.summary-export-actions{
+.footer-inner{
+  position: relative;
   width: 100%;
   max-width: 520px;
-  display: grid;
-  grid-template-columns: 1fr 1fr 38px;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border: 1px solid rgba(255,255,255,.08);
-  border-radius: 999px;
-  background: rgba(255,255,255,.025);
+  overflow: visible;
 }
 
-.summary-export-actions .badge{
-  width: 100%;
-  justify-content: center;
-  text-align: center;
+.footer-text,
+.footer-promo{
+  display: block;
   white-space: nowrap;
 }
 
-.summary-download-btn{
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
-  padding: 0;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #dbeafe;
-  background: rgba(59,130,246,.10);
-  border-color: rgba(147,197,253,.18);
+.footer-promo{
+  animation: footerSlideLeft 8s linear forwards;
 }
 
-.summary-download-btn i{
-  font-size: 15px;
-}
-
-@media (max-width: 420px){
-  .summary-export-actions{
-    grid-template-columns: 1fr 1fr 34px;
-    gap: 6px;
-    padding: 6px;
+@keyframes footerSlideLeft{
+  from{
+    transform: translateX(100%);
   }
-
-  .summary-export-actions .badge{
-    font-size: 11px;
-    padding: 5px 6px;
-  }
-
-  .summary-download-btn{
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-  }
-
-  .summary-download-btn i{
-    font-size: 13px;
+  to{
+    transform: translateX(-130%);
   }
 }
+
+.theme-menu{
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  width: min(280px, calc(100vw - 28px));
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(18,26,43,.98);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(12px);
+  z-index: 999999;
+}
+
+.theme-label{
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.theme-select{
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  font-weight: 800;
+  outline: none;
+}
+
+/* Temas */
+body[data-theme="light"]{
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#111827;
+  --muted:#64748b;
+  --primary:#2563eb;
+  --secondary:#60a5fa;
+  --line:rgba(15,23,42,.12);
+  --shadow:0 8px 28px rgba(15,23,42,.12);
+}
+
+body[data-theme="pink"]{
+  --bg:#24111d;
+  --card:#351827;
+  --text:#fff1f7;
+  --muted:#f9a8d4;
+  --primary:#ec4899;
+  --secondary:#f472b6;
+  --line:rgba(255,255,255,.12);
+}
+
+body[data-theme="lilac"]{
+  --bg:#17112b;
+  --card:#21183d;
+  --text:#f4f0ff;
+  --muted:#c4b5fd;
+  --primary:#8b5cf6;
+  --secondary:#a78bfa;
+  --line:rgba(255,255,255,.12);
+}
+
+body[data-theme="blue"]{
+  --bg:#081827;
+  --card:#10263d;
+  --text:#eaf6ff;
+  --muted:#93c5fd;
+  --primary:#0284c7;
+  --secondary:#38bdf8;
+  --line:rgba(255,255,255,.12);
+}
+
+body[data-theme="green"]{
+  --bg:#071b14;
+  --card:#102b21;
+  --text:#ecfdf5;
+  --muted:#86efac;
+  --primary:#16a34a;
+  --secondary:#22c55e;
+  --line:rgba(255,255,255,.12);
+}
+
+body[data-theme="orange"]{
+  --bg:#241509;
+  --card:#37200f;
+  --text:#fff7ed;
+  --muted:#fdba74;
+  --primary:#f97316;
+  --secondary:#fb923c;
+  --line:rgba(255,255,255,.12);
+}
+
+body[data-theme="gray"]{
+  --bg:#111827;
+  --card:#1f2937;
+  --text:#f9fafb;
+  --muted:#cbd5e1;
+  --primary:#64748b;
+  --secondary:#94a3b8;
+  --line:rgba(255,255,255,.12);
+}
+
 
 </style>
 </head>
@@ -3668,8 +3684,6 @@ body{
     </div>
 
 <div class="header-actions">
-
-
   <!-- Menú circular (avatar) -->
   <div class="menu">
     <button id="btnUserMenu" class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Menú">
@@ -3808,7 +3822,10 @@ body{
 
     <!-- ===== Panel de registros (colapsable) ===== -->
     <section class="card collapse" id="recordsPanel" hidden>
- 
+   <div class="row">
+  <button id="btnExport" class="btn btn-ghost">Excel (mi registro)</button>
+  <button id="btnExportXlsx" class="btn btn-ghost" hidden>Excel (con formato)</button>
+</div>
 
 
 
@@ -3832,16 +3849,13 @@ body{
       </div>
 
       <!-- ===== Resumen (contadores) ===== -->
-<div class="summary-block">
-  <div class="summary-export-actions">
-    <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
-    <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
-
-    <button id="btnExport" class="btn btn-ghost summary-download-btn" title="Descargar Excel" aria-label="Descargar Excel">
-      <i class="fa-solid fa-download"></i>
-    </button>
-  </div>
-</div>
+      <div class="row row-between" style="margin-top:10px;">
+        <div class="muted small">Resumen</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+          <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
+          <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
+        </div>
+      </div>
 
 
 
@@ -3871,10 +3885,31 @@ body{
     </section>
   </main>
 
-<footer class="footer">
-  <span class="footer-text">APP • Desarrollada por: Deimer Herrera • v.Beta</span>
+ <footer class="footer footer-click" id="appFooter">
+  <div class="footer-inner">
+    <span id="footerNormal" class="muted small footer-text">
+      APP • Desarrollada por: Deimer Herrera • v.Beta
+    </span>
 
-  <img src="logo.png" alt="Logo" class="footer-logo" />
+    <span id="footerPromo" class="muted small footer-promo" hidden>
+      Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti&nbsp;&nbsp;&nbsp;
+      Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti
+    </span>
+
+    <div id="themeMenu" class="theme-menu" hidden>
+      <label class="theme-label" for="themeSelect">Tema</label>
+      <select id="themeSelect" class="theme-select">
+        <option value="dark">Oscuro</option>
+        <option value="light">Claro</option>
+        <option value="pink">Rosa</option>
+        <option value="lilac">Lila</option>
+        <option value="blue">Azul</option>
+        <option value="green">Verde</option>
+        <option value="orange">Naranja</option>
+        <option value="gray">Gris</option>
+      </select>
+    </div>
+  </div>
 </footer>
 
 <!-- ======= MODAL QR SCAN ======= -->
@@ -21078,6 +21113,60 @@ setInterval(async () => {
 }, 15000);
 
 
+
+(function(){
+  const footer = document.getElementById("appFooter");
+  const normal = document.getElementById("footerNormal");
+  const promo = document.getElementById("footerPromo");
+  const menu = document.getElementById("themeMenu");
+  const select = document.getElementById("themeSelect");
+
+  if(!footer || !normal || !promo || !menu || !select) return;
+
+  const savedTheme = localStorage.getItem("appTheme") || "dark";
+  document.body.setAttribute("data-theme", savedTheme);
+  select.value = savedTheme;
+
+  select.addEventListener("change", function(){
+    document.body.setAttribute("data-theme", this.value);
+    localStorage.setItem("appTheme", this.value);
+  });
+
+  footer.addEventListener("click", function(e){
+    e.stopPropagation();
+    menu.hidden = !menu.hidden;
+  });
+
+  menu.addEventListener("click", function(e){
+    e.stopPropagation();
+  });
+
+  document.addEventListener("click", function(){
+    menu.hidden = true;
+  });
+
+  function runFooterPromo(){
+    normal.hidden = false;
+    promo.hidden = true;
+
+    setTimeout(function(){
+      normal.hidden = true;
+      promo.hidden = false;
+      promo.style.animation = "none";
+      promo.offsetHeight;
+      promo.style.animation = "footerSlideLeft 8s linear forwards";
+
+      setTimeout(function(){
+        promo.hidden = true;
+        normal.hidden = false;
+
+        setTimeout(runFooterPromo, 10000);
+      }, 8000);
+    }, 5000);
+  }
+
+  runFooterPromo();
+})();
 
 
 </script>
