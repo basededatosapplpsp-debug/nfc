@@ -470,7 +470,9 @@ h2{font-size:16px; margin:0 0 12px}
 
 
 
-/* ===== Botones ENTRADA / SALIDA (premium glass pro) ===== */
+/* =========================================================
+   BOTONES ENTRADA / SALIDA - PRO INSTITUCIONAL
+========================================================= */
 
 #btnEntrada,
 #btnSalida{
@@ -478,144 +480,171 @@ h2{font-size:16px; margin:0 0 12px}
   overflow: hidden;
   isolation: isolate;
 
-  font-size: 17px;           /* 🔥 más grande */
-  font-weight: 900;          /* más fuerte (pro) */
-  letter-spacing: .5px;      /* más limpio visualmente */
- font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  padding: 15px 18px;
+  min-height: 58px;
   border-radius: 18px;
+  padding: 15px 22px;
 
-  border: 1px solid rgba(255,255,255,.16);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: .4px;
+
+  border: 1px solid rgba(0,0,0,.10);
+  cursor: pointer;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 
   transition:
-    transform .18s cubic-bezier(.2,.8,.2,1),
-    box-shadow .22s cubic-bezier(.2,.8,.2,1),
-    filter .22s cubic-bezier(.2,.8,.2,1),
-    opacity .22s ease,
-    border-color .22s ease;
+    transform .16s ease,
+    box-shadow .18s ease,
+    filter .18s ease,
+    opacity .18s ease;
 }
 
-/* brillo superior suave */
+/* brillo superior elegante */
 #btnEntrada::before,
 #btnSalida::before{
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
   background: linear-gradient(
     180deg,
-    rgba(255,255,255,.34) 0%,
-    rgba(255,255,255,.16) 34%,
-    rgba(255,255,255,0) 62%
+    rgba(255,255,255,.45),
+    rgba(255,255,255,.12) 42%,
+    rgba(255,255,255,0) 70%
   );
-  pointer-events: none;
-  z-index: 1;
+  pointer-events:none;
+  z-index:1;
 }
 
-/* línea de luz diagonal premium */
+/* línea de luz sutil */
 #btnEntrada::after,
 #btnSalida::after{
-  content: "";
-  position: absolute;
-  top: -30%;
-  left: -42%;
-  width: 42%;
-  height: 170%;
+  content:"";
+  position:absolute;
+  top:-35%;
+  left:-45%;
+  width:42%;
+  height:180%;
   background: linear-gradient(
     90deg,
-    rgba(255,255,255,0),
-    rgba(255,255,255,.22),
-    rgba(255,255,255,0)
+    transparent,
+    rgba(255,255,255,.28),
+    transparent
   );
   transform: rotate(18deg);
-  pointer-events: none;
-  z-index: 1;
-  transition: left .6s ease;
-}
-
-/* Hover / active premium */
-#btnEntrada:hover,
-#btnSalida:hover{
-  transform: translateY(-1px);
-  filter: brightness(1.035);
-  box-shadow:
-    0 14px 28px rgba(0,0,0,.22),
-    0 4px 10px rgba(0,0,0,.10),
-    inset 0 1px 0 rgba(255,255,255,.58);
+  transition: left .55s ease;
+  pointer-events:none;
+  z-index:2;
 }
 
 #btnEntrada:hover::after,
 #btnSalida:hover::after{
-  left: 118%;
+  left:120%;
+}
+
+#btnEntrada:hover,
+#btnSalida:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.03);
 }
 
 #btnEntrada:active,
 #btnSalida:active{
-  transform: translateY(1px) scale(.992);
-  filter: brightness(1.01);
-  box-shadow:
-    0 7px 16px rgba(0,0,0,.18),
-    inset 0 1px 0 rgba(255,255,255,.45);
+  transform: translateY(1px) scale(.99);
 }
 
 /* ================= ENTRADA ================= */
 #btnEntrada{
   background:
-    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
-    linear-gradient(
-      180deg,
-      rgba(209,250,229,.98),
-      rgba(187,247,208,.94)
-    );
-  color: #065f46;
-  border-color: rgba(6,95,70,.20);
+    radial-gradient(circle at top left, rgba(255,255,255,.55), transparent 38%),
+    linear-gradient(180deg, #34d399 0%, #16a34a 100%);
+
+  color: #052e16;
+  border-color: rgba(22,163,74,.35);
+
   box-shadow:
-    0 10px 22px rgba(16,185,129,.16),
-    0 3px 8px rgba(6,95,70,.08),
-    inset 0 1px 0 rgba(255,255,255,.65);
+    0 12px 24px rgba(22,163,74,.22),
+    inset 0 1px 0 rgba(255,255,255,.55);
 }
 
 /* ================= SALIDA ================= */
 #btnSalida{
   background:
-    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
-    linear-gradient(
-      180deg,
-      rgba(237,233,254,.98),
-      rgba(221,214,254,.94)
-    );
-  color: #4c1d95;
-  border-color: rgba(76,29,149,.20);
+    radial-gradient(circle at top left, rgba(255,255,255,.58), transparent 38%),
+    linear-gradient(180deg, #fde047 0%, #facc15 100%);
+
+  color: #1f2937;
+  border-color: rgba(202,138,4,.35);
+
   box-shadow:
-    0 10px 22px rgba(124,58,237,.16),
-    0 3px 8px rgba(76,29,149,.08),
-    inset 0 1px 0 rgba(255,255,255,.65);
+    0 12px 24px rgba(250,204,21,.24),
+    inset 0 1px 0 rgba(255,255,255,.60);
 }
 
-/* ================= Disabled ================= */
+/* estado inactivo */
 #btnEntrada:disabled,
 #btnSalida:disabled{
-  opacity: .62;
+  opacity: .55;
+  filter: grayscale(.25);
   box-shadow: none;
-  filter: grayscale(.20);
+  cursor: not-allowed;
   transform: none;
 }
 
-/* ===== SALIDA inactiva hasta ENTRADA ===== */
+/* SALIDA inactiva hasta ENTRADA */
 #btnSalida.is-inactive{
-  background: linear-gradient(
-    180deg,
-    rgba(241,245,249,.96),
-    rgba(226,232,240,.92)
-  );
-  color: #94a3b8;
-  border-color: rgba(255,255,255,.10);
+  background:
+    linear-gradient(180deg, #f1f5f9, #cbd5e1);
+  color: #64748b;
+  border-color: rgba(148,163,184,.35);
   box-shadow: none;
   cursor: not-allowed;
 }
 
+/* Botón único centrado */
+.single-action-wrap{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 14px;
+  min-height: 64px;
+}
+
+.single-action-wrap .action-pill{
+  width: min(100%, 320px);
+}
+
+/* Oculta botón inactivo */
+.single-action-wrap #btnEntrada:disabled,
+.single-action-wrap #btnSalida:disabled{
+  display: none !important;
+}
+
+/* Estado final */
+.single-action-wrap.done #btnEntrada{
+  display: none !important;
+}
+
+.single-action-wrap.done #btnSalida{
+  display: inline-flex !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  filter: none !important;
+
+  background:
+    linear-gradient(180deg, #e2e8f0, #cbd5e1) !important;
+
+  color: #334155 !important;
+  border-color: rgba(148,163,184,.35) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65) !important;
+}
 
 /* ======= LOADER GLOBAL (overlay moderno) ======= */
 .app-loader{
