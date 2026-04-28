@@ -4007,6 +4007,65 @@ h1,h2,
   background: rgba(239,68,68,.18) !important;
   color: var(--text) !important;
 }
+
+
+
+/* ===== FIX: texto visible al seleccionar reportados en cualquier tema ===== */
+.disc-item.selected,
+.behavior-report-card.selected{
+  background: color-mix(in srgb, var(--primary) 22%, var(--card)) !important;
+  border-color: color-mix(in srgb, var(--primary) 70%, transparent) !important;
+}
+
+.disc-item.selected *,
+.behavior-report-card.selected *,
+.disc-item.selected .name,
+.disc-item.selected .right,
+.disc-item.selected .muted,
+.behavior-report-card.selected .behavior-report-name,
+.behavior-report-card.selected .behavior-report-meta,
+.behavior-report-card.selected .behavior-report-obs{
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+}
+
+/* ===== FIX: botón atrás visible en todos los temas ===== */
+#btnDiscBack,
+#btnPiercBack,
+#btnUniBack,
+#btnLateBack,
+#btnDiscViewerBack,
+#btnPiercViewerBack,
+#btnUniViewerBack,
+#btnBehaviorHubClose,
+#btnCerrarViewerReportes{
+  background: color-mix(in srgb, var(--card) 94%, black 6%) !important;
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--line)) !important;
+  color: var(--text) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
+}
+
+#btnDiscBack i,
+#btnPiercBack i,
+#btnUniBack i,
+#btnLateBack i,
+#btnDiscViewerBack i,
+#btnPiercViewerBack i,
+#btnUniViewerBack i,
+#btnBehaviorHubClose i{
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+}
+
+#btnCerrarViewerReportes::before{
+  color: var(--text) !important;
+}
+
+
+
+
 </style>
 </head>
 
