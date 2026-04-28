@@ -3600,76 +3600,333 @@ body{
   outline: none;
 }
 
-/* Temas */
+/* ===== TEMAS GLOBALES PRO ===== */
+body[data-theme="dark"]{
+  --bg:#0b1220;
+  --card:#121a2b;
+  --card2:#0f172a;
+  --text:#e9eefc;
+  --muted:#9bb0d0;
+  --primary:#0b5fff;
+  --secondary:#3b82f6;
+  --line:rgba(255,255,255,.10);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
 body[data-theme="light"]{
   --bg:#f4f7fb;
   --card:#ffffff;
+  --card2:#eef3fb;
   --text:#111827;
   --muted:#64748b;
   --primary:#2563eb;
   --secondary:#60a5fa;
   --line:rgba(15,23,42,.12);
-  --shadow:0 8px 28px rgba(15,23,42,.12);
+  --shadow:0 8px 28px rgba(15,23,42,.14);
 }
 
 body[data-theme="pink"]{
   --bg:#24111d;
   --card:#351827;
+  --card2:#421c31;
   --text:#fff1f7;
   --muted:#f9a8d4;
   --primary:#ec4899;
   --secondary:#f472b6;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
 }
 
 body[data-theme="lilac"]{
   --bg:#17112b;
   --card:#21183d;
+  --card2:#2b2050;
   --text:#f4f0ff;
   --muted:#c4b5fd;
   --primary:#8b5cf6;
   --secondary:#a78bfa;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
 }
 
 body[data-theme="blue"]{
   --bg:#081827;
   --card:#10263d;
+  --card2:#12304d;
   --text:#eaf6ff;
   --muted:#93c5fd;
   --primary:#0284c7;
   --secondary:#38bdf8;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
 }
 
 body[data-theme="green"]{
   --bg:#071b14;
   --card:#102b21;
+  --card2:#15382b;
   --text:#ecfdf5;
   --muted:#86efac;
   --primary:#16a34a;
   --secondary:#22c55e;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
 }
 
 body[data-theme="orange"]{
   --bg:#241509;
   --card:#37200f;
+  --card2:#472911;
   --text:#fff7ed;
   --muted:#fdba74;
   --primary:#f97316;
   --secondary:#fb923c;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
 }
 
 body[data-theme="gray"]{
   --bg:#111827;
   --card:#1f2937;
+  --card2:#273449;
   --text:#f9fafb;
   --muted:#cbd5e1;
   --primary:#64748b;
   --secondary:#94a3b8;
-  --line:rgba(255,255,255,.12);
+  --line:rgba(255,255,255,.13);
+  --shadow:0 8px 30px rgba(0,0,0,.35);
+}
+
+/* ===== Aplicar tema a TODA la app ===== */
+body{
+  background:
+    radial-gradient(1200px 800px at 20% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%),
+    radial-gradient(900px 600px at 80% 30%, color-mix(in srgb, var(--secondary) 14%, transparent), transparent 55%),
+    var(--bg) !important;
+  color: var(--text) !important;
+}
+
+.header,
+.footer,
+.behavior-full-header{
+  background: color-mix(in srgb, var(--bg) 88%, transparent) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+.card,
+.modal-card,
+.loader-card,
+.menu-panel,
+.menu-subpanel,
+.theme-menu,
+.record-card,
+.admin-welcome-box,
+.behavior-panel-card,
+.behavior-hub-card,
+.behavior-report-card,
+.behavior-detail-row,
+.disc-item,
+.disc-reported-list,
+.late-detail-box,
+.late-detail-item,
+.ubicate-card,
+.admin-device-card,
+.cfg-exception-item,
+.cfg-exceptions-details,
+#ubicateResult,
+#pisosResult,
+#comprasResult,
+#adminAssistList,
+#adminDevicesList,
+#reportesModal .disc-reported-list,
+#reportesViewerModal .disc-reported-list,
+#lateReportedList{
+  background: color-mix(in srgb, var(--card) 92%, transparent) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow);
+}
+
+.behavior-full .modal-card{
+  background:
+    radial-gradient(1200px 800px at 15% 0%, color-mix(in srgb, var(--primary) 16%, transparent), transparent 55%),
+    radial-gradient(900px 600px at 85% 20%, color-mix(in srgb, var(--secondary) 12%, transparent), transparent 50%),
+    var(--bg) !important;
+}
+
+.input,
+.modal-input,
+.theme-select,
+.student-select,
+select,
+textarea,
+input{
+  background: color-mix(in srgb, var(--card2) 92%, transparent) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+.input:focus,
+.modal-input:focus,
+.theme-select:focus{
+  border-color: color-mix(in srgb, var(--primary) 65%, white 10%) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent) !important;
+}
+
+.input.is-locked{
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 24%, transparent),
+    color-mix(in srgb, var(--primary) 12%, transparent)
+  ) !important;
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent) !important;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 18%, transparent) !important;
+}
+
+.input.is-locked:disabled{
+  -webkit-text-fill-color: var(--text) !important;
+}
+
+.muted,
+.small,
+.sub,
+.label,
+.modal-label,
+.modal-sub,
+.loader-msg,
+.behavior-full-sub,
+.behavior-hub-sub,
+.behavior-report-meta,
+.behavior-detail-meta,
+.late-detail-meta,
+.theme-label{
+  color: var(--muted) !important;
+  -webkit-text-fill-color: var(--muted) !important;
+}
+
+h1,h2,
+.modal-title,
+.card-title,
+.behavior-full-title,
+.behavior-hub-title,
+.behavior-report-name,
+.behavior-detail-title,
+.late-detail-title,
+.admin-welcome-title,
+#statusTitle,
+.name{
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+}
+
+.btn-primary,
+.ubicate-day-tab.active,
+.disc-item.selected,
+.behavior-report-card.selected{
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--primary) 95%, white 5%),
+    color-mix(in srgb, var(--primary) 72%, black 8%)
+  ) !important;
+  border-color: color-mix(in srgb, var(--primary) 60%, transparent) !important;
+  color: #fff !important;
+}
+
+.btn-secondary{
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--secondary) 95%, white 5%),
+    color-mix(in srgb, var(--secondary) 70%, black 8%)
+  ) !important;
+  border-color: color-mix(in srgb, var(--secondary) 60%, transparent) !important;
+  color: #fff !important;
+}
+
+.btn,
+.menu-item,
+.cfg-mini-btn,
+.behavior-mini-btn,
+.admin-icon-btn,
+.disc-icon-btn,
+.disc-level,
+.ubicate-day-tab,
+.behavior-full-back,
+#btnDiscBack,
+#btnPiercBack,
+#btnUniBack,
+#btnLateBack,
+#btnBehaviorHubClose,
+#btnCerrarViewerReportes{
+  background: color-mix(in srgb, var(--card2) 82%, transparent) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+.menu-item:hover,
+.btn:hover,
+.disc-level:hover,
+.ubicate-day-tab:hover,
+.behavior-hub-card:hover{
+  background: color-mix(in srgb, var(--primary) 18%, var(--card)) !important;
+  border-color: color-mix(in srgb, var(--primary) 38%, transparent) !important;
+}
+
+.table,
+.table th,
+.table td{
+  background: color-mix(in srgb, var(--card) 86%, transparent) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+.table th{
+  color: var(--muted) !important;
+}
+
+.badge,
+.type,
+.behavior-level-badge{
+  background: color-mix(in srgb, var(--card2) 78%, transparent) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+.modal-actions{
+  background: transparent !important;
+}
+
+#adminConfigModal .modal-actions,
+#lateArrivalModal.late-detail-mode .modal-actions{
+  background: color-mix(in srgb, var(--card) 96%, transparent) !important;
+  border-color: var(--line) !important;
+}
+
+.ubicate-days-wrap{
+  background: var(--bg) !important;
+  border-color: var(--line) !important;
+}
+
+#pisosResult .pisos-table th:first-child,
+#pisosResult .pisos-table td:first-child{
+  background: var(--card2) !important;
+}
+
+.menu-btn{
+  background: color-mix(in srgb, var(--card2) 88%, transparent) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+/* Footer: evitar que se vean dos líneas al mismo tiempo */
+.footer-inner{
+  height: 22px;
+  overflow: hidden;
+}
+
+.footer-text[hidden],
+.footer-promo[hidden]{
+  display: none !important;
 }
 
 
@@ -21124,13 +21381,17 @@ setInterval(async () => {
   if(!footer || !normal || !promo || !menu || !select) return;
 
   const savedTheme = localStorage.getItem("appTheme") || "dark";
+
+  document.documentElement.style.setProperty("color-scheme", savedTheme === "light" ? "light" : "dark");
+
   document.body.setAttribute("data-theme", savedTheme);
   select.value = savedTheme;
 
-  select.addEventListener("change", function(){
-    document.body.setAttribute("data-theme", this.value);
-    localStorage.setItem("appTheme", this.value);
-  });
+select.addEventListener("change", function(){
+  document.body.setAttribute("data-theme", this.value);
+  document.documentElement.style.setProperty("color-scheme", this.value === "light" ? "light" : "dark");
+  localStorage.setItem("appTheme", this.value);
+});
 
   footer.addEventListener("click", function(e){
     e.stopPropagation();
