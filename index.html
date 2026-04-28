@@ -3532,32 +3532,54 @@ body{
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+/* ===== Logo en header (versión premium mejorada) ===== */
 
-/* ===== Logo en header ===== */
-.app-logo{
-  height: 34px;
-  width: auto;
-  object-fit: contain;
-
-  /* estilo visual pro */
-  opacity: .95;
-
-  /* evita que se deforme */
-  flex: 0 0 auto;
-   filter: drop-shadow(0 2px 6px rgba(0,0,0,.3));
-}
-
-/* mejor alineación del header */
 .header-actions{
   display:flex;
   align-items:center;
   gap:10px;
 }
 
+/* contenedor tipo badge */
+.logo-badge{
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display:grid;
+  place-items:center;
+  flex: 0 0 auto;
+
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.25),
+    inset 0 1px 0 rgba(255,255,255,.10);
+
+  /* animación suave */
+  animation: logoFloat 3s ease-in-out infinite;
+}
+
+/* imagen */
+.app-logo{
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+}
+
+/* animación */
+@keyframes logoFloat{
+  0%,100%{ transform: translateY(0); }
+  50%{ transform: translateY(-2px); }
+}
+
 /* móvil */
 @media (max-width: 480px){
-  .app-logo{
-    height: 28px;
+  .logo-badge{
+    width: 38px;
+    height: 38px;
   }
 }
 
@@ -3780,7 +3802,9 @@ body{
   <footer class="footer">
     <span class="muted small">APP • Desarrollada por: Deimer Herrera • v.Beta</span>
       <!-- ✅ LOGO -->
+ <div class="logo-badge">
   <img src="logo.png" alt="Logo" class="app-logo" />
+</div>
   </footer>
 
 <!-- ======= MODAL QR SCAN ======= -->
