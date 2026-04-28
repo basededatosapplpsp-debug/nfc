@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#0b5fff" />
   <meta name="description" content="Registro de asistencia de docentes con validación por ubicación." />
-<img src="./logo.png" class="footer-img" alt="icono">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
   <link rel="manifest" href="manifest.webmanifest" />
@@ -4064,15 +4064,38 @@ h1,h2,
 }
 
 
-.footer-img{
-  height: 18px;
-  margin-left: 8px;
-  vertical-align: middle;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.15);
+
+.footer{
+  overflow: visible !important;
 }
 
+.footer-inner{
+  min-height: 28px !important;
+  height: 28px !important;
+  overflow: visible !important;
+}
+
+.footer-promo{
+  display: block;
+  white-space: nowrap;
+  line-height: 24px;
+}
+
+.footer-promo-content{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-img{
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  object-fit: cover;
+  vertical-align: middle;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.15);
+}
 </style>
 </head>
 
@@ -4292,10 +4315,13 @@ h1,h2,
     </span>
 
 <span id="footerPromo" class="muted small footer-promo" hidden>
-  Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti haciendo clic aquí.&nbsp;&nbsp;&nbsp;
-  Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti haciendo clic aquí.
-
- <img src="./logo.png" class="footer-img" alt="icono">
+  <span class="footer-promo-content">
+    Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti haciendo clic aquí.
+    <img src="./logo.png?v=1" class="footer-img" alt="icono">
+    &nbsp;&nbsp;&nbsp;
+    Ahora puedes cambiar el fondo de tu app al que mejor se adapte a ti haciendo clic aquí.
+    <img src="./logo.png?v=1" class="footer-img" alt="icono">
+  </span>
 </span>
 
     <div id="themeMenu" class="theme-menu" hidden>
