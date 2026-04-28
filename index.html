@@ -3561,18 +3561,14 @@ body{
   }
 }
 
-.summary-export-row{
+.summary-block{
   margin-top:10px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
 }
 
 .summary-export-actions{
   display:flex;
   align-items:center;
-  justify-content:flex-end;
+  justify-content:space-between; /* 🔥 distribución pro */
   gap:8px;
   flex-wrap:nowrap;
   min-width:0;
@@ -3595,10 +3591,6 @@ body{
 }
 
 @media (max-width: 420px){
-  .summary-export-row{
-    align-items:flex-start;
-  }
-
   .summary-export-actions{
     gap:6px;
   }
@@ -3618,43 +3610,6 @@ body{
     font-size:13px;
   }
 }
-
-
-.summary-block{
-  margin-top:10px;
-}
-
-.summary-title{
-  text-align:center;
-  font-weight:800;
-  font-size:13px;
-  color: var(--muted);
-  margin-bottom:8px;
-}
-
-.summary-export-actions{
-  display:flex;
-  align-items:center;
-  justify-content:center; /* 🔥 centrado total */
-  gap:8px;
-  flex-wrap:nowrap;
-}
-
-.summary-download-btn{
-  width:34px;
-  height:34px;
-  min-width:34px;
-  padding:0;
-  border-radius:999px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.summary-download-btn i{
-  font-size:15px;
-}
-
 
 </style>
 </head>
@@ -3833,7 +3788,6 @@ body{
       <!-- ===== Resumen (contadores) ===== -->
 <div class="summary-block">
 
-  <div class="summary-title">Resumen</div>
 
   <div class="summary-export-actions">
     <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
