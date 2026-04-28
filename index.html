@@ -171,12 +171,39 @@ h2{font-size:16px; margin:0 0 12px}
   border-top: 1px solid var(--line);
   background: rgba(11,18,32,.86);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* 🔥 centra el texto */
+  text-align: center;
+}
+
+/* texto centrado real */
+.footer-text{
+  font-size: 13px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* logo flotante a la derecha */
+.footer-logo{
+  position: absolute;
+  right: 14px;
+  bottom: 6px;
+
+  height: 32px;
+  width: auto;
+
+  opacity: .95;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.35));
+}
+
+/* móvil */
+@media (max-width: 480px){
+  .footer-logo{
+    height: 28px;
+    right: 10px;
+  }
 }
 
 
@@ -3844,11 +3871,11 @@ body{
     </section>
   </main>
 
-  <footer class="footer">
-    <span class="muted small">APP • Desarrollada por: Deimer Herrera • v.Beta</span>
-      <!-- ✅ LOGO -->
-  <img src="logo.png" alt="Logo" class="app-logo" />
-  </footer>
+<footer class="footer">
+  <span class="footer-text">APP • Desarrollada por: Deimer Herrera • v.Beta</span>
+
+  <img src="logo.png" alt="Logo" class="footer-logo" />
+</footer>
 
 <!-- ======= MODAL QR SCAN ======= -->
 <div id="qrModal" class="modal-backdrop" hidden>
