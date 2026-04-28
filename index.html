@@ -3714,10 +3714,7 @@ body{
 
     <!-- ===== Panel de registros (colapsable) ===== -->
     <section class="card collapse" id="recordsPanel" hidden>
-   <div class="row">
-  <button id="btnExport" class="btn btn-ghost">Excel (mi registro)</button>
-  <button id="btnExportXlsx" class="btn btn-ghost" hidden>Excel (con formato)</button>
-</div>
+ 
 
 
 
@@ -3741,13 +3738,21 @@ body{
       </div>
 
       <!-- ===== Resumen (contadores) ===== -->
-      <div class="row row-between" style="margin-top:10px;">
-        <div class="muted small">Resumen</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-          <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
-          <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
-        </div>
-      </div>
+     <div class="row row-between" style="margin-top:10px;">
+  <div class="muted small">Resumen</div>
+
+  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+    
+    <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
+    <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
+
+    <!-- 🔥 NUEVO ICONO EXPORTAR -->
+    <button id="btnExport" class="icon-only btn btn-ghost" title="Descargar Excel">
+      <i class="fa-solid fa-download"></i>
+    </button>
+
+  </div>
+</div>
 
 
 
