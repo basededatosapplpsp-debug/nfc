@@ -3533,6 +3533,34 @@ body{
   -webkit-backdrop-filter: blur(10px);
 }
 
+/* ===== Logo en header ===== */
+.app-logo{
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+
+  /* estilo visual pro */
+  opacity: .95;
+
+  /* evita que se deforme */
+  flex: 0 0 auto;
+}
+
+/* mejor alineación del header */
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* móvil */
+@media (max-width: 480px){
+  .app-logo{
+    height: 28px;
+  }
+}
+
+
 
 </style>
 </head>
@@ -3545,6 +3573,9 @@ body{
     </div>
 
 <div class="header-actions">
+  <!-- ✅ LOGO -->
+  <img src="logo.png" alt="Logo" class="app-logo" />
+
   <!-- Menú circular (avatar) -->
   <div class="menu">
     <button id="btnUserMenu" class="menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" title="Menú">
