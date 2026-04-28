@@ -3982,7 +3982,31 @@ h1,h2,
   display: none !important;
 }
 
+/* ===== FIX: mantener colores de niveles en llamados de atención ===== */
+.disc-level.active[data-level="1"]{
+  border-color: rgba(34,197,94,.45) !important;
+  background: rgba(34,197,94,.16) !important;
+  color: var(--text) !important;
+}
 
+.disc-level.active[data-level="2"]{
+  border-color: rgba(248,244,5,.55) !important;
+  background: rgba(248,244,5,.20) !important;
+  color: var(--text) !important;
+}
+
+.disc-level.active[data-level="3"]{
+  border-color: rgba(245,158,11,.60) !important;
+  background: rgba(245,158,11,.28) !important;
+  color: var(--text) !important;
+}
+
+.disc-level.active[data-level="4"],
+.disc-level.danger.active{
+  border-color: rgba(239,68,68,.50) !important;
+  background: rgba(239,68,68,.18) !important;
+  color: var(--text) !important;
+}
 </style>
 </head>
 
