@@ -4591,6 +4591,61 @@ h1,h2,
   -webkit-overflow-scrolling:touch;
 }
 
+/* ===== FIX SCROLL PORTÁTIL + NOTAS ===== */
+
+/* Pantalla principal: permite scroll interno real */
+.container{
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--footer-h) + 16px) !important;
+}
+
+/* Cuando Registros está abierto, conserva el scroll de registros */
+#recordsPanel{
+  flex: 1 0 auto !important;
+}
+
+/* Notas configuración: scroll interno sin romper lógica */
+#notasPlanillaModal .notas-full-card{
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+#notasPlanillaModal .notas-config-scroll{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Registrar notas: tabla/lista scrollea entre header y footer */
+#notasStudentsModal .notas-full-card{
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+#notasStudentsModal #notasGrid{
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Botones siempre visibles en notas */
+#notasStudentsModal .notas-bottom-actions,
+#notasPlanillaModal .notas-bottom-actions{
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 5 !important;
+}
+
+
 
 </style>
 </head>
@@ -6165,7 +6220,7 @@ h1,h2,
 </div>
 
 
-<<!-- ======= MODAL PLANILLA DE NOTAS: CONFIGURACIÓN ======= -->
+<!-- ======= MODAL PLANILLA DE NOTAS: CONFIGURACIÓN ======= -->
 <div id="notasPlanillaModal" class="modal-backdrop notas-full" hidden>
   <div class="modal-card notas-full-card">
     <div class="notas-screen-header">
@@ -6176,7 +6231,8 @@ h1,h2,
       <button id="btnNotasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
     </div>
 
-    <div class="notas-config-grid">
+    <div class="notas-config-scroll">
+  <div class="notas-config-grid">
       <div>
         <label class="modal-label">Curso</label>
         <select id="notasCurso" class="modal-input"></select>
@@ -6230,7 +6286,7 @@ h1,h2,
     </div>
 
     <div id="notasHint" class="muted small" style="margin-top:10px;"></div>
-
+</div>
     <div class="notas-bottom-actions">
       <button id="btnNotasCargarPlanilla" class="btn btn-ghost" type="button">Cargar planilla guardada</button>
       <button id="btnNotasCargarEstudiantes" class="btn btn-primary" type="button">Cargar estudiantes</button>
