@@ -4661,9 +4661,69 @@ h1,h2,
 
 /* El grid queda libre para ser table-mode */
 #notasStudentsModal #notasGrid{
-  min-width: max-content;
   padding: 0 !important;
   overflow: visible !important;
+}
+
+/* Solo PC conserva comportamiento tipo tabla */
+@media (min-width: 900px){
+  #notasStudentsModal #notasGrid{
+    min-width: max-content;
+  }
+}
+
+/* ===== NOTAS MÓVIL: tarjetas, no tabla ===== */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-grid-scroll{
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 12px !important;
+  }
+
+  #notasStudentsModal #notasGrid{
+    width: 100% !important;
+    min-width: 0 !important;
+    display: grid !important;
+    gap: 12px !important;
+  }
+
+  #notasStudentsModal .notas-grid.table-mode{
+    display: grid !important;
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  #notasStudentsModal .notas-header-row{
+    display: none !important;
+  }
+
+  #notasStudentsModal .notas-student-card{
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #notasStudentsModal .notas-cell{
+    display: block !important;
+    width: 100% !important;
+    white-space: normal !important;
+  }
+
+  #notasStudentsModal .notas-student-name{
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  #notasStudentsModal .notas-detail-mini{
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+  }
+
+  #notasStudentsModal .notas-summary{
+    overflow-x: hidden !important;
+  }
 }
 
 /* Botón guardar abajo, sin tapar estudiantes */
