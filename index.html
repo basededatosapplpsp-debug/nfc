@@ -4591,9 +4591,10 @@ h1,h2,
   -webkit-overflow-scrolling:touch;
 }
 
-/* ===== FIX SCROLL PORTÁTIL + NOTAS ===== */
 
-/* Pantalla principal: permite scroll interno real */
+/* ===== FIX DEFINITIVO: scroll portátil + menú + notas ===== */
+
+/* Pantalla principal */
 .container{
   overflow-y: auto !important;
   overflow-x: hidden !important;
@@ -4601,12 +4602,21 @@ h1,h2,
   padding-bottom: calc(var(--footer-h) + 16px) !important;
 }
 
-/* Cuando Registros está abierto, conserva el scroll de registros */
+/* Registros */
 #recordsPanel{
   flex: 1 0 auto !important;
 }
 
-/* Notas configuración: scroll interno sin romper lógica */
+/* Menú usuario con scroll */
+.menu-panel{
+  max-height: calc(100dvh - 150px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Planilla configuración */
 #notasPlanillaModal .notas-full-card{
   height: 100dvh !important;
   max-height: 100dvh !important;
@@ -4615,95 +4625,62 @@ h1,h2,
 }
 
 #notasPlanillaModal .notas-config-scroll{
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Registrar notas: tabla/lista scrollea entre header y footer */
+/* Registrar notas / estudiantes */
+#notasStudentsModal{
+  overflow: hidden !important;
+}
+
 #notasStudentsModal .notas-full-card{
   height: 100dvh !important;
   max-height: 100dvh !important;
+  display: flex !important;
+  flex-direction: column !important;
   overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+#notasStudentsModal .notas-screen-header{
+  flex: 0 0 auto !important;
 }
 
 #notasStudentsModal #notasGrid{
   flex: 1 1 auto !important;
   min-height: 0 !important;
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Botones siempre visibles en notas */
-#notasStudentsModal .notas-bottom-actions,
-#notasPlanillaModal .notas-bottom-actions{
-  flex: 0 0 auto !important;
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 5 !important;
-}
-
-
-/* ===== FIX FINAL: scroll menú + registrar notas portátil ===== */
-
-/* Menú usuario: scroll propio en pantallas bajas */
-.menu-panel{
-  max-height: calc(100dvh - 92px - var(--footer-h)) !important;
+  max-height: none !important;
   overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow-x: auto !important;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  padding: 12px 16px 120px !important;
 }
 
-/* Evita que el menú quede debajo del footer */
+#notasStudentsModal .notas-bottom-actions{
+  flex: 0 0 auto !important;
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 1000 !important;
+  background: var(--bg) !important;
+}
+
+/* Compacto para portátiles */
 @media (max-height: 720px){
   .menu-panel{
-    top: calc(100% + 6px) !important;
-    max-height: calc(100dvh - 86px - var(--footer-h)) !important;
+    max-height: calc(100dvh - 130px) !important;
   }
 
   .menu-item{
     padding-top: 8px !important;
     padding-bottom: 8px !important;
   }
-}
 
-/* Modal registrar notas: estructura fija */
-#notasStudentsModal .notas-full-card{
-  height: 100dvh !important;
-  max-height: 100dvh !important;
-  overflow: hidden !important;
-  padding-bottom: 0 !important;
-}
-
-/* Header fijo arriba */
-#notasStudentsModal .notas-screen-header{
-  flex: 0 0 auto !important;
-}
-
-/* Lista/tabla de estudiantes: aquí SÍ debe hacer scroll */
-#notasStudentsModal #notasGrid{
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  height: auto !important;
-  overflow: auto !important;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 110px !important;
-}
-
-/* Botón guardar visible abajo */
-#notasStudentsModal .notas-bottom-actions{
-  flex: 0 0 auto !important;
-  position: sticky !important;
-  bottom: 0 !important;
-  z-index: 20 !important;
-  background: var(--bg) !important;
-}
-
-/* En portátil, compacta un poco la tabla */
-@media (max-height: 720px){
   #notasStudentsModal .notas-screen-header{
     padding-top: 10px !important;
     padding-bottom: 10px !important;
@@ -4711,11 +4688,6 @@ h1,h2,
 
   #notasStudentsModal #notasGrid{
     padding-top: 10px !important;
-  }
-
-  #notasStudentsModal .notas-cell{
-    padding-top: 6px !important;
-    padding-bottom: 6px !important;
   }
 }
 </style>
