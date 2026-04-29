@@ -15131,37 +15131,41 @@ function notasRenderGrid_(){
   const isDesktop = window.matchMedia("(min-width: 900px)").matches;
   notasGridEl.className = isDesktop ? "notas-grid table-mode" : "notas-grid";
 
- const headerHtml = isDesktop ? `
-  <div class="notas-student-card notas-header-row">
-    <div class="notas-cell notas-student-name">Estudiante</div>
-  ${(__notasColumnas || []).map(col => `
-  <div class="notas-cell">
-    ${escapeHtml(col.nombre || "")}<br>
-    <span class="muted small">${Number(col.porcentaje || 0)}%</span>
-  </div>
-`).join("")}
-<div class="notas-cell">
-  Actitudinal<br>
-  <span class="muted small">20%</span>
-</div>
-<div class="notas-cell">Definitiva</div>
-    <div class="notas-cell">Definitiva</div>
-    <div class="notas-cell">Estado</div>
-  </div>
-` : "";
+  const headerHtml = isDesktop ? `
+    <div class="notas-student-card notas-header-row">
+      <div class="notas-cell notas-student-name">Estudiante</div>
 
-notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
+      ${(__notasColumnas || []).map(col => `
+        <div class="notas-cell">
+          ${escapeHtml(col.nombre || "")}<br>
+          <span class="muted small">${Number(col.porcentaje || 0)}%</span>
+        </div>
+      `).join("")}
+
+      <div class="notas-cell">
+        Actitudinal<br>
+        <span class="muted small">20%</span>
+      </div>
+
+      <div class="notas-cell">Definitiva</div>
+      <div class="notas-cell">Estado</div>
+    </div>
+  ` : "";
+
+  notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
+    if (!student.notas) student.notas = {};
+
     const calc = notasCalcStudent_(student);
 
     const rowClass =
-  calc.estado === "BAJO" ? "notas-row-bajo" :
-  calc.estado === "DEBE_NOTAS" ? "notas-row-debe" :
-  calc.estado === "RIESGO" ? "notas-row-riesgo" :
-  "";
+      calc.estado === "BAJO" ? "notas-row-bajo" :
+      calc.estado === "DEBE_NOTAS" ? "notas-row-debe" :
+      calc.estado === "RIESGO" ? "notas-row-riesgo" :
+      "";
 
     if (isDesktop) {
       return `
-       <div class="notas-student-card" data-student-idx="${sIdx}">
+        <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
           <div class="notas-student-top">
             <div class="notas-cell notas-student-name">${escapeHtml(student.estudiante)}</div>
           </div>
@@ -15175,13 +15179,14 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
                 </div>
               `;
             }).join("")}
+
             <div class="notas-cell">
-  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
-</div>
+              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
+            </div>
           </div>
 
           <div class="notas-summary">
-            <div class="notas-cell"><b>${calc.definitiva}</b></div>
+            <div class="notas-cell"><strong>${escapeHtml(String(calc.definitiva ?? "—"))}</strong></div>
             <div class="notas-cell">${notasEstadoBadge_(calc.estado)}</div>
           </div>
         </div>
@@ -15189,7 +15194,7 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
     }
 
     return `
-      <div class="notas-student-card" data-student-idx="${sIdx}">
+      <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
         <div class="notas-student-top">
           <div class="notas-student-name">${escapeHtml(student.estudiante)}</div>
           ${notasEstadoBadge_(calc.estado)}
@@ -15207,78 +15212,76 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
           }).join("")}
 
           <div class="notas-input-row">
-  <label>Actitudinal (20%)</label>
-  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
-</div>
+            <label>Actitudinal (20%)</label>
+            <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
+          </div>
         </div>
 
-      <div class="notas-summary">
-  <span class="badge badge-neutral">Definitiva: ${calc.definitiva}</span>
-  ${calc.detalles ? `<span class="badge badge-soft">Tiene detalles</span>` : ""}
-</div>
+        <div class="notas-summary">
+          <span class="badge badge-neutral">Definitiva: ${escapeHtml(String(calc.definitiva ?? "—"))}</span>
+        </div>
 
-${calc.detalles ? `
-  <div class="notas-detail-mini">
-    ${escapeHtml(calc.detalles)}
-  </div>
+        ${calc.detalles ? `
+          <div class="notas-detail-mini">
+            ${escapeHtml(calc.detalles)}
+          </div>
 
-  <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
-    Compartir reporte
-  </button>
-` : ""}
+          <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
+            Compartir reporte
+          </button>
+        ` : ""}
       </div>
     `;
   }).join("");
 
-notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
-  input.addEventListener("input", () => {
-    const sIdx = Number(input.dataset.notaInput);
-    const key = String(input.dataset.notaKey || "");
+  notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+    input.addEventListener("input", () => {
+      const sIdx = Number(input.dataset.notaInput);
+      const key = String(input.dataset.notaKey || "");
 
-    if (!__notasEstudiantes[sIdx]) return;
-    if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+      if (!__notasEstudiantes[sIdx]) return;
+      if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
 
-    __notasEstudiantes[sIdx].notas[key] = input.value;
+      __notasEstudiantes[sIdx].notas[key] = input.value;
+    });
+
+    input.addEventListener("blur", () => {
+      notasRenderGrid_();
+    });
   });
-
-  input.addEventListener("blur", () => {
-    notasRenderGrid_();
-  });
-});
-
 
   notasGridEl.querySelectorAll("[data-nota-share]").forEach(btn => {
-  btn.addEventListener("click", async () => {
-    const sIdx = Number(btn.dataset.notaShare);
-    const student = __notasEstudiantes[sIdx];
-    if (!student) return;
+    btn.addEventListener("click", async () => {
+      const sIdx = Number(btn.dataset.notaShare);
+      const student = __notasEstudiantes[sIdx];
+      if (!student) return;
 
-    const calc = notasCalcStudent_(student);
-    const curso = String(notasCursoEl?.value || "").trim();
-    const asignatura = String(notasAsignaturaEl?.value || "").trim();
-    const periodo = String(notasPeriodoEl?.value || "1").trim();
+      const calc = notasCalcStudent_(student);
+      const curso = String(notasCursoEl?.value || "").trim();
+      const asignatura = String(notasAsignaturaEl?.value || "").trim();
+      const periodo = String(notasPeriodoEl?.value || "1").trim();
 
-    const msg =
-      `Reporte académico\n\n` +
-      `Estudiante: ${student.estudiante}\n` +
-      `Curso: ${curso}\n` +
-      `Asignatura: ${asignatura}\n` +
-      `Periodo: ${periodo}\n` +
-      `Definitiva: ${calc.definitiva}\n` +
-      `Estado: ${calc.estado}\n\n` +
-      `Detalles:\n${calc.detalles || "Sin detalles."}`;
+      const msg =
+        `Reporte académico\n\n` +
+        `Estudiante: ${student.estudiante}\n` +
+        `Curso: ${curso}\n` +
+        `Asignatura: ${asignatura}\n` +
+        `Periodo: ${periodo}\n` +
+        `Definitiva: ${calc.definitiva}\n` +
+        `Estado: ${calc.estado}\n\n` +
+        `Detalles:\n${calc.detalles || "Sin detalles."}`;
 
-    if (navigator.share) {
-      await navigator.share({
-        title: "Reporte académico",
-        text: msg
-      });
-      return;
-    }
+      if (navigator.share) {
+        await navigator.share({
+          title: "Reporte académico",
+          text: msg
+        });
+        return;
+      }
 
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+    });
   });
-});
 }
 
 async function notasLoadCourses_(){
