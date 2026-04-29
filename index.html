@@ -15134,12 +15134,17 @@ function notasRenderGrid_(){
  const headerHtml = isDesktop ? `
   <div class="notas-student-card notas-header-row">
     <div class="notas-cell notas-student-name">Estudiante</div>
-    ${(__notasColumnas || []).map(col => `
-      <div class="notas-cell">
-        ${escapeHtml(col.nombre || "")}<br>
-        <span class="muted small">${Number(col.porcentaje || 0)}%</span>
-      </div>
-    `).join("")}
+  ${(__notasColumnas || []).map(col => `
+  <div class="notas-cell">
+    ${escapeHtml(col.nombre || "")}<br>
+    <span class="muted small">${Number(col.porcentaje || 0)}%</span>
+  </div>
+`).join("")}
+<div class="notas-cell">
+  Actitudinal<br>
+  <span class="muted small">20%</span>
+</div>
+<div class="notas-cell">Definitiva</div>
     <div class="notas-cell">Definitiva</div>
     <div class="notas-cell">Estado</div>
   </div>
@@ -15170,6 +15175,9 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
                 </div>
               `;
             }).join("")}
+            <div class="notas-cell">
+  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
+</div>
           </div>
 
           <div class="notas-summary">
@@ -15197,6 +15205,11 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
               </div>
             `;
           }).join("")}
+
+          <div class="notas-input-row">
+  <label>Actitudinal (20%)</label>
+  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
+</div>
         </div>
 
       <div class="notas-summary">
