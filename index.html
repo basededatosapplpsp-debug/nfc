@@ -6045,7 +6045,7 @@ h1,h2,
           <option value="1">Periodo 1</option>
           <option value="2">Periodo 2</option>
           <option value="3">Periodo 3</option>
-          <option value="4">Periodo 4</option>
+        
         </select>
       </div>
     </div>
@@ -6053,7 +6053,8 @@ h1,h2,
     <div class="notas-toolbar">
       <button id="btnNotasCargarEstudiantes" class="btn btn-secondary" type="button">Cargar estudiantes</button>
       <button id="btnNotasCargarPlanilla" class="btn btn-ghost" type="button">Cargar planilla guardada</button>
-      <button id="btnNotasAgregarColumna" class="btn btn-ghost" type="button">+ Actividad</button>
+    <button id="btnNotasAgregarColumna" class="btn btn-ghost" type="button">+ Procedimental</button>
+<button id="btnNotasAgregarCognitivo" class="btn btn-ghost" type="button">+ Cognitivo</button>
       <button id="btnNotasGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
     </div>
 
@@ -6103,7 +6104,7 @@ h1,h2,
           <option value="1">Periodo 1</option>
           <option value="2">Periodo 2</option>
           <option value="3">Periodo 3</option>
-          <option value="4">Periodo 4</option>
+        
         </select>
       </div>
     </div>
@@ -8000,12 +8001,15 @@ const notasPorcentajeTotalEl = $("notasPorcentajeTotal");
 const btnNotasCargarEstudiantes = $("btnNotasCargarEstudiantes");
 const btnNotasCargarPlanilla = $("btnNotasCargarPlanilla");
 const btnNotasAgregarColumna = $("btnNotasAgregarColumna");
+const btnNotasAgregarCognitivo = $("btnNotasAgregarCognitivo");
 const btnNotasGuardar = $("btnNotasGuardar");
 const btnNotasCerrar = $("btnNotasCerrar");
 
 let __notasColumnas = [
-  { orden: 1, nombre: "Actividad 1", porcentaje: 50 },
-  { orden: 2, nombre: "Actividad 2", porcentaje: 50 }
+  { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
+  { orden: 2, nombre: "Taller 1", porcentaje: 0, componente: "procedimental" },
+  { orden: 3, nombre: "Evaluación", porcentaje: 0, componente: "cognitivo" },
+  { orden: 4, nombre: "Quiz 1", porcentaje: 0, componente: "cognitivo" }
 ];
 
 let __notasEstudiantes = [];
@@ -14623,42 +14627,68 @@ function notasParseNota_(v){
   return Math.round(n * 10) / 10;
 }
 
-function notasCalcStudent_(student){
-  let suma = 0;
-  let tieneVacias = false;
-  let tieneBajas = false;
-  const detalles = [];
-
-  (__notasColumnas || []).forEach(col => {
-    const key = String(col.orden);
-    const nota = notasParseNota_(student.notas?.[key]);
-    const nombre = String(col.nombre || `Nota ${key}`).trim();
-    const porcentaje = Number(col.porcentaje || 0);
-
-    if (nota === null) {
-      tieneVacias = true;
-      detalles.push(`${nombre}: vacía`);
-      return;
-    }
-
-    if (nota < 3.5) {
-      tieneBajas = true;
-      detalles.push(`${nombre}: ${nota}`);
-    }
-
-    suma += nota * (porcentaje / 100);
-  });
-
-  const definitiva = Math.round(suma * 10) / 10;
-
-  let estado = "OK";
-  if (tieneVacias) estado = "DEBE_NOTAS";
-  else if (definitiva < 3.5) estado = "BAJO";
-  else if (tieneBajas) estado = "RIESGO";
-
-  return { definitiva, estado, detalles: detalles.join("; ") };
+function notasAvg_(arr){
+  const nums = arr.filter(n => n !== null);
+  if (!nums.length) return null;
+  return Math.round((nums.reduce((s, n) => s + n, 0) / nums.length) * 10) / 10;
 }
 
+function notasCalcStudent_(student){
+  const detalles = [];
+
+  const procedimentales = (__notasColumnas || []).filter(c => c.componente === "procedimental");
+  const cognitivos = (__notasColumnas || []).filter(c => c.componente === "cognitivo");
+
+  const procNotas = procedimentales.map(col => {
+    const key = String(col.orden);
+    const nota = notasParseNota_(student.notas?.[key]);
+
+    if (nota === null) detalles.push(`Procedimental - ${col.nombre}: vacía`);
+    else if (nota < 3.5) detalles.push(`Procedimental - ${col.nombre}: ${nota}`);
+
+    return nota;
+  });
+
+  const cogNotas = cognitivos.map(col => {
+    const key = String(col.orden);
+    const nota = notasParseNota_(student.notas?.[key]);
+
+    if (nota === null) detalles.push(`Cognitivo - ${col.nombre}: vacía`);
+
+    return nota;
+  });
+
+  const actitudinal = notasParseNota_(student.notas?.actitudinal);
+
+  if (actitudinal === null) detalles.push("Actitudinal: vacía");
+  else if (actitudinal < 3.5) detalles.push(`Actitudinal: ${actitudinal}`);
+
+  const procTotal = notasAvg_(procNotas);
+  const cogTotal = notasAvg_(cogNotas);
+
+  const definitiva =
+    procTotal !== null && cogTotal !== null && actitudinal !== null
+      ? Math.round(((procTotal * 0.4) + (cogTotal * 0.4) + (actitudinal * 0.2)) * 10) / 10
+      : "—";
+
+  let estado = "OK";
+
+  if (detalles.some(d => d.includes("vacía"))) estado = "DEBE_NOTAS";
+  else if (definitiva !== "—" && definitiva < 3.5) estado = "BAJO";
+  else if (
+    procNotas.some(n => n !== null && n < 3.5) ||
+    actitudinal !== null && actitudinal < 3.5
+  ) estado = "RIESGO";
+
+  return {
+    procTotal: procTotal ?? "—",
+    cogTotal: cogTotal ?? "—",
+    actitudinal: actitudinal ?? "—",
+    definitiva,
+    estado,
+    detalles: detalles.join("; ")
+  };
+}
 function notasEstadoBadge_(estado){
   if (estado === "BAJO") return `<span class="badge badge-late">Bajo</span>`;
   if (estado === "DEBE_NOTAS") return `<span class="badge badge-soft">Debe notas</span>`;
@@ -14944,11 +14974,12 @@ async function notasCargarPlanillaGuardada_(){
       return;
     }
 
-    __notasColumnas = (data.columnas || []).map((c, idx) => ({
-      orden: Number(c.orden || idx + 1),
-      nombre: String(c.nombre || `Actividad ${idx + 1}`),
-      porcentaje: Number(c.porcentaje || 0)
-    }));
+  __notasColumnas = (data.columnas || []).map((c, idx) => ({
+  orden: Number(c.orden || idx + 1),
+  nombre: String(c.nombre || `Actividad ${idx + 1}`),
+  porcentaje: Number(c.porcentaje || 0),
+  componente: String(c.componente || "procedimental").trim().toLowerCase()
+}));
 
     __notasEstudiantes = (data.estudiantes || []).map(r => ({
       estudiante: String(r.estudiante || "").trim(),
@@ -14981,8 +15012,7 @@ async function notasGuardarPlanilla_(){
   if (!asignatura) return notasSetHint_("Falta asignatura.");
   if (!__notasEstudiantes.length) return notasSetHint_("Primero carga estudiantes.");
 
-  const total = (__notasColumnas || []).reduce((s, x) => s + Number(x.porcentaje || 0), 0);
-  if (total !== 100) return notasSetHint_(`Los porcentajes deben sumar 100%. Ahora suman ${total}%.`);
+
 
   const payload = {
     action: "notas_planilla_save",
@@ -15032,8 +15062,21 @@ btnNotasAgregarColumna?.addEventListener("click", () => {
   const next = (__notasColumnas || []).length + 1;
   __notasColumnas.push({
     orden: next,
-    nombre: `Actividad ${next}`,
-    porcentaje: 0
+    nombre: `Tarea/Taller ${next}`,
+    porcentaje: 0,
+    componente: "procedimental"
+  });
+  notasRenderColumnas_();
+  notasRenderGrid_();
+});
+
+btnNotasAgregarCognitivo?.addEventListener("click", () => {
+  const next = (__notasColumnas || []).length + 1;
+  __notasColumnas.push({
+    orden: next,
+    nombre: `Quiz/Evaluación ${next}`,
+    porcentaje: 0,
+    componente: "cognitivo"
   });
   notasRenderColumnas_();
   notasRenderGrid_();
