@@ -4650,23 +4650,27 @@ h1,h2,
   flex: 0 0 auto !important;
 }
 
-#notasStudentsModal #notasGrid{
+/* Registrar notas: wrapper real de scroll */
+#notasStudentsModal .notas-grid-scroll{
   flex: 1 1 auto !important;
   min-height: 0 !important;
-  max-height: none !important;
-  overflow-y: auto !important;
-  overflow-x: auto !important;
+  overflow: auto !important;
   -webkit-overflow-scrolling: touch;
-  padding: 12px 16px 120px !important;
+  padding: 12px 16px;
 }
 
+/* El grid queda libre para ser table-mode */
+#notasStudentsModal #notasGrid{
+  min-width: max-content;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+/* Botón guardar abajo, sin tapar estudiantes */
 #notasStudentsModal .notas-bottom-actions{
   flex: 0 0 auto !important;
-  position: fixed !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  z-index: 1000 !important;
+  position: static !important;
+  z-index: 20 !important;
   background: var(--bg) !important;
 }
 
@@ -6349,7 +6353,9 @@ h1,h2,
       <button id="btnNotasStudentsBack" class="btn btn-ghost" type="button">Atrás</button>
     </div>
 
-    <div id="notasGrid" class="notas-grid"></div>
+   <div class="notas-grid-scroll">
+  <div id="notasGrid" class="notas-grid"></div>
+</div>
 
     <div class="notas-bottom-actions">
       <button id="btnNotasStudentsGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
