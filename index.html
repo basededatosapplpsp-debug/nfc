@@ -6183,8 +6183,10 @@ h1,h2,
       </div>
 
       <div>
-        <label class="modal-label">Asignatura</label>
-        <input id="notasAsignatura" class="modal-input" type="text" placeholder="Ej: Matemáticas" />
+       <label class="modal-label">Asignatura</label>
+<select id="notasAsignatura" class="modal-input">
+  <option value="">Selecciona asignatura</option>
+</select>
       </div>
 
       <div>
@@ -15139,6 +15141,53 @@ async function notasLoadStudents_(){
   }
 }
 
+
+async function notasLoadAsignaturas_(){
+  if (!notasAsignaturaEl) return;
+
+  notasAsignaturaEl.innerHTML = `<option value="">Selecciona asignatura</option>`;
+
+  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
+    ? asignaturasCurrentDeviceId_()
+    : (typeof getDeviceId === "function" ? getDeviceId() : "");
+
+  if (!deviceId) {
+    notasSetHint_("No pude identificar el dispositivo para cargar asignaturas.");
+    return;
+  }
+
+  let items = [];
+
+  try {
+    if (typeof asignaturasLoadForCurrentUser_ === "function") {
+      items = await asignaturasLoadForCurrentUser_({ force: false });
+    } else if (typeof gsAsignaturasGet === "function") {
+      items = await gsAsignaturasGet(deviceId);
+    }
+  } catch (e) {
+    notasSetHint_("No pude cargar asignaturas guardadas. Puedes revisarlas en Menú > Asignaturas.");
+    items = [];
+  }
+
+  const clean = [...new Set(
+    (Array.isArray(items) ? items : [])
+      .map(x => String(x || "").trim())
+      .filter(Boolean)
+  )];
+
+  clean.forEach(asg => {
+    const opt = document.createElement("option");
+    opt.value = asg;
+    opt.textContent = asg;
+    notasAsignaturaEl.appendChild(opt);
+  });
+
+  if (!clean.length) {
+    notasSetHint_("No tienes asignaturas guardadas. Ve a Menú > Asignaturas y guarda al menos una.");
+  }
+}
+
+
 async function notasOpenPlanilla_(){
   if (!notasPlanillaModal) return;
 
@@ -15149,6 +15198,7 @@ async function notasOpenPlanilla_(){
   try {
     setLoading(true, "Cargando…", "Preparando planilla de notas.");
     await notasLoadCourses_();
+    await notasLoadAsignaturas_();
 
     const profile = typeof loadProfile === "function" ? loadProfile() : null;
     const profileCourse = String(profile?.course || "").trim();
