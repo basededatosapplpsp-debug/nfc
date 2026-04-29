@@ -4168,6 +4168,40 @@ h1,h2,
   }
 }
 
+
+/* ===== FIX: Entrada / Salida NO dependen del tema ===== */
+#btnEntrada{
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(180deg, rgba(209,250,229,.98), rgba(187,247,208,.94)) !important;
+  color: #065f46 !important;
+  border-color: rgba(6,95,70,.20) !important;
+  box-shadow:
+    0 10px 22px rgba(16,185,129,.16),
+    0 3px 8px rgba(6,95,70,.08),
+    inset 0 1px 0 rgba(255,255,255,.65) !important;
+}
+
+#btnSalida{
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,.28), transparent 42%),
+    linear-gradient(180deg, rgba(237,233,254,.98), rgba(221,214,254,.94)) !important;
+  color: #4c1d95 !important;
+  border-color: rgba(76,29,149,.20) !important;
+  box-shadow:
+    0 10px 22px rgba(124,58,237,.16),
+    0 3px 8px rgba(76,29,149,.08),
+    inset 0 1px 0 rgba(255,255,255,.65) !important;
+}
+
+#btnSalida.is-inactive{
+  background: linear-gradient(180deg, rgba(241,245,249,.96), rgba(226,232,240,.92)) !important;
+  color: #94a3b8 !important;
+  border-color: rgba(255,255,255,.10) !important;
+  box-shadow: none !important;
+}
+
+
 </style>
 </head>
 
@@ -20753,7 +20787,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-61";
+const APP_BUILD = "2026-04-10-62";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
