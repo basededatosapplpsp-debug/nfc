@@ -4475,6 +4475,109 @@ h1,h2,
 }
 
 
+/* ===== NOTAS: flujo dos pantallas ===== */
+.notas-full{
+  padding:0 !important;
+  align-items:stretch !important;
+  justify-content:stretch !important;
+}
+
+.notas-full-card{
+  width:100vw !important;
+  max-width:100vw !important;
+  height:100dvh !important;
+  max-height:100dvh !important;
+  border-radius:0 !important;
+  border:0 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  overflow:hidden !important;
+}
+
+.notas-screen-header{
+  flex:0 0 auto;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  padding:16px;
+  border-bottom:1px solid var(--line);
+}
+
+.notas-config-grid{
+  display:grid;
+  gap:12px;
+  padding:16px;
+}
+
+@media (min-width:760px){
+  .notas-config-grid{
+    grid-template-columns:1fr 1fr 160px;
+  }
+}
+
+.notas-components-dashboard{
+  padding:0 16px 16px;
+  display:grid;
+  gap:12px;
+}
+
+@media (min-width:900px){
+  .notas-components-dashboard{
+    grid-template-columns:1fr 1fr 1fr;
+  }
+}
+
+.notas-component-card{
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:16px;
+  background:rgba(255,255,255,.05);
+  box-shadow:var(--shadow);
+}
+
+.notas-component-big{
+  font-size:18px;
+  font-weight:950;
+}
+
+.notas-component-percent{
+  margin-top:8px;
+  font-size:28px;
+  font-weight:950;
+}
+
+.notas-component-card p{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.4;
+}
+
+.notas-columnas-box{
+  margin:0 16px 16px;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+}
+
+.notas-bottom-actions{
+  flex:0 0 auto;
+  display:flex;
+  gap:10px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);
+}
+
+#notasGrid{
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  padding:16px;
+  -webkit-overflow-scrolling:touch;
+}
+
 
 </style>
 </head>
@@ -6049,17 +6152,18 @@ h1,h2,
 </div>
 
 
-<!-- ======= MODAL PLANILLA DE NOTAS ======= -->
-<div id="notasPlanillaModal" class="modal-backdrop" hidden>
-  <div class="modal-card notas-card">
-    <div class="notas-head">
+<<!-- ======= MODAL PLANILLA DE NOTAS: CONFIGURACIÓN ======= -->
+<div id="notasPlanillaModal" class="modal-backdrop notas-full" hidden>
+  <div class="modal-card notas-full-card">
+    <div class="notas-screen-header">
       <div>
         <h2 class="modal-title">Planilla de notas</h2>
-        <p class="modal-sub">Carga notas, calcula definitiva y detecta estudiantes en riesgo.</p>
+        <p class="modal-sub">Configura el curso, asignatura y periodo antes de cargar estudiantes.</p>
       </div>
+      <button id="btnNotasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
     </div>
 
-    <div class="notas-filters">
+    <div class="notas-config-grid">
       <div>
         <label class="modal-label">Curso</label>
         <select id="notasCurso" class="modal-input"></select>
@@ -6076,36 +6180,65 @@ h1,h2,
           <option value="1">Periodo 1</option>
           <option value="2">Periodo 2</option>
           <option value="3">Periodo 3</option>
-        
         </select>
       </div>
     </div>
 
-    <div class="notas-toolbar">
-      <button id="btnNotasCargarEstudiantes" class="btn btn-secondary" type="button">Cargar estudiantes</button>
-      <button id="btnNotasCargarPlanilla" class="btn btn-ghost" type="button">Cargar planilla guardada</button>
-    <button id="btnNotasAgregarColumna" class="btn btn-ghost" type="button">+ Procedimental</button>
-<button id="btnNotasAgregarCognitivo" class="btn btn-ghost" type="button">+ Cognitivo</button>
-      <button id="btnNotasGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
+    <div class="notas-components-dashboard">
+      <div class="notas-component-card proc">
+        <div class="notas-component-big">Procedimental</div>
+        <div class="notas-component-percent">40%</div>
+        <p>Tareas, talleres y actividades. Aquí se valida si debe actividades o tiene notas menores a 3.5.</p>
+        <button id="btnNotasAgregarColumna" class="btn btn-ghost" type="button">+ Tarea / Taller</button>
+      </div>
+
+      <div class="notas-component-card cog">
+        <div class="notas-component-big">Cognitivo</div>
+        <div class="notas-component-percent">40%</div>
+        <p>Evaluación y quices. Aquí se valida principalmente si debe evaluación o quiz.</p>
+        <button id="btnNotasAgregarCognitivo" class="btn btn-ghost" type="button">+ Quiz / Evaluación</button>
+      </div>
+
+      <div class="notas-component-card act">
+        <div class="notas-component-big">Actitudinal</div>
+        <div class="notas-component-percent">20%</div>
+        <p>Una sola nota actitudinal por estudiante.</p>
+      </div>
+    </div>
+
+    <div class="notas-columnas-box">
+      <h3 class="notas-section-title">Columnas de la planilla</h3>
+      <div id="notasColumnasList" class="notas-columnas-list"></div>
+      <div class="muted small" id="notasPorcentajeTotal">
+        Peso final: Procedimental 40% + Cognitivo 40% + Actitudinal 20%
+      </div>
     </div>
 
     <div id="notasHint" class="muted small" style="margin-top:10px;"></div>
 
-    <div class="notas-layout">
-      <div class="notas-columnas-box">
-        <h3 class="notas-section-title">Actividades / porcentajes</h3>
-        <div id="notasColumnasList" class="notas-columnas-list"></div>
-        <div class="muted small" id="notasPorcentajeTotal">Total: 0%</div>
-      </div>
+    <div class="notas-bottom-actions">
+      <button id="btnNotasCargarPlanilla" class="btn btn-ghost" type="button">Cargar planilla guardada</button>
+      <button id="btnNotasCargarEstudiantes" class="btn btn-primary" type="button">Cargar estudiantes</button>
+      <button id="btnNotasGuardar" class="btn btn-secondary" type="button">Guardar planilla</button>
+    </div>
+  </div>
+</div>
 
-      <div class="notas-table-box">
-        <h3 class="notas-section-title">Estudiantes</h3>
-        <div id="notasGrid" class="notas-grid"></div>
+<!-- ======= MODAL PLANILLA DE NOTAS: ESTUDIANTES ======= -->
+<div id="notasStudentsModal" class="modal-backdrop notas-full" hidden>
+  <div class="modal-card notas-full-card">
+    <div class="notas-screen-header">
+      <div>
+        <h2 class="modal-title">Registrar notas</h2>
+        <p id="notasStudentsSub" class="modal-sub">Selecciona un estudiante y registra sus notas.</p>
       </div>
+      <button id="btnNotasStudentsBack" class="btn btn-ghost" type="button">Atrás</button>
     </div>
 
-    <div class="modal-actions" style="justify-content:flex-end;">
-      <button id="btnNotasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
+    <div id="notasGrid" class="notas-grid"></div>
+
+    <div class="notas-bottom-actions">
+      <button id="btnNotasStudentsGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
     </div>
   </div>
 </div>
@@ -8035,6 +8168,11 @@ const btnNotasAgregarColumna = $("btnNotasAgregarColumna");
 const btnNotasAgregarCognitivo = $("btnNotasAgregarCognitivo");
 const btnNotasGuardar = $("btnNotasGuardar");
 const btnNotasCerrar = $("btnNotasCerrar");
+
+const notasStudentsModal = $("notasStudentsModal");
+const notasStudentsSub = $("notasStudentsSub");
+const btnNotasStudentsBack = $("btnNotasStudentsBack");
+const btnNotasStudentsGuardar = $("btnNotasStudentsGuardar");
 
 let __notasColumnas = [
   { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
@@ -14976,6 +15114,7 @@ async function notasOpenPlanilla_(){
   if (!notasPlanillaModal) return;
 
   notasPlanillaModal.hidden = false;
+  if (notasStudentsModal) notasStudentsModal.hidden = true;
   notasSetHint_("");
 
   try {
@@ -14985,12 +15124,9 @@ async function notasOpenPlanilla_(){
     const profile = typeof loadProfile === "function" ? loadProfile() : null;
     const profileCourse = String(profile?.course || "").trim();
 
-    if (profileCourse && notasCursoEl) {
-      notasCursoEl.value = profileCourse;
-    }
+    if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
 
     notasRenderColumnas_();
-    notasRenderGrid_();
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
@@ -15151,6 +15287,13 @@ window.addEventListener("resize", () => {
 
 
 btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
+
+btnNotasStudentsBack?.addEventListener("click", () => {
+  if (notasStudentsModal) notasStudentsModal.hidden = true;
+  if (notasPlanillaModal) notasPlanillaModal.hidden = false;
+});
+
+btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
 
 function notasAlertasHint_(msg){
   if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
