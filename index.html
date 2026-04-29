@@ -4578,9 +4578,9 @@ h1,h2,
 }
 
 #notasPlanillaModal .notas-bottom-actions{
-  position:sticky;
-  bottom:0;
-  z-index:10;
+  position:static !important;
+  bottom:auto !important;
+  z-index:auto !important;
 }
 
 #notasGrid{
@@ -15108,19 +15108,35 @@ async function notasLoadCourses_(){
 
 async function notasLoadStudents_(){
   const curso = String(notasCursoEl?.value || "").trim();
-  if (!curso) {
-    notasSetHint_("Selecciona un curso.");
-    return;
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  if (!curso) return notasSetHint_("Selecciona un curso.");
+  if (!asignatura) return notasSetHint_("Escribe la asignatura.");
+
+  try {
+    setLoading(true, "Cargando…", "Cargando estudiantes del curso.");
+
+    const students = await gsCourseStudents(curso);
+
+    __notasEstudiantes = (students || []).map(name => ({
+      estudiante: String(name || "").trim(),
+      notas: {}
+    })).filter(x => x.estudiante);
+
+    if (notasStudentsSub) {
+      notasStudentsSub.textContent = `${curso} • ${asignatura} • Periodo ${periodo}`;
+    }
+
+    if (notasPlanillaModal) notasPlanillaModal.hidden = true;
+    if (notasStudentsModal) notasStudentsModal.hidden = false;
+
+    notasRenderGrid_();
+  } catch (e) {
+    notasSetHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
   }
-
-  const students = await gsCourseStudents(curso);
-  __notasEstudiantes = (students || []).map(name => ({
-    estudiante: String(name || "").trim(),
-    notas: {}
-  })).filter(x => x.estudiante);
-
-  notasRenderGrid_();
-  notasSetHint_(`Estudiantes cargados: ${__notasEstudiantes.length}`);
 }
 
 async function notasOpenPlanilla_(){
