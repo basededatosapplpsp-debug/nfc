@@ -4444,6 +4444,37 @@ h1,h2,
 }
 
 
+.notas-component-box{
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(255,255,255,.04);
+  display:grid;
+  gap:10px;
+}
+
+.notas-component-title{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  font-weight:950;
+}
+
+.notas-component-title span{
+  font-size:12px;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.08);
+  color:var(--muted);
+}
+
+.notas-col-item.simple{
+  grid-template-columns: 1fr 38px;
+}
+
+
 
 </style>
 </head>
@@ -14699,27 +14730,50 @@ function notasEstadoBadge_(estado){
 function notasRenderColumnas_(){
   if (!notasColumnasListEl) return;
 
-  notasColumnasListEl.innerHTML = (__notasColumnas || []).map((col, idx) => `
-    <div class="notas-col-item" data-col-idx="${idx}">
-      <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Actividad" />
-      <input class="modal-input" data-nota-col-pct="${idx}" type="number" min="0" max="100" step="1" value="${escapeHtml(String(col.porcentaje ?? 0))}" />
-      <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
+  const proc = (__notasColumnas || []).filter(c => c.componente === "procedimental");
+  const cog = (__notasColumnas || []).filter(c => c.componente === "cognitivo");
+
+  notasColumnasListEl.innerHTML = `
+    <div class="notas-component-box">
+      <div class="notas-component-title">Procedimental <span>40%</span></div>
+      <div class="muted small">Tareas, talleres y actividades. Aquí se valida si debe actividades o tiene notas menores a 3.5.</div>
+
+      ${proc.map((col) => {
+        const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
+        return `
+          <div class="notas-col-item simple" data-col-idx="${idx}">
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Tarea / Taller" />
+            <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
+          </div>
+        `;
+      }).join("")}
     </div>
-  `).join("");
+
+    <div class="notas-component-box">
+      <div class="notas-component-title">Cognitivo <span>40%</span></div>
+      <div class="muted small">Evaluaciones y quices. Aquí solo se valida si debe la evaluación o quiz.</div>
+
+      ${cog.map((col) => {
+        const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
+        return `
+          <div class="notas-col-item simple" data-col-idx="${idx}">
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Evaluación / Quiz" />
+            <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
+          </div>
+        `;
+      }).join("")}
+    </div>
+
+    <div class="notas-component-box">
+      <div class="notas-component-title">Actitudinal <span>20%</span></div>
+      <div class="muted small">Una sola nota actitudinal por estudiante.</div>
+    </div>
+  `;
 
   notasColumnasListEl.querySelectorAll("[data-nota-col-name]").forEach(input => {
     input.addEventListener("input", () => {
       const idx = Number(input.dataset.notaColName);
       if (__notasColumnas[idx]) __notasColumnas[idx].nombre = input.value;
-      notasRenderGrid_();
-    });
-  });
-
-  notasColumnasListEl.querySelectorAll("[data-nota-col-pct]").forEach(input => {
-    input.addEventListener("input", () => {
-      const idx = Number(input.dataset.notaColPct);
-      if (__notasColumnas[idx]) __notasColumnas[idx].porcentaje = Number(input.value || 0);
-      notasUpdateTotal_();
       notasRenderGrid_();
     });
   });
@@ -14734,7 +14788,9 @@ function notasRenderColumnas_(){
     });
   });
 
-  notasUpdateTotal_();
+  if (notasPorcentajeTotalEl) {
+    notasPorcentajeTotalEl.textContent = "Peso final: Procedimental 40% + Cognitivo 40% + Actitudinal 20%";
+  }
 }
 
 function notasUpdateTotal_(){
@@ -14843,16 +14899,21 @@ ${calc.detalles ? `
     `;
   }).join("");
 
-  notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
-    input.addEventListener("input", () => {
-      const sIdx = Number(input.dataset.notaInput);
-      const key = String(input.dataset.notaKey || "");
-      if (!__notasEstudiantes[sIdx]) return;
-      if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
-      __notasEstudiantes[sIdx].notas[key] = input.value;
-      notasRenderGrid_();
-    });
+notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+  input.addEventListener("input", () => {
+    const sIdx = Number(input.dataset.notaInput);
+    const key = String(input.dataset.notaKey || "");
+
+    if (!__notasEstudiantes[sIdx]) return;
+    if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+
+    __notasEstudiantes[sIdx].notas[key] = input.value;
   });
+
+  input.addEventListener("blur", () => {
+    notasRenderGrid_();
+  });
+});
 
 
   notasGridEl.querySelectorAll("[data-nota-share]").forEach(btn => {
