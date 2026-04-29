@@ -4201,6 +4201,249 @@ h1,h2,
   box-shadow: none !important;
 }
 
+/* ================================
+   NOTAS: Planilla responsive
+================================ */
+#notasPlanillaModal{
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+}
+
+#notasPlanillaModal .notas-card{
+  width: min(1100px, 100%);
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notas-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.notas-filters{
+  display:grid;
+  gap:10px;
+  margin-top:10px;
+}
+
+@media (min-width: 760px){
+  .notas-filters{
+    grid-template-columns: 1fr 1fr 150px;
+  }
+}
+
+.notas-toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.notas-layout{
+  margin-top:14px;
+  display:grid;
+  gap:14px;
+  min-height:0;
+  flex:1 1 auto;
+}
+
+@media (min-width: 900px){
+  .notas-layout{
+    grid-template-columns: 320px 1fr;
+  }
+}
+
+.notas-section-title{
+  font-size:14px;
+  margin:0 0 10px;
+  font-weight:900;
+}
+
+.notas-columnas-box,
+.notas-table-box{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  background: rgba(0,0,0,.10);
+  min-height:0;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.notas-columnas-list{
+  display:grid;
+  gap:10px;
+}
+
+.notas-col-item{
+  display:grid;
+  grid-template-columns: 1fr 84px 38px;
+  gap:8px;
+  align-items:center;
+}
+
+.notas-col-item input{
+  min-width:0;
+}
+
+.notas-col-del{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+  border:1px solid rgba(239,68,68,.25);
+  background:rgba(239,68,68,.10);
+  color:#ffb4b4;
+  cursor:pointer;
+  font-weight:900;
+}
+
+.notas-grid{
+  display:grid;
+  gap:10px;
+}
+
+.notas-student-card{
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(255,255,255,.04);
+}
+
+.notas-student-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+
+.notas-student-name{
+  font-weight:950;
+  line-height:1.25;
+}
+
+.notas-inputs{
+  display:grid;
+  gap:8px;
+}
+
+.notas-input-row{
+  display:grid;
+  grid-template-columns: 1fr 90px;
+  gap:8px;
+  align-items:center;
+}
+
+.notas-input-row label{
+  font-size:12px;
+  color:var(--muted);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.notas-input-row input{
+  text-align:center;
+  font-weight:900;
+}
+
+.notas-summary{
+  margin-top:10px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.notas-empty{
+  color:var(--muted);
+  font-size:13px;
+}
+
+@media (min-width: 900px){
+  .notas-grid.table-mode{
+    min-width:760px;
+    display:table;
+    width:100%;
+    border-collapse:collapse;
+  }
+
+  .notas-grid.table-mode .notas-student-card{
+    display:table-row;
+    padding:0;
+    border:0;
+    background:transparent;
+  }
+
+  .notas-grid.table-mode .notas-student-top,
+  .notas-grid.table-mode .notas-inputs,
+  .notas-grid.table-mode .notas-summary{
+    display:contents;
+  }
+
+  .notas-grid.table-mode .notas-cell{
+    display:table-cell;
+    border-bottom:1px solid var(--line);
+    padding:8px;
+    vertical-align:middle;
+    white-space:nowrap;
+  }
+
+  .notas-grid.table-mode .notas-student-name{
+    min-width:220px;
+  }
+
+  .notas-grid.table-mode input{
+    width:78px;
+  }
+}
+
+.notas-header-row .notas-cell{
+  font-weight: 950;
+  color: var(--muted);
+  background: rgba(255,255,255,.06);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+
+
+
+/* ===== NOTAS: detalles de riesgo ===== */
+.notas-detail-mini{
+  margin-top:8px;
+  padding:8px 10px;
+  border-radius:12px;
+  border:1px dashed var(--line);
+  background:rgba(0,0,0,.10);
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.35;
+}
+
+.notas-grid.table-mode .notas-detail-mini{
+  display:none !important;
+}
+
+.notas-row-bajo{
+  border-color: rgba(239,68,68,.45) !important;
+  background: rgba(239,68,68,.08) !important;
+}
+
+.notas-row-debe{
+  border-color: rgba(248,244,5,.45) !important;
+  background: rgba(248,244,5,.08) !important;
+}
+
+.notas-row-riesgo{
+  border-color: rgba(245,158,11,.45) !important;
+  background: rgba(245,158,11,.08) !important;
+}
+
+
 
 </style>
 </head>
@@ -4286,6 +4529,24 @@ h1,h2,
   <button id="btnParqueMenu" class="menu-item" type="button" role="menuitem">Parque</button>
   <button id="btnComprasMenu" class="menu-item" type="button" role="menuitem">Compras</button>
 </div>
+<!-- ✅ NUEVO: Botón que abre el submenú "Notas" -->
+<button id="btnNotasMenu" class="menu-item" type="button" role="menuitem" aria-haspopup="true" aria-expanded="false">
+  Notas <span class="muted small" aria-hidden="true">›</span>
+</button>
+
+<!-- ✅ Submenú "Notas" -->
+<div id="notasSubMenu" class="menu-subpanel" hidden>
+  <div class="muted small" style="padding:6px 8px;">Notas</div>
+
+  <button id="btnNotasPlanilla" class="menu-item" type="button" role="menuitem">
+    Planilla de notas
+  </button>
+
+  <button id="btnNotasAlertas" class="menu-item" type="button" role="menuitem">
+    Alertas de notas
+  </button>
+</div>
+
 <button id="btnAsignaturasMenu" class="menu-item" type="button" role="menuitem">
   Asignaturas
 </button>
@@ -5756,6 +6017,113 @@ h1,h2,
   </div>
 </div>
 
+
+<!-- ======= MODAL PLANILLA DE NOTAS ======= -->
+<div id="notasPlanillaModal" class="modal-backdrop" hidden>
+  <div class="modal-card notas-card">
+    <div class="notas-head">
+      <div>
+        <h2 class="modal-title">Planilla de notas</h2>
+        <p class="modal-sub">Carga notas, calcula definitiva y detecta estudiantes en riesgo.</p>
+      </div>
+    </div>
+
+    <div class="notas-filters">
+      <div>
+        <label class="modal-label">Curso</label>
+        <select id="notasCurso" class="modal-input"></select>
+      </div>
+
+      <div>
+        <label class="modal-label">Asignatura</label>
+        <input id="notasAsignatura" class="modal-input" type="text" placeholder="Ej: Matemáticas" />
+      </div>
+
+      <div>
+        <label class="modal-label">Periodo</label>
+        <select id="notasPeriodo" class="modal-input">
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="notas-toolbar">
+      <button id="btnNotasCargarEstudiantes" class="btn btn-secondary" type="button">Cargar estudiantes</button>
+      <button id="btnNotasCargarPlanilla" class="btn btn-ghost" type="button">Cargar planilla guardada</button>
+      <button id="btnNotasAgregarColumna" class="btn btn-ghost" type="button">+ Actividad</button>
+      <button id="btnNotasGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
+    </div>
+
+    <div id="notasHint" class="muted small" style="margin-top:10px;"></div>
+
+    <div class="notas-layout">
+      <div class="notas-columnas-box">
+        <h3 class="notas-section-title">Actividades / porcentajes</h3>
+        <div id="notasColumnasList" class="notas-columnas-list"></div>
+        <div class="muted small" id="notasPorcentajeTotal">Total: 0%</div>
+      </div>
+
+      <div class="notas-table-box">
+        <h3 class="notas-section-title">Estudiantes</h3>
+        <div id="notasGrid" class="notas-grid"></div>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button id="btnNotasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ======= MODAL ALERTAS DE NOTAS ======= -->
+<div id="notasAlertasModal" class="modal-backdrop" hidden>
+  <div class="modal-card notas-card">
+    <h2 class="modal-title">Alertas de notas</h2>
+    <p class="modal-sub">Consulta estudiantes con notas vacías, notas bajas o definitiva menor a 3.5.</p>
+
+    <div class="notas-filters">
+      <div>
+        <label class="modal-label">Curso</label>
+        <select id="notasAlertasCurso" class="modal-input"></select>
+      </div>
+
+      <div>
+        <label class="modal-label">Asignatura</label>
+        <input id="notasAlertasAsignatura" class="modal-input" type="text" placeholder="Opcional" />
+      </div>
+
+      <div>
+        <label class="modal-label">Periodo</label>
+        <select id="notasAlertasPeriodo" class="modal-input">
+          <option value="">Todos</option>
+          <option value="1">Periodo 1</option>
+          <option value="2">Periodo 2</option>
+          <option value="3">Periodo 3</option>
+          <option value="4">Periodo 4</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="notas-toolbar">
+      <button id="btnNotasAlertasBuscar" class="btn btn-primary" type="button">Buscar alertas</button>
+    </div>
+
+    <div id="notasAlertasHint" class="muted small" style="margin-top:10px;"></div>
+
+    <div id="notasAlertasList" class="disc-reported-list" style="margin-top:14px; min-height:220px;"></div>
+
+    <div id="notasAlertasDetalle" class="record-card" style="margin-top:14px;" hidden></div>
+
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button id="btnNotasAlertasCompartir" class="btn btn-secondary" type="button" hidden>Compartir</button>
+      <button id="btnNotasAlertasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ======= CONFIG DEL COLEGIO (CAMBIA ESTO) =======
@@ -7615,6 +7983,47 @@ const asignaturasHint = $("asignaturasHint");
 const btnAsignaturasSave = $("btnAsignaturasSave");
 const btnAsignaturasClose = $("btnAsignaturasClose");
 const btnAsignaturasRefresh = $("btnAsignaturasRefresh");
+
+const btnNotasMenu = $("btnNotasMenu");
+const notasSubMenu = $("notasSubMenu");
+const btnNotasPlanilla = $("btnNotasPlanilla");
+const btnNotasAlertas = $("btnNotasAlertas");
+
+const notasPlanillaModal = $("notasPlanillaModal");
+const notasCursoEl = $("notasCurso");
+const notasAsignaturaEl = $("notasAsignatura");
+const notasPeriodoEl = $("notasPeriodo");
+const notasColumnasListEl = $("notasColumnasList");
+const notasGridEl = $("notasGrid");
+const notasHintEl = $("notasHint");
+const notasPorcentajeTotalEl = $("notasPorcentajeTotal");
+const btnNotasCargarEstudiantes = $("btnNotasCargarEstudiantes");
+const btnNotasCargarPlanilla = $("btnNotasCargarPlanilla");
+const btnNotasAgregarColumna = $("btnNotasAgregarColumna");
+const btnNotasGuardar = $("btnNotasGuardar");
+const btnNotasCerrar = $("btnNotasCerrar");
+
+let __notasColumnas = [
+  { orden: 1, nombre: "Actividad 1", porcentaje: 50 },
+  { orden: 2, nombre: "Actividad 2", porcentaje: 50 }
+];
+
+let __notasEstudiantes = [];
+
+const notasAlertasModal = $("notasAlertasModal");
+const notasAlertasCursoEl = $("notasAlertasCurso");
+const notasAlertasAsignaturaEl = $("notasAlertasAsignatura");
+const notasAlertasPeriodoEl = $("notasAlertasPeriodo");
+const notasAlertasListEl = $("notasAlertasList");
+const notasAlertasDetalleEl = $("notasAlertasDetalle");
+const notasAlertasHintEl = $("notasAlertasHint");
+const btnNotasAlertasBuscar = $("btnNotasAlertasBuscar");
+const btnNotasAlertasCerrar = $("btnNotasAlertasCerrar");
+const btnNotasAlertasCompartir = $("btnNotasAlertasCompartir");
+
+let __notasAlertasItems = [];
+let __notasAlertaSeleccionada = null;
+let __notasAlertaMsg = "";
 
 const ASIGNATURAS_CACHE_VERSION = "1";
 const ASIGNATURAS_CACHE_MAX_AGE_MS = 1000 * 60 * 60 * 12; // 12 horas
@@ -13503,17 +13912,40 @@ reportesViewerSubjectFilterEl?.addEventListener("change", () => {
 
 
 // ======= click menú Reportes =======
+// ======= click menú Reportes =======
 if (btnReportesMenu) {
   btnReportesMenu.addEventListener("click", (e) => {
     e.stopPropagation();
 
     if (faltasSubMenu) faltasSubMenu.hidden = true;
     if (faltasTiposSubMenu) faltasTiposSubMenu.hidden = true;
+    if (notasSubMenu) notasSubMenu.hidden = true;
     closeHorariosSubMenu_();
 
     if (reportesSubMenu) {
       reportesSubMenu.hidden = !reportesSubMenu.hidden;
     }
+  });
+}
+
+// ======= click menú Notas =======
+if (btnNotasMenu) {
+  btnNotasMenu.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isOpen = notasSubMenu ? !notasSubMenu.hidden : false;
+
+    if (faltasSubMenu) faltasSubMenu.hidden = true;
+    if (faltasTiposSubMenu) faltasTiposSubMenu.hidden = true;
+    if (reportesSubMenu) reportesSubMenu.hidden = true;
+    closeHorariosSubMenu_();
+
+    if (notasSubMenu) {
+      notasSubMenu.hidden = isOpen;
+    }
+
+    btnNotasMenu.setAttribute("aria-expanded", String(!isOpen));
   });
 }
 
@@ -14175,6 +14607,631 @@ if (comprasModal) {
     if (e.target === comprasModal) comprasModal.hidden = true;
   });
 }
+
+
+
+function notasSetHint_(msg){
+  if (notasHintEl) notasHintEl.textContent = String(msg || "");
+}
+
+function notasParseNota_(v){
+  const s = String(v ?? "").trim().replace(",", ".");
+  if (!s) return null;
+  const n = Number(s);
+  if (!Number.isFinite(n)) return null;
+  if (n < 0 || n > 5) return null;
+  return Math.round(n * 10) / 10;
+}
+
+function notasCalcStudent_(student){
+  let suma = 0;
+  let tieneVacias = false;
+  let tieneBajas = false;
+  const detalles = [];
+
+  (__notasColumnas || []).forEach(col => {
+    const key = String(col.orden);
+    const nota = notasParseNota_(student.notas?.[key]);
+    const nombre = String(col.nombre || `Nota ${key}`).trim();
+    const porcentaje = Number(col.porcentaje || 0);
+
+    if (nota === null) {
+      tieneVacias = true;
+      detalles.push(`${nombre}: vacía`);
+      return;
+    }
+
+    if (nota < 3.5) {
+      tieneBajas = true;
+      detalles.push(`${nombre}: ${nota}`);
+    }
+
+    suma += nota * (porcentaje / 100);
+  });
+
+  const definitiva = Math.round(suma * 10) / 10;
+
+  let estado = "OK";
+  if (tieneVacias) estado = "DEBE_NOTAS";
+  else if (definitiva < 3.5) estado = "BAJO";
+  else if (tieneBajas) estado = "RIESGO";
+
+  return { definitiva, estado, detalles: detalles.join("; ") };
+}
+
+function notasEstadoBadge_(estado){
+  if (estado === "BAJO") return `<span class="badge badge-late">Bajo</span>`;
+  if (estado === "DEBE_NOTAS") return `<span class="badge badge-soft">Debe notas</span>`;
+  if (estado === "RIESGO") return `<span class="badge badge-soft">Riesgo</span>`;
+  return `<span class="badge badge-ontime">OK</span>`;
+}
+
+function notasRenderColumnas_(){
+  if (!notasColumnasListEl) return;
+
+  notasColumnasListEl.innerHTML = (__notasColumnas || []).map((col, idx) => `
+    <div class="notas-col-item" data-col-idx="${idx}">
+      <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Actividad" />
+      <input class="modal-input" data-nota-col-pct="${idx}" type="number" min="0" max="100" step="1" value="${escapeHtml(String(col.porcentaje ?? 0))}" />
+      <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
+    </div>
+  `).join("");
+
+  notasColumnasListEl.querySelectorAll("[data-nota-col-name]").forEach(input => {
+    input.addEventListener("input", () => {
+      const idx = Number(input.dataset.notaColName);
+      if (__notasColumnas[idx]) __notasColumnas[idx].nombre = input.value;
+      notasRenderGrid_();
+    });
+  });
+
+  notasColumnasListEl.querySelectorAll("[data-nota-col-pct]").forEach(input => {
+    input.addEventListener("input", () => {
+      const idx = Number(input.dataset.notaColPct);
+      if (__notasColumnas[idx]) __notasColumnas[idx].porcentaje = Number(input.value || 0);
+      notasUpdateTotal_();
+      notasRenderGrid_();
+    });
+  });
+
+  notasColumnasListEl.querySelectorAll("[data-nota-col-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.notaColDel);
+      __notasColumnas.splice(idx, 1);
+      __notasColumnas = __notasColumnas.map((c, i) => ({ ...c, orden: i + 1 }));
+      notasRenderColumnas_();
+      notasRenderGrid_();
+    });
+  });
+
+  notasUpdateTotal_();
+}
+
+function notasUpdateTotal_(){
+  const total = (__notasColumnas || []).reduce((s, x) => s + Number(x.porcentaje || 0), 0);
+  if (notasPorcentajeTotalEl) {
+    notasPorcentajeTotalEl.textContent = `Total: ${total}%`;
+    notasPorcentajeTotalEl.style.color = total === 100 ? "var(--muted)" : "#f59e0b";
+  }
+}
+
+function notasRenderGrid_(){
+  if (!notasGridEl) return;
+
+  if (!__notasEstudiantes.length) {
+    notasGridEl.className = "notas-grid";
+    notasGridEl.innerHTML = `<div class="notas-empty">Carga estudiantes para empezar.</div>`;
+    return;
+  }
+
+  const isDesktop = window.matchMedia("(min-width: 900px)").matches;
+  notasGridEl.className = isDesktop ? "notas-grid table-mode" : "notas-grid";
+
+ const headerHtml = isDesktop ? `
+  <div class="notas-student-card notas-header-row">
+    <div class="notas-cell notas-student-name">Estudiante</div>
+    ${(__notasColumnas || []).map(col => `
+      <div class="notas-cell">
+        ${escapeHtml(col.nombre || "")}<br>
+        <span class="muted small">${Number(col.porcentaje || 0)}%</span>
+      </div>
+    `).join("")}
+    <div class="notas-cell">Definitiva</div>
+    <div class="notas-cell">Estado</div>
+  </div>
+` : "";
+
+notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
+    const calc = notasCalcStudent_(student);
+
+    const rowClass =
+  calc.estado === "BAJO" ? "notas-row-bajo" :
+  calc.estado === "DEBE_NOTAS" ? "notas-row-debe" :
+  calc.estado === "RIESGO" ? "notas-row-riesgo" :
+  "";
+
+    if (isDesktop) {
+      return `
+       <div class="notas-student-card" data-student-idx="${sIdx}">
+          <div class="notas-student-top">
+            <div class="notas-cell notas-student-name">${escapeHtml(student.estudiante)}</div>
+          </div>
+
+          <div class="notas-inputs">
+            ${(__notasColumnas || []).map(col => {
+              const key = String(col.orden);
+              return `
+                <div class="notas-cell">
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <div class="notas-summary">
+            <div class="notas-cell"><b>${calc.definitiva}</b></div>
+            <div class="notas-cell">${notasEstadoBadge_(calc.estado)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="notas-student-card" data-student-idx="${sIdx}">
+        <div class="notas-student-top">
+          <div class="notas-student-name">${escapeHtml(student.estudiante)}</div>
+          ${notasEstadoBadge_(calc.estado)}
+        </div>
+
+        <div class="notas-inputs">
+          ${(__notasColumnas || []).map(col => {
+            const key = String(col.orden);
+            return `
+              <div class="notas-input-row">
+                <label>${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+                <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+      <div class="notas-summary">
+  <span class="badge badge-neutral">Definitiva: ${calc.definitiva}</span>
+  ${calc.detalles ? `<span class="badge badge-soft">Tiene detalles</span>` : ""}
+</div>
+
+${calc.detalles ? `
+  <div class="notas-detail-mini">
+    ${escapeHtml(calc.detalles)}
+  </div>
+
+  <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
+    Compartir reporte
+  </button>
+` : ""}
+      </div>
+    `;
+  }).join("");
+
+  notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+    input.addEventListener("input", () => {
+      const sIdx = Number(input.dataset.notaInput);
+      const key = String(input.dataset.notaKey || "");
+      if (!__notasEstudiantes[sIdx]) return;
+      if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+      __notasEstudiantes[sIdx].notas[key] = input.value;
+      notasRenderGrid_();
+    });
+  });
+
+
+  notasGridEl.querySelectorAll("[data-nota-share]").forEach(btn => {
+  btn.addEventListener("click", async () => {
+    const sIdx = Number(btn.dataset.notaShare);
+    const student = __notasEstudiantes[sIdx];
+    if (!student) return;
+
+    const calc = notasCalcStudent_(student);
+    const curso = String(notasCursoEl?.value || "").trim();
+    const asignatura = String(notasAsignaturaEl?.value || "").trim();
+    const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+    const msg =
+      `Reporte académico\n\n` +
+      `Estudiante: ${student.estudiante}\n` +
+      `Curso: ${curso}\n` +
+      `Asignatura: ${asignatura}\n` +
+      `Periodo: ${periodo}\n` +
+      `Definitiva: ${calc.definitiva}\n` +
+      `Estado: ${calc.estado}\n\n` +
+      `Detalles:\n${calc.detalles || "Sin detalles."}`;
+
+    if (navigator.share) {
+      await navigator.share({
+        title: "Reporte académico",
+        text: msg
+      });
+      return;
+    }
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  });
+});
+}
+
+async function notasLoadCourses_(){
+  const courses = await gsCoursesList();
+  fillSelect_(notasCursoEl, courses, "Selecciona curso");
+}
+
+async function notasLoadStudents_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  if (!curso) {
+    notasSetHint_("Selecciona un curso.");
+    return;
+  }
+
+  const students = await gsCourseStudents(curso);
+  __notasEstudiantes = (students || []).map(name => ({
+    estudiante: String(name || "").trim(),
+    notas: {}
+  })).filter(x => x.estudiante);
+
+  notasRenderGrid_();
+  notasSetHint_(`Estudiantes cargados: ${__notasEstudiantes.length}`);
+}
+
+async function notasOpenPlanilla_(){
+  if (!notasPlanillaModal) return;
+
+  notasPlanillaModal.hidden = false;
+  notasSetHint_("");
+
+  try {
+    setLoading(true, "Cargando…", "Preparando planilla de notas.");
+    await notasLoadCourses_();
+
+    const profile = typeof loadProfile === "function" ? loadProfile() : null;
+    const profileCourse = String(profile?.course || "").trim();
+
+    if (profileCourse && notasCursoEl) {
+      notasCursoEl.value = profileCourse;
+    }
+
+    notasRenderColumnas_();
+    notasRenderGrid_();
+  } catch (e) {
+    notasSetHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+async function notasCargarPlanillaGuardada_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
+  if (!curso) return notasSetHint_("Selecciona un curso.");
+  if (!asignatura) return notasSetHint_("Escribe la asignatura.");
+  if (!email) return notasSetHint_("No encontré el correo del docente.");
+
+  try {
+    setLoading(true, "Cargando…", "Buscando planilla guardada.");
+
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "notas_planilla_get",
+        curso,
+        asignatura,
+        periodo,
+        year: new Date().getFullYear(),
+        email,
+        key: GS_API_KEY
+      })
+    });
+
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_get_failed");
+
+    if (!data.exists) {
+      notasSetHint_("No hay planilla guardada para esos filtros.");
+      return;
+    }
+
+    __notasColumnas = (data.columnas || []).map((c, idx) => ({
+      orden: Number(c.orden || idx + 1),
+      nombre: String(c.nombre || `Actividad ${idx + 1}`),
+      porcentaje: Number(c.porcentaje || 0)
+    }));
+
+    __notasEstudiantes = (data.estudiantes || []).map(r => ({
+      estudiante: String(r.estudiante || "").trim(),
+      notas: r.notas || {}
+    })).filter(x => x.estudiante);
+
+    notasRenderColumnas_();
+    notasRenderGrid_();
+
+    notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
+  } catch (e) {
+    notasSetHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+async function notasGuardarPlanilla_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const teacher = String(profile?.name || teacherNameEl?.value || "").trim();
+  const email = String(profile?.email || "").trim().toLowerCase();
+  const deviceId = typeof getDeviceId === "function" ? getDeviceId() : "";
+
+  if (!curso) return notasSetHint_("Falta seleccionar curso.");
+  if (!asignatura) return notasSetHint_("Falta asignatura.");
+  if (!__notasEstudiantes.length) return notasSetHint_("Primero carga estudiantes.");
+
+  const total = (__notasColumnas || []).reduce((s, x) => s + Number(x.porcentaje || 0), 0);
+  if (total !== 100) return notasSetHint_(`Los porcentajes deben sumar 100%. Ahora suman ${total}%.`);
+
+  const payload = {
+    action: "notas_planilla_save",
+    curso,
+    asignatura,
+    periodo,
+    year: new Date().getFullYear(),
+    columnas: __notasColumnas,
+    estudiantes: __notasEstudiantes,
+    teacher,
+    email,
+    device_id: deviceId,
+    key: GS_API_KEY
+  };
+
+  try {
+    setLoading(true, "Guardando…", "Enviando planilla a Supabase.");
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
+
+    notasSetHint_(data.msg || "Planilla guardada ✅");
+  } catch (e) {
+    notasSetHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+btnNotasPlanilla?.addEventListener("click", async () => {
+  if (notasSubMenu) notasSubMenu.hidden = true;
+  if (userMenu) userMenu.hidden = true;
+  await notasOpenPlanilla_();
+});
+
+btnNotasCerrar?.addEventListener("click", () => {
+  if (notasPlanillaModal) notasPlanillaModal.hidden = true;
+});
+
+btnNotasCargarEstudiantes?.addEventListener("click", notasLoadStudents_);
+
+btnNotasAgregarColumna?.addEventListener("click", () => {
+  const next = (__notasColumnas || []).length + 1;
+  __notasColumnas.push({
+    orden: next,
+    nombre: `Actividad ${next}`,
+    porcentaje: 0
+  });
+  notasRenderColumnas_();
+  notasRenderGrid_();
+});
+
+btnNotasGuardar?.addEventListener("click", notasGuardarPlanilla_);
+
+window.addEventListener("resize", () => {
+  if (notasPlanillaModal && !notasPlanillaModal.hidden) notasRenderGrid_();
+});
+
+
+btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
+
+function notasAlertasHint_(msg){
+  if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
+}
+
+async function notasAlertasLoadCourses_(){
+  const courses = await gsCoursesList();
+  fillSelect_(notasAlertasCursoEl, courses, "Todos los cursos");
+}
+
+function notasAlertasRender_(){
+  if (!notasAlertasListEl) return;
+
+  __notasAlertaSeleccionada = null;
+  __notasAlertaMsg = "";
+  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
+  if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
+
+  if (!__notasAlertasItems.length) {
+    notasAlertasListEl.innerHTML = `<div class="notas-empty">No hay alertas con esos filtros.</div>`;
+    return;
+  }
+
+  notasAlertasListEl.innerHTML = __notasAlertasItems.map((x, idx) => {
+    const estado = String(x.estado || "").trim();
+    const dotClass =
+      estado === "BAJO" ? "lvl-4" :
+      estado === "DEBE_NOTAS" ? "lvl-2" :
+      "lvl-3";
+
+    return `
+      <button class="disc-item" type="button" data-nota-alerta-idx="${idx}">
+        <div class="left">
+          <span class="lvl-dot ${dotClass}"></span>
+          <div>
+            <div class="name">${escapeHtml(x.estudiante || "Sin nombre")}</div>
+            <div class="muted small">${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")}</div>
+          </div>
+        </div>
+        <div class="right">
+          <span class="badge badge-neutral">${escapeHtml(String(x.definitiva ?? "—"))}</span>
+          ${notasEstadoBadge_(estado)}
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  notasAlertasListEl.querySelectorAll("[data-nota-alerta-idx]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const idx = Number(btn.dataset.notaAlertaIdx);
+      const item = __notasAlertasItems[idx];
+      __notasAlertaSeleccionada = item;
+
+      notasAlertasListEl.querySelectorAll(".disc-item").forEach(x => x.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      await notasAlertasDetalle_(item);
+    });
+  });
+}
+
+async function notasAlertasDetalle_(item){
+  if (!item || !notasAlertasDetalleEl) return;
+
+  notasAlertasDetalleEl.hidden = false;
+  notasAlertasDetalleEl.innerHTML = `
+    <div class="top">
+      <span class="teacher">${escapeHtml(item.estudiante || "Sin nombre")}</span>
+      ${notasEstadoBadge_(item.estado)}
+    </div>
+
+    <div class="meta">
+      Curso: <b>${escapeHtml(item.curso || "—")}</b><br>
+      Asignatura: <b>${escapeHtml(item.asignatura || "—")}</b><br>
+      Periodo: <b>${escapeHtml(item.periodo || "—")}</b><br>
+      Definitiva: <b>${escapeHtml(String(item.definitiva ?? "—"))}</b><br>
+      Docente: <b>${escapeHtml(item.docente_nombre || "—")}</b>
+    </div>
+
+    <div style="margin-top:10px;">
+      <b>Detalles:</b><br>
+      ${escapeHtml(item.detalles || "Sin detalles.")}
+    </div>
+  `;
+
+  try {
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "notas_reporte_student",
+        registro_id: item.registro_id,
+        key: GS_API_KEY
+      })
+    });
+
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || data.error || "notas_reporte_student_failed");
+
+    __notasAlertaMsg = data.msg || "";
+    if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = false;
+  } catch (e) {
+    __notasAlertaMsg = "";
+    notasAlertasHint_(String(e?.message || e));
+  }
+}
+
+async function notasAlertasBuscar_(){
+  const curso = String(notasAlertasCursoEl?.value || "").trim();
+  const asignatura = String(notasAlertasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasAlertasPeriodoEl?.value || "").trim();
+
+  try {
+    setLoading(true, "Buscando…", "Consultando alertas de notas.");
+
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "notas_alertas_list",
+        curso,
+        asignatura,
+        periodo,
+        year: new Date().getFullYear(),
+        key: GS_API_KEY
+      })
+    });
+
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || data.error || "notas_alertas_list_failed");
+
+    __notasAlertasItems = Array.isArray(data.items) ? data.items : [];
+    notasAlertasHint_(`Alertas encontradas: ${__notasAlertasItems.length}`);
+    notasAlertasRender_();
+  } catch (e) {
+    notasAlertasHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function notasAlertasOpen_(){
+  if (!notasAlertasModal) return;
+
+  notasAlertasModal.hidden = false;
+  notasAlertasHint_("");
+  __notasAlertasItems = [];
+  notasAlertasRender_();
+
+  try {
+    setLoading(true, "Cargando…", "Preparando alertas.");
+    await notasAlertasLoadCourses_();
+  } catch (e) {
+    notasAlertasHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+async function notasAlertasCompartir_(){
+  if (!__notasAlertaMsg) return;
+
+  if (navigator.share) {
+    await navigator.share({
+      title: "Reporte académico",
+      text: __notasAlertaMsg
+    });
+    return;
+  }
+
+  const url = `https://wa.me/?text=${encodeURIComponent(__notasAlertaMsg)}`;
+  window.open(url, "_blank");
+}
+
+btnNotasAlertas?.addEventListener("click", async () => {
+  if (notasSubMenu) notasSubMenu.hidden = true;
+  if (userMenu) userMenu.hidden = true;
+  await notasAlertasOpen_();
+});
+
+btnNotasAlertasBuscar?.addEventListener("click", notasAlertasBuscar_);
+
+btnNotasAlertasCerrar?.addEventListener("click", () => {
+  if (notasAlertasModal) notasAlertasModal.hidden = true;
+});
+
+btnNotasAlertasCompartir?.addEventListener("click", notasAlertasCompartir_);
 
 function getInitials(name) {
   const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
