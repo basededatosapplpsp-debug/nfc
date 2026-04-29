@@ -4096,6 +4096,76 @@ h1,h2,
   vertical-align: middle;
   box-shadow: 0 0 0 2px rgba(255,255,255,.15);
 }
+
+
+/* ===== Registro del mes optimizado + descarga compacta ===== */
+.summary-block{
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.summary-export-actions{
+  width: 100%;
+  max-width: 520px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,.025);
+}
+
+.summary-export-actions .badge{
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.summary-download-btn{
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #dbeafe;
+  background: rgba(59,130,246,.10);
+  border-color: rgba(147,197,253,.18);
+}
+
+.summary-download-btn i{
+  font-size: 15px;
+}
+
+@media (max-width: 420px){
+  .summary-export-actions{
+    grid-template-columns: 1fr 1fr 34px;
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .summary-export-actions .badge{
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+
+  .summary-download-btn{
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .summary-download-btn i{
+    font-size: 13px;
+  }
+}
+
 </style>
 </head>
 
@@ -4245,12 +4315,6 @@ h1,h2,
 
     <!-- ===== Panel de registros (colapsable) ===== -->
     <section class="card collapse" id="recordsPanel" hidden>
-   <div class="row">
-  <button id="btnExport" class="btn btn-ghost">Excel (mi registro)</button>
-  <button id="btnExportXlsx" class="btn btn-ghost" hidden>Excel (con formato)</button>
-</div>
-
-
 
       <!-- ===== Admin: Resumen del mes (solo admin) ===== -->
       <div id="adminMonthSummary" class="admin-month-summary" hidden>
@@ -4271,12 +4335,15 @@ h1,h2,
         </div>
       </div>
 
-      <!-- ===== Resumen (contadores) ===== -->
-      <div class="row row-between" style="margin-top:10px;">
-        <div class="muted small">Resumen</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+      <!-- ===== Resumen (contadores) optimizado + descarga ===== -->
+      <div class="summary-block">
+        <div class="summary-export-actions">
           <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
           <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
+
+          <button id="btnExport" class="btn btn-ghost summary-download-btn" title="Descargar Excel" aria-label="Descargar Excel">
+            <i class="fa-solid fa-download"></i>
+          </button>
         </div>
       </div>
 
@@ -20684,7 +20751,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-60";
+const APP_BUILD = "2026-04-10-61";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
