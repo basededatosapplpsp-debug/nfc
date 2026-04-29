@@ -4646,7 +4646,78 @@ h1,h2,
 }
 
 
+/* ===== FIX FINAL: scroll menú + registrar notas portátil ===== */
 
+/* Menú usuario: scroll propio en pantallas bajas */
+.menu-panel{
+  max-height: calc(100dvh - 92px - var(--footer-h)) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Evita que el menú quede debajo del footer */
+@media (max-height: 720px){
+  .menu-panel{
+    top: calc(100% + 6px) !important;
+    max-height: calc(100dvh - 86px - var(--footer-h)) !important;
+  }
+
+  .menu-item{
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+}
+
+/* Modal registrar notas: estructura fija */
+#notasStudentsModal .notas-full-card{
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
+}
+
+/* Header fijo arriba */
+#notasStudentsModal .notas-screen-header{
+  flex: 0 0 auto !important;
+}
+
+/* Lista/tabla de estudiantes: aquí SÍ debe hacer scroll */
+#notasStudentsModal #notasGrid{
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 110px !important;
+}
+
+/* Botón guardar visible abajo */
+#notasStudentsModal .notas-bottom-actions{
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 20 !important;
+  background: var(--bg) !important;
+}
+
+/* En portátil, compacta un poco la tabla */
+@media (max-height: 720px){
+  #notasStudentsModal .notas-screen-header{
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+  }
+
+  #notasStudentsModal #notasGrid{
+    padding-top: 10px !important;
+  }
+
+  #notasStudentsModal .notas-cell{
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+}
 </style>
 </head>
 
