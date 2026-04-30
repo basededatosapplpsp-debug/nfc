@@ -4998,12 +4998,6 @@ h1,h2,
   }
 }
 
-/* En móvil no tocar nada */
-@media (max-width: 899px){
-  #notasPcToolbar{
-    display: none !important;
-  }
-}
 
 
 /* Ocultar botón cargar estudiantes: ahora carga al elegir curso */
@@ -5024,6 +5018,96 @@ h1,h2,
 }
 
 
+
+
+/* ===== NOTAS MÓVIL: abrir directo en planilla ===== */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-screen-header{
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+
+  #notasStudentsModal .notas-students-head-main{
+    width: 100%;
+    min-width: 0;
+  }
+
+  #notasStudentsModal #btnNotasStudentsBack{
+    position: absolute !important;
+    top: calc(14px + env(safe-area-inset-top)) !important;
+    right: 14px !important;
+    width: auto !important;
+    min-height: 42px !important;
+    padding: 8px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  #notasStudentsModal .notas-pc-toolbar{
+    display: block !important;
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+  }
+
+  #notasStudentsModal .notas-pc-ribbon-row{
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  #notasStudentsModal .notas-pc-field{
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(2){
+    grid-column: 1 / -1;
+  }
+
+  #notasStudentsModal .notas-pc-field > span{
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  #notasStudentsModal .notas-pc-field select,
+  #notasStudentsModal .notas-pc-field input,
+  #notasStudentsModal .notas-pc-field .modal-input{
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  #notasStudentsModal .notas-pc-actions{
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    border-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  #notasStudentsModal .notas-pc-actions .btn{
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+  }
+
+  #notasStudentsModal .notas-pc-hint{
+    grid-column: 1 / -1;
+    font-size: 12px;
+    color: var(--muted);
+  }
+}
 
 
 
@@ -15930,7 +16014,6 @@ function notasIsPc_(){
 
 function notasBuildPcToolbar_(){
   if (!notasPcToolbar) return;
-  if (!notasIsPc_()) return;
 
   if (notasPcToolbar.dataset.ready === "1") return;
 
@@ -15966,7 +16049,6 @@ function notasBuildPcToolbar_(){
     actions.appendChild(btnNotasAgregarColumna);
     actions.appendChild(btnNotasAgregarCognitivo);
     actions.appendChild(btnNotasCargarPlanilla);
-    actions.appendChild(btnNotasCargarEstudiantes);
     actions.appendChild(btnNotasGuardar);
   }
 
@@ -15976,8 +16058,6 @@ function notasBuildPcToolbar_(){
 }
 
 function notasOpenPcSheet_(){
-  if (!notasIsPc_()) return false;
-
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
   if (notasStudentsModal) notasStudentsModal.hidden = false;
 
@@ -16015,15 +16095,7 @@ async function notasOpenPlanilla_(){
 
     if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
 
-    if (notasIsPc_()) {
-      notasOpenPcSheet_();
-      return;
-    }
-
-    if (notasPlanillaModal) notasPlanillaModal.hidden = false;
-    if (notasStudentsModal) notasStudentsModal.hidden = true;
-
-    notasRenderColumnas_();
+    notasOpenPcSheet_();
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
@@ -16172,13 +16244,7 @@ btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
 
 btnNotasStudentsBack?.addEventListener("click", () => {
   if (notasStudentsModal) notasStudentsModal.hidden = true;
-
-  if (notasIsPc_()) {
-    if (notasPlanillaModal) notasPlanillaModal.hidden = true;
-    return;
-  }
-
-  if (notasPlanillaModal) notasPlanillaModal.hidden = false;
+  if (notasPlanillaModal) notasPlanillaModal.hidden = true;
 });
 
 
