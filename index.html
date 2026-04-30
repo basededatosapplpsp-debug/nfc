@@ -15745,7 +15745,20 @@ async function notasLoadStudents_(){
   const periodo = String(notasPeriodoEl?.value || "1").trim();
 
   if (!curso) return notasSetHint_("Selecciona un curso.");
-  if (!asignatura) return notasSetHint_("Escribe la asignatura.");
+if (!asignatura && notasAsignaturaEl) {
+  const firstOption = Array.from(notasAsignaturaEl.options || [])
+    .find(opt => String(opt.value || "").trim());
+
+  if (firstOption) {
+    notasAsignaturaEl.value = firstOption.value;
+  }
+}
+
+const asignaturaFinal = String(notasAsignaturaEl?.value || "").trim();
+
+if (!asignaturaFinal) {
+  return notasSetHint_("Selecciona una asignatura.");
+}
 
   try {
     setLoading(true, "Cargando…", "Cargando estudiantes del curso.");
@@ -15758,7 +15771,7 @@ async function notasLoadStudents_(){
     })).filter(x => x.estudiante);
 
     if (notasStudentsSub) {
-      notasStudentsSub.textContent = `${curso} • ${asignatura} • Periodo ${periodo}`;
+      notasStudentsSub.textContent = `${curso} • ${asignaturaFinal} • Periodo ${periodo}`;
     }
 
     if (notasPlanillaModal) notasPlanillaModal.hidden = true;
