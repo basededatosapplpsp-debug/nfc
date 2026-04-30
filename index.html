@@ -4793,6 +4793,28 @@ h1,h2,
 }
 
 
+/* ===== NOTAS: totales fijos por componente ===== */
+.notas-total-cell{
+  text-align:center;
+  font-weight:950;
+  background: rgba(255,255,255,.035);
+}
+
+.notas-total-row{
+  border-top:1px dashed var(--line);
+  border-bottom:1px dashed var(--line);
+  padding:8px 0;
+}
+
+.notas-total-row strong{
+  text-align:center;
+  font-weight:950;
+  padding:10px 12px;
+  border-radius:12px;
+  background: rgba(255,255,255,.06);
+  border:1px solid var(--line);
+}
+
 
 </style>
 </head>
@@ -15169,6 +15191,28 @@ function notasColumnasOrdenadas_(){
 }
 
 
+function notasPromedioComponente_(student, componente){
+  const cols = notasColumnasOrdenadas_().filter(c =>
+    String(c.componente || "").trim().toLowerCase() === componente
+  );
+
+  const vals = cols
+    .map(col => Number(String(student.notas?.[String(col.orden)] ?? "").replace(",", ".")))
+    .filter(n => Number.isFinite(n));
+
+  if (!vals.length) return "—";
+
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  return Number(avg.toFixed(1));
+}
+
+function notasColumnasPorComponente_(componente){
+  return notasColumnasOrdenadas_().filter(c =>
+    String(c.componente || "").trim().toLowerCase() === componente
+  );
+}
+
+
 
 function notasRenderGrid_(){
   if (!notasGridEl) return;
@@ -15182,16 +15226,36 @@ function notasRenderGrid_(){
   const isDesktop = window.matchMedia("(min-width: 900px)").matches;
   notasGridEl.className = isDesktop ? "notas-grid table-mode" : "notas-grid";
 
+  const procCols = notasColumnasPorComponente_("procedimental");
+  const cogCols = notasColumnasPorComponente_("cognitivo");
+
   const headerHtml = isDesktop ? `
     <div class="notas-student-card notas-header-row">
       <div class="notas-cell notas-student-name">Estudiante</div>
 
-      ${notasColumnasOrdenadas_().map(col => `
+      ${procCols.map(col => `
         <div class="notas-cell">
           ${escapeHtml(col.nombre || "")}<br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
         </div>
       `).join("")}
+
+      <div class="notas-cell notas-total-cell">
+        Total<br>
+        <span class="muted small">Procedimental</span>
+      </div>
+
+      ${cogCols.map(col => `
+        <div class="notas-cell">
+          ${escapeHtml(col.nombre || "")}<br>
+          <span class="muted small">${Number(col.porcentaje || 0)}%</span>
+        </div>
+      `).join("")}
+
+      <div class="notas-cell notas-total-cell">
+        Total<br>
+        <span class="muted small">Cognitivo</span>
+      </div>
 
       <div class="notas-cell">
         Actitudinal<br>
@@ -15222,7 +15286,7 @@ function notasRenderGrid_(){
           </div>
 
           <div class="notas-inputs">
-            ${notasColumnasOrdenadas_().map(col => {
+            ${procCols.map(col => {
               const key = String(col.orden);
               return `
                 <div class="notas-cell">
@@ -15230,6 +15294,23 @@ function notasRenderGrid_(){
                 </div>
               `;
             }).join("")}
+
+            <div class="notas-cell notas-total-cell">
+              <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+            </div>
+
+            ${cogCols.map(col => {
+              const key = String(col.orden);
+              return `
+                <div class="notas-cell">
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
+                </div>
+              `;
+            }).join("")}
+
+            <div class="notas-cell notas-total-cell">
+              <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+            </div>
 
             <div class="notas-cell">
               <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
@@ -15258,7 +15339,7 @@ function notasRenderGrid_(){
         </div>
 
         <div class="notas-inputs">
-          ${notasColumnasOrdenadas_().map(col => {
+          ${procCols.map(col => {
             const key = String(col.orden);
             return `
               <div class="notas-input-row">
@@ -15267,6 +15348,26 @@ function notasRenderGrid_(){
               </div>
             `;
           }).join("")}
+
+          <div class="notas-input-row notas-total-row">
+            <label>Total Procedimental</label>
+            <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+          </div>
+
+          ${cogCols.map(col => {
+            const key = String(col.orden);
+            return `
+              <div class="notas-input-row">
+                <label>${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+                <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+              </div>
+            `;
+          }).join("")}
+
+          <div class="notas-input-row notas-total-row">
+            <label>Total Cognitivo</label>
+            <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+          </div>
 
           <div class="notas-input-row">
             <label>Actitudinal (20%)</label>
@@ -15307,7 +15408,7 @@ function notasRenderGrid_(){
     });
   });
 
-    notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
+  notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
       notasOpenDetallePc_(Number(btn.dataset.notaDetails));
     });
