@@ -15159,6 +15159,17 @@ function notasUpdateTotal_(){
   }
 }
 
+function notasColumnasOrdenadas_(){
+  const cols = Array.isArray(__notasColumnas) ? __notasColumnas : [];
+
+  return [
+    ...cols.filter(c => String(c.componente || "").trim().toLowerCase() === "procedimental"),
+    ...cols.filter(c => String(c.componente || "").trim().toLowerCase() === "cognitivo")
+  ];
+}
+
+
+
 function notasRenderGrid_(){
   if (!notasGridEl) return;
 
@@ -15175,7 +15186,7 @@ function notasRenderGrid_(){
     <div class="notas-student-card notas-header-row">
       <div class="notas-cell notas-student-name">Estudiante</div>
 
-      ${(__notasColumnas || []).map(col => `
+      ${notasColumnasOrdenadas_().map(col => `
         <div class="notas-cell">
           ${escapeHtml(col.nombre || "")}<br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
@@ -15211,7 +15222,7 @@ function notasRenderGrid_(){
           </div>
 
           <div class="notas-inputs">
-            ${(__notasColumnas || []).map(col => {
+            ${notasColumnasOrdenadas_().map(col => {
               const key = String(col.orden);
               return `
                 <div class="notas-cell">
@@ -15247,7 +15258,7 @@ function notasRenderGrid_(){
         </div>
 
         <div class="notas-inputs">
-          ${(__notasColumnas || []).map(col => {
+          ${notasColumnasOrdenadas_().map(col => {
             const key = String(col.orden);
             return `
               <div class="notas-input-row">
@@ -15650,25 +15661,31 @@ btnNotasCerrar?.addEventListener("click", () => {
 btnNotasCargarEstudiantes?.addEventListener("click", notasLoadStudents_);
 
 btnNotasAgregarColumna?.addEventListener("click", () => {
-  const next = (__notasColumnas || []).length + 1;
+  const nextOrden = (__notasColumnas || []).length + 1;
+  const nextProc = (__notasColumnas || []).filter(c => c.componente === "procedimental").length + 1;
+
   __notasColumnas.push({
-    orden: next,
-    nombre: `Tarea/Taller ${next}`,
+    orden: nextOrden,
+    nombre: `Tarea/Taller ${nextProc}`,
     porcentaje: 0,
     componente: "procedimental"
   });
+
   notasRenderColumnas_();
   notasRenderGrid_();
 });
 
 btnNotasAgregarCognitivo?.addEventListener("click", () => {
-  const next = (__notasColumnas || []).length + 1;
+  const nextOrden = (__notasColumnas || []).length + 1;
+  const nextCog = (__notasColumnas || []).filter(c => c.componente === "cognitivo").length + 1;
+
   __notasColumnas.push({
-    orden: next,
-    nombre: `Quiz/Evaluación ${next}`,
+    orden: nextOrden,
+    nombre: `Quiz/Evaluación ${nextCog}`,
     porcentaje: 0,
     componente: "cognitivo"
   });
+
   notasRenderColumnas_();
   notasRenderGrid_();
 });
