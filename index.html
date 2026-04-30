@@ -5011,6 +5011,22 @@ h1,h2,
   display: none !important;
 }
 
+
+
+/* Editar/eliminar actividades con doble clic */
+.notas-col-editable{
+  cursor: pointer;
+  border-bottom: 1px dashed color-mix(in srgb, var(--primary) 55%, transparent);
+}
+
+.notas-col-editable:hover{
+  color: color-mix(in srgb, var(--primary) 75%, white 10%) !important;
+}
+
+
+
+
+
 </style>
 </head>
 
@@ -15324,7 +15340,7 @@ function notasRenderColumnas_(){
         const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
         return `
           <div class="notas-col-item simple" data-col-idx="${idx}">
-            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Tarea / Taller" />
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="<span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span>" placeholder="Tarea / Taller" />
             <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
           </div>
         `;
@@ -15339,7 +15355,7 @@ function notasRenderColumnas_(){
         const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
         return `
           <div class="notas-col-item simple" data-col-idx="${idx}">
-            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Evaluación / Quiz" />
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="<span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span>" placeholder="Evaluación / Quiz" />
             <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
           </div>
         `;
@@ -15417,6 +15433,72 @@ function notasColumnasPorComponente_(componente){
 }
 
 
+function notasNextOrden_(){
+  const nums = (__notasColumnas || []).map(c => Number(c.orden || 0));
+  return nums.length ? Math.max(...nums) + 1 : 1;
+}
+
+function notasCrearColumna_(componente){
+  const comp = String(componente || "").trim().toLowerCase();
+  const label = comp === "cognitivo" ? "Quiz / Evaluación" : "Tarea / Taller";
+
+  const nombre = prompt(`Nombre de la nueva actividad (${label}):`, "");
+  const clean = String(nombre || "").trim();
+
+  if (!clean) return;
+
+  __notasColumnas.push({
+    orden: notasNextOrden_(),
+    nombre: clean,
+    porcentaje: 0,
+    componente: comp
+  });
+
+  notasRenderColumnas_();
+  notasRenderGrid_();
+}
+
+function notasEditarColumna_(idx){
+  idx = Number(idx);
+  const col = __notasColumnas[idx];
+  if (!col) return;
+
+  const nuevo = prompt(
+    `Editar nombre de actividad.\n\nPara eliminarla escribe: ELIMINAR`,
+    col.nombre || ""
+  );
+
+  if (nuevo === null) return;
+
+  const clean = String(nuevo || "").trim();
+
+  if (clean.toUpperCase() === "ELIMINAR") {
+    const ok = confirm(`¿Eliminar "${col.nombre}"? También se quitarán sus notas digitadas.`);
+    if (!ok) return;
+
+    const key = String(col.orden);
+    __notasColumnas.splice(idx, 1);
+
+    (__notasEstudiantes || []).forEach(st => {
+      if (st.notas && Object.prototype.hasOwnProperty.call(st.notas, key)) {
+        delete st.notas[key];
+      }
+    });
+
+    notasRenderColumnas_();
+    notasRenderGrid_();
+    return;
+  }
+
+  if (!clean) return;
+
+  col.nombre = clean;
+
+  notasRenderColumnas_();
+  notasRenderGrid_();
+}
+
+
 
 function notasRenderGrid_(){
   if (!notasGridEl) return;
@@ -15439,7 +15521,7 @@ function notasRenderGrid_(){
 
       ${procCols.map(col => `
         <div class="notas-cell">
-          ${escapeHtml(col.nombre || "")}<br>
+          <span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span><br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
         </div>
       `).join("")}
@@ -15451,7 +15533,7 @@ function notasRenderGrid_(){
 
       ${cogCols.map(col => `
         <div class="notas-cell">
-          ${escapeHtml(col.nombre || "")}<br>
+          <span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span><br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
         </div>
       `).join("")}
@@ -15547,7 +15629,7 @@ function notasRenderGrid_(){
             const key = String(col.orden);
             return `
               <div class="notas-input-row">
-                <label>${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+                <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
                 <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
               </div>
             `;
@@ -15562,7 +15644,7 @@ function notasRenderGrid_(){
             const key = String(col.orden);
             return `
               <div class="notas-input-row">
-                <label>${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+               <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
                 <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
               </div>
             `;
@@ -15611,6 +15693,12 @@ function notasRenderGrid_(){
       notasRenderGrid_();
     });
   });
+
+  notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
+  el.addEventListener("dblclick", () => {
+    notasEditarColumna_(Number(el.dataset.notaColEdit));
+  });
+});
 
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -16065,33 +16153,12 @@ btnNotasCerrar?.addEventListener("click", () => {
 btnNotasCargarEstudiantes?.addEventListener("click", () => notasLoadStudents_());
 
 btnNotasAgregarColumna?.addEventListener("click", () => {
-  const nextOrden = (__notasColumnas || []).length + 1;
-  const nextProc = (__notasColumnas || []).filter(c => c.componente === "procedimental").length + 1;
-
-  __notasColumnas.push({
-    orden: nextOrden,
-    nombre: `Tarea/Taller ${nextProc}`,
-    porcentaje: 0,
-    componente: "procedimental"
-  });
-
-  notasRenderColumnas_();
-  notasRenderGrid_();
+  notasCrearColumna_("procedimental");
 });
 
+
 btnNotasAgregarCognitivo?.addEventListener("click", () => {
-  const nextOrden = (__notasColumnas || []).length + 1;
-  const nextCog = (__notasColumnas || []).filter(c => c.componente === "cognitivo").length + 1;
-
-  __notasColumnas.push({
-    orden: nextOrden,
-    nombre: `Quiz/Evaluación ${nextCog}`,
-    porcentaje: 0,
-    componente: "cognitivo"
-  });
-
-  notasRenderColumnas_();
-  notasRenderGrid_();
+  notasCrearColumna_("cognitivo");
 });
 
 btnNotasGuardar?.addEventListener("click", notasGuardarPlanilla_);
