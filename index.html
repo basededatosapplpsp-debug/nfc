@@ -5006,7 +5006,10 @@ h1,h2,
 }
 
 
-
+/* Ocultar botón cargar estudiantes: ahora carga al elegir curso */
+#btnNotasCargarEstudiantes{
+  display: none !important;
+}
 
 </style>
 </head>
@@ -16046,7 +16049,7 @@ btnNotasCerrar?.addEventListener("click", () => {
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
 });
 
-btnNotasCargarEstudiantes?.addEventListener("click", notasLoadStudents_);
+btnNotasCargarEstudiantes?.addEventListener("click", () => notasLoadStudents_());
 
 btnNotasAgregarColumna?.addEventListener("click", () => {
   const nextOrden = (__notasColumnas || []).length + 1;
@@ -16100,7 +16103,31 @@ btnNotasStudentsBack?.addEventListener("click", () => {
 
 
 
-[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+let __notasAutoLoadTimer = null;
+
+async function notasAutoLoadStudentsOnCourse_(){
+  if (!notasIsPc_()) return;
+  if (!notasStudentsModal || notasStudentsModal.hidden) return;
+
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  if (notasStudentsSub) {
+    notasStudentsSub.textContent = `${curso || "Selecciona curso"} • ${asignatura || "Selecciona asignatura"} • Periodo ${periodo}`;
+  }
+
+  if (!curso) return;
+
+  clearTimeout(__notasAutoLoadTimer);
+  __notasAutoLoadTimer = setTimeout(() => {
+    notasLoadStudents_();
+  }, 250);
+}
+
+notasCursoEl?.addEventListener("change", notasAutoLoadStudentsOnCourse_);
+
+[notasAsignaturaEl, notasPeriodoEl].forEach(el => {
   el?.addEventListener("change", () => {
     if (!notasIsPc_()) return;
     if (!notasStudentsModal || notasStudentsModal.hidden) return;
@@ -16114,7 +16141,6 @@ btnNotasStudentsBack?.addEventListener("click", () => {
     }
   });
 });
-
 
 
 btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
