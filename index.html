@@ -4754,6 +4754,29 @@ h1,h2,
     padding-top: 10px !important;
   }
 }
+
+
+/* ===== NOTAS PC: mostrar detalles debajo de la fila sin afectar celular ===== */
+@media (min-width: 900px){
+  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc{
+    display: table-cell !important;
+    padding: 10px 8px 14px !important;
+    border-bottom: 1px solid var(--line);
+  }
+
+  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc .notas-detail-mini{
+    display: block !important;
+    max-width: 100%;
+    white-space: normal !important;
+  }
+
+  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc .btn{
+    width: auto !important;
+  }
+}
+
+
+
 </style>
 </head>
 
@@ -15189,6 +15212,18 @@ function notasRenderGrid_(){
             <div class="notas-cell"><strong>${escapeHtml(String(calc.definitiva ?? "—"))}</strong></div>
             <div class="notas-cell">${notasEstadoBadge_(calc.estado)}</div>
           </div>
+
+          ${calc.detalles ? `
+            <div class="notas-cell notas-detail-pc" style="grid-column:1 / -1;">
+              <div class="notas-detail-mini">
+                ${escapeHtml(calc.detalles)}
+              </div>
+
+              <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;">
+                Compartir reporte
+              </button>
+            </div>
+          ` : ""}
         </div>
       `;
     }
@@ -23266,6 +23301,8 @@ select.addEventListener("change", function(){
 
   runFooterPromo();
 })();
+
+
 
 
 </script>
