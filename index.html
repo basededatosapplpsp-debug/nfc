@@ -4816,6 +4816,105 @@ h1,h2,
 }
 
 
+
+
+
+
+/* ===== NOTAS PC: encabezado tipo Word / Ribbon ===== */
+@media (min-width: 900px){
+  #notasStudentsModal .notas-screen-header{
+    align-items: stretch !important;
+    padding: 12px 20px !important;
+    gap: 18px !important;
+  }
+
+  #notasStudentsModal .notas-students-head-main{
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-pc-toolbar{
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.06),
+      0 10px 22px rgba(0,0,0,.18);
+  }
+
+  #notasStudentsModal .notas-pc-ribbon-row{
+    display: grid;
+    grid-template-columns: 150px minmax(180px, 1fr) 110px auto minmax(160px, .8fr);
+    gap: 10px;
+    align-items: end;
+  }
+
+  #notasStudentsModal .notas-pc-field{
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-pc-field > span{
+    display: block;
+    font-size: 11px;
+    font-weight: 900;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  #notasStudentsModal .notas-pc-field .modal-input,
+  #notasStudentsModal .notas-pc-field select,
+  #notasStudentsModal .notas-pc-field input{
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+
+  #notasStudentsModal .notas-pc-actions{
+    display: flex;
+    gap: 6px;
+    align-items: end;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  #notasStudentsModal .notas-pc-actions .btn{
+    min-height: 38px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  #notasStudentsModal .notas-pc-hint{
+    font-size: 12px;
+    color: var(--muted);
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    text-align: right;
+    overflow: hidden;
+  }
+
+  #notasStudentsModal .notas-bottom-actions{
+    display: none !important;
+  }
+}
+
+/* En móvil no tocar nada: la barra PC no aparece */
+@media (max-width: 899px){
+  #notasPcToolbar{
+    display: none !important;
+  }
+}
+
+
+
+
 </style>
 </head>
 
@@ -6467,13 +6566,19 @@ h1,h2,
 <!-- ======= MODAL PLANILLA DE NOTAS: ESTUDIANTES ======= -->
 <div id="notasStudentsModal" class="modal-backdrop notas-full" hidden>
   <div class="modal-card notas-full-card">
-    <div class="notas-screen-header">
-      <div>
-        <h2 class="modal-title">Registrar notas</h2>
-        <p id="notasStudentsSub" class="modal-sub">Selecciona un estudiante y registra sus notas.</p>
-      </div>
-      <button id="btnNotasStudentsBack" class="btn btn-ghost" type="button">Atrás</button>
+<div class="notas-screen-header">
+  <div class="notas-students-head-main">
+    <div>
+      <h2 class="modal-title">Registrar notas</h2>
+      <p id="notasStudentsSub" class="modal-sub"></p>
     </div>
+
+    <!-- Solo PC: barra superior tipo Word -->
+    <div id="notasPcToolbar" class="notas-pc-toolbar" hidden></div>
+  </div>
+
+  <button id="btnNotasStudentsBack" class="btn btn-ghost" type="button">Atrás</button>
+</div>
 
    <div class="notas-grid-scroll">
   <div id="notasGrid" class="notas-grid"></div>
@@ -8415,6 +8520,7 @@ const notasStudentsModal = $("notasStudentsModal");
 const notasStudentsSub = $("notasStudentsSub");
 const btnNotasStudentsBack = $("btnNotasStudentsBack");
 const btnNotasStudentsGuardar = $("btnNotasStudentsGuardar");
+const notasPcToolbar = $("notasPcToolbar");
 
 let __notasColumnas = [
   { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
@@ -15562,6 +15668,11 @@ async function notasLoadStudents_(){
     if (notasPlanillaModal) notasPlanillaModal.hidden = true;
     if (notasStudentsModal) notasStudentsModal.hidden = false;
 
+    if (notasIsPc_()) {
+      notasBuildPcToolbar_();
+      if (notasPcToolbar) notasPcToolbar.hidden = false;
+    }
+
     notasRenderGrid_();
   } catch (e) {
     notasSetHint_(String(e?.message || e));
@@ -15616,12 +15727,85 @@ async function notasLoadAsignaturas_(){
   }
 }
 
+function notasIsPc_(){
+  return window.matchMedia("(min-width: 900px)").matches;
+}
+
+function notasBuildPcToolbar_(){
+  if (!notasPcToolbar) return;
+  if (!notasIsPc_()) return;
+
+  if (notasPcToolbar.dataset.ready === "1") return;
+
+  notasPcToolbar.innerHTML = `
+    <div class="notas-pc-ribbon-row">
+      <div class="notas-pc-field">
+        <span>Curso</span>
+        <div id="notasPcCursoSlot"></div>
+      </div>
+
+      <div class="notas-pc-field">
+        <span>Asignatura</span>
+        <div id="notasPcAsignaturaSlot"></div>
+      </div>
+
+      <div class="notas-pc-field notas-pc-periodo">
+        <span>Periodo</span>
+        <div id="notasPcPeriodoSlot"></div>
+      </div>
+
+      <div class="notas-pc-actions" id="notasPcActionsSlot"></div>
+
+      <div class="notas-pc-hint" id="notasPcHintSlot"></div>
+    </div>
+  `;
+
+  document.getElementById("notasPcCursoSlot")?.appendChild(notasCursoEl);
+  document.getElementById("notasPcAsignaturaSlot")?.appendChild(notasAsignaturaEl);
+  document.getElementById("notasPcPeriodoSlot")?.appendChild(notasPeriodoEl);
+
+  const actions = document.getElementById("notasPcActionsSlot");
+  if (actions) {
+    actions.appendChild(btnNotasAgregarColumna);
+    actions.appendChild(btnNotasAgregarCognitivo);
+    actions.appendChild(btnNotasCargarPlanilla);
+    actions.appendChild(btnNotasCargarEstudiantes);
+    actions.appendChild(btnNotasGuardar);
+  }
+
+  document.getElementById("notasPcHintSlot")?.appendChild(notasHintEl);
+
+  notasPcToolbar.dataset.ready = "1";
+}
+
+function notasOpenPcSheet_(){
+  if (!notasIsPc_()) return false;
+
+  if (notasPlanillaModal) notasPlanillaModal.hidden = true;
+  if (notasStudentsModal) notasStudentsModal.hidden = false;
+
+  notasBuildPcToolbar_();
+
+  if (notasPcToolbar) notasPcToolbar.hidden = false;
+
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  if (notasStudentsSub) {
+    notasStudentsSub.textContent = `${curso || "Selecciona curso"} • ${asignatura || "Selecciona asignatura"} • Periodo ${periodo}`;
+  }
+
+  notasRenderColumnas_();
+  notasRenderGrid_();
+
+  return true;
+}
+
 
 async function notasOpenPlanilla_(){
-  if (!notasPlanillaModal) return;
+  if (!notasPlanillaModal && !notasStudentsModal) return;
 
-  notasPlanillaModal.hidden = false;
-  if (notasStudentsModal) notasStudentsModal.hidden = true;
   notasSetHint_("");
 
   try {
@@ -15633,6 +15817,14 @@ async function notasOpenPlanilla_(){
     const profileCourse = String(profile?.course || "").trim();
 
     if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
+
+    if (notasIsPc_()) {
+      notasOpenPcSheet_();
+      return;
+    }
+
+    if (notasPlanillaModal) notasPlanillaModal.hidden = false;
+    if (notasStudentsModal) notasStudentsModal.hidden = true;
 
     notasRenderColumnas_();
   } catch (e) {
@@ -15804,8 +15996,33 @@ btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
 
 btnNotasStudentsBack?.addEventListener("click", () => {
   if (notasStudentsModal) notasStudentsModal.hidden = true;
+
+  if (notasIsPc_()) {
+    if (notasPlanillaModal) notasPlanillaModal.hidden = true;
+    return;
+  }
+
   if (notasPlanillaModal) notasPlanillaModal.hidden = false;
 });
+
+
+
+[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+  el?.addEventListener("change", () => {
+    if (!notasIsPc_()) return;
+    if (!notasStudentsModal || notasStudentsModal.hidden) return;
+
+    const curso = String(notasCursoEl?.value || "").trim();
+    const asignatura = String(notasAsignaturaEl?.value || "").trim();
+    const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+    if (notasStudentsSub) {
+      notasStudentsSub.textContent = `${curso || "Selecciona curso"} • ${asignatura || "Selecciona asignatura"} • Periodo ${periodo}`;
+    }
+  });
+});
+
+
 
 btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
 
