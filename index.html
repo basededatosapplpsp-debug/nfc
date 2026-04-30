@@ -4756,23 +4756,40 @@ h1,h2,
 }
 
 
-/* ===== NOTAS PC: mostrar detalles debajo de la fila sin afectar celular ===== */
-@media (min-width: 900px){
-  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc{
-    display: table-cell !important;
-    padding: 10px 8px 14px !important;
-    border-bottom: 1px solid var(--line);
-  }
+/* ===== NOTAS PC: estado clickeable + modal detalle ===== */
+.notas-status-btn{
+  border:0;
+  background:transparent;
+  padding:0;
+  cursor:pointer;
+}
 
-  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc .notas-detail-mini{
-    display: block !important;
-    max-width: 100%;
-    white-space: normal !important;
-  }
+.notas-status-btn:hover{
+  filter:brightness(1.08);
+  transform:translateY(-1px);
+}
 
-  #notasStudentsModal .notas-grid.table-mode .notas-detail-pc .btn{
-    width: auto !important;
-  }
+.notas-pc-detail-card{
+  width:min(520px, calc(100vw - 32px)) !important;
+}
+
+.notas-detail-modal-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.notas-detail-modal-summary{
+  margin-top:14px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.notas-detail-modal-text{
+  margin-top:14px;
+  white-space:normal !important;
 }
 
 
@@ -15210,20 +15227,14 @@ function notasRenderGrid_(){
 
           <div class="notas-summary">
             <div class="notas-cell"><strong>${escapeHtml(String(calc.definitiva ?? "—"))}</strong></div>
-            <div class="notas-cell">${notasEstadoBadge_(calc.estado)}</div>
-          </div>
-
-          ${calc.detalles ? `
-            <div class="notas-cell notas-detail-pc" style="grid-column:1 / -1;">
-              <div class="notas-detail-mini">
-                ${escapeHtml(calc.detalles)}
-              </div>
-
-              <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;">
-                Compartir reporte
-              </button>
+            <div class="notas-cell">
+              ${calc.detalles ? `
+                <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
+                  ${notasEstadoBadge_(calc.estado)}
+                </button>
+              ` : notasEstadoBadge_(calc.estado)}
             </div>
-          ` : ""}
+          </div>
         </div>
       `;
     }
@@ -15285,6 +15296,12 @@ function notasRenderGrid_(){
     });
   });
 
+    notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      notasOpenDetallePc_(Number(btn.dataset.notaDetails));
+    });
+  });
+
   notasGridEl.querySelectorAll("[data-nota-share]").forEach(btn => {
     btn.addEventListener("click", async () => {
       const sIdx = Number(btn.dataset.notaShare);
@@ -15318,6 +15335,88 @@ function notasRenderGrid_(){
     });
   });
 }
+
+
+function notasOpenDetallePc_(sIdx){
+  const student = __notasEstudiantes[sIdx];
+  if (!student) return;
+
+  const calc = notasCalcStudent_(student);
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  let modal = document.getElementById("notasPcDetalleModal");
+
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "notasPcDetalleModal";
+    modal.className = "modal-backdrop";
+    modal.hidden = true;
+    document.body.appendChild(modal);
+
+    modal.addEventListener("click", e => {
+      if (e.target === modal) modal.hidden = true;
+    });
+  }
+
+  const msg =
+    `Reporte académico\n\n` +
+    `Estudiante: ${student.estudiante}\n` +
+    `Curso: ${curso}\n` +
+    `Asignatura: ${asignatura}\n` +
+    `Periodo: ${periodo}\n` +
+    `Definitiva: ${calc.definitiva}\n` +
+    `Estado: ${calc.estado}\n\n` +
+    `Detalles:\n${calc.detalles || "Sin detalles."}`;
+
+  modal.innerHTML = `
+    <div class="modal-card notas-pc-detail-card">
+      <div class="notas-detail-modal-head">
+        <div>
+          <h2 style="margin:0;">${escapeHtml(student.estudiante || "Estudiante")}</h2>
+          <div class="muted small">${escapeHtml(curso)} • ${escapeHtml(asignatura)} • Periodo ${escapeHtml(periodo)}</div>
+        </div>
+
+        <button class="btn btn-ghost" type="button" id="btnNotasPcDetalleCerrar">Cerrar</button>
+      </div>
+
+      <div class="notas-detail-modal-summary">
+        <span class="badge badge-neutral">Definitiva: ${escapeHtml(String(calc.definitiva ?? "—"))}</span>
+        ${notasEstadoBadge_(calc.estado)}
+      </div>
+
+      <div class="notas-detail-mini notas-detail-modal-text">
+        ${escapeHtml(calc.detalles || "Sin detalles.")}
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" id="btnNotasPcDetalleCompartir">
+          Compartir reporte
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.hidden = false;
+
+  document.getElementById("btnNotasPcDetalleCerrar")?.addEventListener("click", () => {
+    modal.hidden = true;
+  });
+
+  document.getElementById("btnNotasPcDetalleCompartir")?.addEventListener("click", async () => {
+    if (navigator.share) {
+      await navigator.share({
+        title: "Reporte académico",
+        text: msg
+      });
+      return;
+    }
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  });
+}
+
 
 async function notasLoadCourses_(){
   const courses = await gsCoursesList();
