@@ -4855,17 +4855,17 @@ h1,h2,
     min-width: 0;
   }
 
-  #notasStudentsModal .notas-pc-field:nth-child(1){
-    flex: 0 1 150px;
-  }
+#notasStudentsModal .notas-pc-field:nth-child(1){
+  flex: 0 0 150px;
+}
 
-  #notasStudentsModal .notas-pc-field:nth-child(2){
-    flex: 1 1 220px;
-  }
+#notasStudentsModal .notas-pc-field:nth-child(2){
+  flex: 0 0 210px;
+}
 
-  #notasStudentsModal .notas-pc-field:nth-child(3){
-    flex: 0 1 120px;
-  }
+#notasStudentsModal .notas-pc-field:nth-child(3){
+  flex: 0 0 120px;
+}
 
   #notasStudentsModal .notas-pc-field > span{
     display: block;
@@ -4915,21 +4915,39 @@ h1,h2,
 /* Portátiles / pantallas medianas: ribbon en 2 filas ordenadas */
 @media (min-width: 900px) and (max-width: 1280px){
   #notasStudentsModal .notas-pc-ribbon-row{
-    display: grid !important;
-    grid-template-columns: 160px minmax(220px, 1fr) 130px;
-    gap: 8px;
-    align-items: end;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(1){
+    flex: 0 0 115px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(2){
+    flex: 0 0 170px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(3){
+    flex: 0 0 105px;
   }
 
   #notasStudentsModal .notas-pc-actions{
-    grid-column: 1 / -1;
+    flex: 1 1 auto;
     max-width: none;
-    width: 100%;
+    width: auto;
     justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 1px;
   }
 
   #notasStudentsModal .notas-pc-actions .btn{
     flex: 0 0 auto;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 11px !important;
   }
 }
 
