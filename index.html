@@ -15197,7 +15197,9 @@ function notasPromedioComponente_(student, componente){
   );
 
   const vals = cols
-    .map(col => Number(String(student.notas?.[String(col.orden)] ?? "").replace(",", ".")))
+    .map(col => String(student.notas?.[String(col.orden)] ?? "").trim())
+    .filter(v => v !== "")
+    .map(v => Number(v.replace(",", ".")))
     .filter(n => Number.isFinite(n));
 
   if (!vals.length) return "—";
