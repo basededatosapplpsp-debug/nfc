@@ -5191,6 +5191,59 @@ h1,h2,
 }
 
 
+/* ===== NOTAS MÓVIL: lista acordeón de estudiantes ===== */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-student-card{
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #notasStudentsModal .notas-student-toggle{
+    width: 100%;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    padding: 14px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  #notasStudentsModal .notas-student-toggle-right{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
+  #notasStudentsModal .notas-toggle-icon{
+    width: 28px;
+    height: 28px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.06);
+    font-weight: 950;
+  }
+
+  #notasStudentsModal .notas-student-card.is-open{
+    padding-bottom: 12px !important;
+  }
+
+  #notasStudentsModal .notas-student-card.is-open .notas-inputs,
+  #notasStudentsModal .notas-student-card.is-open .notas-summary,
+  #notasStudentsModal .notas-student-card.is-open .notas-detail-mini,
+  #notasStudentsModal .notas-student-card.is-open [data-nota-share]{
+    margin-left: 14px;
+    margin-right: 14px;
+  }
+}
+
+
 </style>
 </head>
 
@@ -8806,6 +8859,8 @@ let __notasColumnas = [
 ];
 
 let __notasEstudiantes = [];
+
+let __notasOpenStudentIdx = null;
 
 const notasAlertasModal = $("notasAlertasModal");
 const notasAlertasCursoEl = $("notasAlertasCurso");
@@ -15781,66 +15836,81 @@ function notasRenderGrid_(){
       `;
     }
 
+    const isOpen = __notasOpenStudentIdx === sIdx;
+
     return `
-      <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
-        <div class="notas-student-top">
+      <div class="notas-student-card ${rowClass} ${isOpen ? "is-open" : ""}" data-student-idx="${sIdx}">
+        <button class="notas-student-toggle" type="button" data-nota-student-toggle="${sIdx}">
           <div class="notas-student-name">${escapeHtml(student.estudiante)}</div>
-          ${notasEstadoBadge_(calc.estado)}
-        </div>
+          <div class="notas-student-toggle-right">
+            ${notasEstadoBadge_(calc.estado)}
+            <span class="notas-toggle-icon">${isOpen ? "−" : "+"}</span>
+          </div>
+        </button>
 
-        <div class="notas-inputs">
-          ${procCols.map(col => {
-            const key = String(col.orden);
-            return `
-              <div class="notas-input-row">
-                <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
-                <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
-              </div>
-            `;
-          }).join("")}
+        ${isOpen ? `
+          <div class="notas-inputs">
+            ${procCols.map(col => {
+              const key = String(col.orden);
+              return `
+                <div class="notas-input-row">
+                  <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                </div>
+              `;
+            }).join("")}
 
-          <div class="notas-input-row notas-total-row">
-            <label>Total Procedimental</label>
-            <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+            <div class="notas-input-row notas-total-row">
+              <label>Total Procedimental</label>
+              <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+            </div>
+
+            ${cogCols.map(col => {
+              const key = String(col.orden);
+              return `
+                <div class="notas-input-row">
+                  <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                </div>
+              `;
+            }).join("")}
+
+            <div class="notas-input-row notas-total-row">
+              <label>Total Cognitivo</label>
+              <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+            </div>
+
+            <div class="notas-input-row">
+              <label>Actitudinal (20%)</label>
+              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
+            </div>
           </div>
 
-          ${cogCols.map(col => {
-            const key = String(col.orden);
-            return `
-              <div class="notas-input-row">
-               <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble toque para editar o eliminar">${escapeHtml(col.nombre || key)} (${Number(col.porcentaje || 0)}%)</label>
-                <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
-              </div>
-            `;
-          }).join("")}
-
-          <div class="notas-input-row notas-total-row">
-            <label>Total Cognitivo</label>
-            <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+          <div class="notas-summary">
+            <span class="badge badge-neutral">Definitiva: ${escapeHtml(String(calc.definitiva ?? "—"))}</span>
           </div>
 
-          <div class="notas-input-row">
-            <label>Actitudinal (20%)</label>
-            <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
-          </div>
-        </div>
+          ${calc.detalles ? `
+            <div class="notas-detail-mini">
+              ${escapeHtml(calc.detalles)}
+            </div>
 
-        <div class="notas-summary">
-          <span class="badge badge-neutral">Definitiva: ${escapeHtml(String(calc.definitiva ?? "—"))}</span>
-        </div>
-
-        ${calc.detalles ? `
-          <div class="notas-detail-mini">
-            ${escapeHtml(calc.detalles)}
-          </div>
-
-          <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
-            Compartir reporte
-          </button>
+            <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
+              Compartir reporte
+            </button>
+          ` : ""}
         ` : ""}
       </div>
     `;
   }).join("");
+
+  notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.notaStudentToggle);
+      __notasOpenStudentIdx = (__notasOpenStudentIdx === idx) ? null : idx;
+      notasRenderGrid_();
+    });
+  });
 
   notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
     input.addEventListener("input", () => {
@@ -15859,10 +15929,10 @@ function notasRenderGrid_(){
   });
 
   notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
-  el.addEventListener("dblclick", () => {
-    notasEditarColumna_(Number(el.dataset.notaColEdit));
+    el.addEventListener("dblclick", () => {
+      notasEditarColumna_(Number(el.dataset.notaColEdit));
+    });
   });
-});
 
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
