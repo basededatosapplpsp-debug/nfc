@@ -6729,6 +6729,27 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
+/* ===== FIX: títulos con ... en layout equilibrado ===== */
+@media (min-width: 900px){
+
+  #notasStudentsModal .notas-header-row .notas-col-title{
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  /* asegura que el contenedor también recorte */
+  #notasStudentsModal .notas-header-row .notas-cell{
+    overflow: hidden !important;
+  }
+}
+
+
+
 
 </style>
 </head>
