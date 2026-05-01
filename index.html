@@ -5607,6 +5607,32 @@ h1,h2,
 
 
 
+/* ===== ALERTAS: mover botón buscar junto a acciones en portátil ===== */
+@media (min-width: 900px) and (max-width: 1280px){
+
+  #notasAlertasModal .notas-toolbar{
+    display: none !important;
+  }
+
+  #notasAlertasModal #btnNotasAlertasBuscar{
+    grid-column: 2 !important;
+    grid-row: 5 !important;
+    justify-self: flex-start !important;
+    align-self: center !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal .modal-actions{
+    grid-column: 2 !important;
+    grid-row: 5 !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+}
+
+
+
+
 </style>
 </head>
 
