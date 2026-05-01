@@ -5433,6 +5433,36 @@ h1,h2,
 
 
 
+/* Botón compartir todos los que deben notas */
+.notas-share-all-btn{
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.notas-share-all-btn i{
+  font-size: 14px;
+}
+
+@media (max-width: 899px){
+  #btnNotasCompartirDebe::before{
+    content: "\f1e0";
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 12px;
+  }
+
+  #btnNotasCompartirDebe i{
+    display: none;
+  }
+}
+
+
+
 </style>
 </head>
 
@@ -9042,6 +9072,7 @@ const btnNotasCargarPlanilla = $("btnNotasCargarPlanilla");
 const btnNotasAgregarColumna = $("btnNotasAgregarColumna");
 const btnNotasAgregarCognitivo = $("btnNotasAgregarCognitivo");
 const btnNotasGuardar = $("btnNotasGuardar");
+let btnNotasCompartirDebe = null;
 const btnNotasCerrar = $("btnNotasCerrar");
 
 const notasStudentsModal = $("notasStudentsModal");
@@ -16346,13 +16377,24 @@ function notasBuildPcToolbar_(){
   document.getElementById("notasPcAsignaturaSlot")?.appendChild(notasAsignaturaEl);
   document.getElementById("notasPcPeriodoSlot")?.appendChild(notasPeriodoEl);
 
-  const actions = document.getElementById("notasPcActionsSlot");
-  if (actions) {
-    actions.appendChild(btnNotasAgregarColumna);
-    actions.appendChild(btnNotasAgregarCognitivo);
-    actions.appendChild(btnNotasCargarPlanilla);
-    actions.appendChild(btnNotasGuardar);
+const actions = document.getElementById("notasPcActionsSlot");
+if (actions) {
+  if (!btnNotasCompartirDebe) {
+    btnNotasCompartirDebe = document.createElement("button");
+    btnNotasCompartirDebe.type = "button";
+    btnNotasCompartirDebe.id = "btnNotasCompartirDebe";
+    btnNotasCompartirDebe.className = "btn notas-share-all-btn";
+    btnNotasCompartirDebe.title = "Compartir todos los estudiantes que deben notas";
+    btnNotasCompartirDebe.innerHTML = `<i class="fa-solid fa-share-nodes"></i>`;
+    btnNotasCompartirDebe.addEventListener("click", notasCompartirDebeTodos_);
   }
+
+  actions.appendChild(btnNotasAgregarColumna);
+  actions.appendChild(btnNotasAgregarCognitivo);
+  actions.appendChild(btnNotasCompartirDebe);
+  actions.appendChild(btnNotasCargarPlanilla);
+  actions.appendChild(btnNotasGuardar);
+}
 
   document.getElementById("notasPcHintSlot")?.appendChild(notasHintEl);
 
@@ -16517,6 +16559,51 @@ async function notasOpenPlanilla_(){
 async function notasCargarPlanillaGuardada_(){
   await notasAbrirPlanillaActual_();
 }
+
+
+async function notasCompartirDebeTodos_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  if (!__notasEstudiantes.length) {
+    return notasSetHint_("No hay estudiantes cargados para compartir.");
+  }
+
+  const pendientes = __notasEstudiantes
+    .map(student => {
+      const calc = notasCalcStudent_(student);
+      return { student, calc };
+    })
+    .filter(x => String(x.calc.estado || "").trim() === "DEBE_NOTAS");
+
+  if (!pendientes.length) {
+    return notasSetHint_("No hay estudiantes que deban notas en esta planilla.");
+  }
+
+  const msg =
+    `Reporte de estudiantes que deben notas\n\n` +
+    `Curso: ${curso || "—"}\n` +
+    `Asignatura: ${asignatura || "—"}\n` +
+    `Periodo: ${periodo || "—"}\n\n` +
+    pendientes.map((x, idx) =>
+      `${idx + 1}. ${x.student.estudiante}\n` +
+      `Definitiva: ${x.calc.definitiva ?? "—"}\n` +
+      `Detalles: ${x.calc.detalles || "Sin detalles."}`
+    ).join("\n\n");
+
+  if (navigator.share) {
+    await navigator.share({
+      title: "Reporte de estudiantes que deben notas",
+      text: msg
+    });
+    return;
+  }
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+
 
 async function notasGuardarPlanilla_(){
   const curso = String(notasCursoEl?.value || "").trim();
