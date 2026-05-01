@@ -5250,6 +5250,146 @@ h1,h2,
 }
 
 
+
+
+/* ===== ALERTAS DE NOTAS PC: vista amplia tipo planilla ===== */
+@media (min-width: 900px){
+  #notasAlertasModal{
+    align-items: stretch !important;
+    justify-content: center !important;
+    padding: 18px !important;
+  }
+
+  #notasAlertasModal .notas-card{
+    width: min(1500px, calc(100vw - 36px)) !important;
+    height: calc(100dvh - 36px) !important;
+    max-height: calc(100dvh - 36px) !important;
+    display: grid !important;
+    grid-template-columns: minmax(560px, 1.15fr) minmax(420px, .85fr);
+    grid-template-rows: auto auto auto 1fr auto;
+    gap: 12px;
+    overflow: hidden !important;
+  }
+
+  #notasAlertasModal .modal-title,
+  #notasAlertasModal .modal-sub,
+  #notasAlertasModal .notas-filters,
+  #notasAlertasModal .notas-toolbar,
+  #notasAlertasModal #notasAlertasHint{
+    grid-column: 1 / -1;
+  }
+
+  #notasAlertasModal .notas-filters{
+    display: grid !important;
+    grid-template-columns: 180px 240px 160px;
+    gap: 10px;
+    align-items: end;
+  }
+
+  #notasAlertasModal .notas-toolbar{
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  #notasAlertasModal #notasAlertasList{
+    grid-column: 1;
+    grid-row: 4;
+    min-height: 0 !important;
+    height: 100% !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    margin-top: 0 !important;
+    padding: 10px !important;
+  }
+
+  #notasAlertasModal #notasAlertasDetalle{
+    grid-column: 2;
+    grid-row: 4;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    margin-top: 0 !important;
+    padding: 18px !important;
+    border-radius: 18px;
+    background: rgba(255,255,255,.055);
+    border: 1px solid var(--line);
+  }
+
+  #notasAlertasModal .modal-actions{
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-top: 0 !important;
+  }
+
+  #notasAlertasModal .notas-alerta-row{
+    min-height: 62px;
+    border-radius: 14px;
+  }
+
+  #notasAlertasModal .notas-alerta-row .name{
+    font-size: 15px !important;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-head{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-head h3{
+    margin: 0 0 4px 0;
+    font-size: 22px;
+    line-height: 1.1;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-stats{
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-stats > div{
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    background: rgba(0,0,0,.12);
+  }
+
+  #notasAlertasModal .notas-alerta-detail-stats span{
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-stats strong{
+    font-size: 16px;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-box{
+    margin-top: 14px;
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    padding: 14px;
+    background: rgba(0,0,0,.10);
+  }
+
+  #notasAlertasModal .notas-alerta-detail-box p{
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.45;
+    white-space: normal;
+  }
+}
+
+
+
+
 </style>
 </head>
 
@@ -16494,10 +16634,9 @@ async function notasAlertasLoadCourses_(){
 function notasAlertasRender_(){
   if (!notasAlertasListEl) return;
 
-  __notasAlertaSeleccionada = null;
-  __notasAlertaMsg = "";
-  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
   if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
+  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
+  __notasAlertaMsg = "";
 
   if (!__notasAlertasItems.length) {
     notasAlertasListEl.innerHTML = `<div class="notas-empty">No hay alertas con esos filtros.</div>`;
@@ -16512,16 +16651,19 @@ function notasAlertasRender_(){
       "lvl-3";
 
     return `
-      <button class="disc-item" type="button" data-nota-alerta-idx="${idx}">
+      <button class="disc-item notas-alerta-row" type="button" data-nota-alerta-idx="${idx}">
         <div class="left">
           <span class="lvl-dot ${dotClass}"></span>
           <div>
             <div class="name">${escapeHtml(x.estudiante || "Sin nombre")}</div>
-            <div class="muted small">${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")}</div>
+            <div class="muted small">
+              ${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")} • Periodo ${escapeHtml(String(x.periodo || "—"))}
+            </div>
           </div>
         </div>
+
         <div class="right">
-          <span class="badge badge-neutral">${escapeHtml(String(x.definitiva ?? "—"))}</span>
+          <span class="badge badge-neutral">Def: ${escapeHtml(String(x.definitiva ?? "—"))}</span>
           ${notasEstadoBadge_(estado)}
         </div>
       </button>
@@ -16546,23 +16688,38 @@ async function notasAlertasDetalle_(item){
   if (!item || !notasAlertasDetalleEl) return;
 
   notasAlertasDetalleEl.hidden = false;
+
   notasAlertasDetalleEl.innerHTML = `
-    <div class="top">
-      <span class="teacher">${escapeHtml(item.estudiante || "Sin nombre")}</span>
+    <div class="notas-alerta-detail-head">
+      <div>
+        <h3>${escapeHtml(item.estudiante || "Sin nombre")}</h3>
+        <div class="muted small">
+          ${escapeHtml(item.curso || "—")} • ${escapeHtml(item.asignatura || "—")} • Periodo ${escapeHtml(String(item.periodo || "—"))}
+        </div>
+      </div>
       ${notasEstadoBadge_(item.estado)}
     </div>
 
-    <div class="meta">
-      Curso: <b>${escapeHtml(item.curso || "—")}</b><br>
-      Asignatura: <b>${escapeHtml(item.asignatura || "—")}</b><br>
-      Periodo: <b>${escapeHtml(item.periodo || "—")}</b><br>
-      Definitiva: <b>${escapeHtml(String(item.definitiva ?? "—"))}</b><br>
-      Docente: <b>${escapeHtml(item.docente_nombre || "—")}</b>
+    <div class="notas-alerta-detail-stats">
+      <div>
+        <span>Definitiva</span>
+        <strong>${escapeHtml(String(item.definitiva ?? "—"))}</strong>
+      </div>
+
+      <div>
+        <span>Docente</span>
+        <strong>${escapeHtml(item.docente_nombre || "—")}</strong>
+      </div>
+
+      <div>
+        <span>Estado</span>
+        <strong>${escapeHtml(String(item.estado || "—"))}</strong>
+      </div>
     </div>
 
-    <div style="margin-top:10px;">
-      <b>Detalles:</b><br>
-      ${escapeHtml(item.detalles || "Sin detalles.")}
+    <div class="notas-alerta-detail-box">
+      <b>Detalles de la alerta</b>
+      <p>${escapeHtml(item.detalles || "Sin detalles.")}</p>
     </div>
   `;
 
