@@ -25202,6 +25202,33 @@ if (btnLogout) {
   });
 }
 
+
+// ======= SW helper seguro =======
+async function registerAndUpdateSW_() {
+  try {
+    if (!("serviceWorker" in navigator)) return null;
+
+    const reg = await navigator.serviceWorker.register("./sw.js?v=" + APP_BUILD, {
+      updateViaCache: "none"
+    });
+
+    await reg.update();
+
+    if (reg.waiting) {
+      reg.waiting.postMessage("SKIP_WAITING");
+    }
+
+    return reg;
+  } catch (e) {
+    console.warn("No se pudo registrar/actualizar SW:", e);
+    return null;
+  }
+}
+
+// Compatibilidad por si alguna caché vieja llama el nombre anterior
+window.registerAndUpdateSW = registerAndUpdateSW_;
+
+
 // ======= SW register + auto refresh por build =======
 if ("serviceWorker" in navigator) {
   let __swReloading = false;
