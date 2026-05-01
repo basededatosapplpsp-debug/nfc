@@ -16699,10 +16699,13 @@ function notasAlertasFiltrarPorTipo_(items){
   return (items || []).filter(item => {
     const estado = String(item.estado || "").trim().toUpperCase();
     const detalles = String(item.detalles || "").toLowerCase();
+
     const definitiva = notasAlertasNum_(item.definitiva);
+    const procTotal = notasAlertasNum_(item.proc_total);
+    const cogTotal = notasAlertasNum_(item.cog_total);
 
     if (tipo === "definitiva") {
-      return estado === "BAJO" || (definitiva !== null && definitiva < 3.5);
+      return definitiva !== null && definitiva < 3.5;
     }
 
     if (tipo === "debe") {
@@ -16710,18 +16713,16 @@ function notasAlertasFiltrarPorTipo_(items){
     }
 
     if (tipo === "procedimental") {
-      const totalProc =
-        notasAlertasNum_(item.total_procedimental) ??
-        notasAlertasNum_(item.procedimental) ??
-        notasAlertasNum_(item.promedio_procedimental);
+      return procTotal !== null && procTotal < 3.5;
+    }
 
-      return totalProc !== null && totalProc < 3.5;
+    if (tipo === "cognitivo") {
+      return cogTotal !== null && cogTotal < 3.5;
     }
 
     return true;
   });
 }
-
 
 function notasAlertasKey_(item){
   const curso = String(item.curso || item.course_key || "").trim().toUpperCase();
