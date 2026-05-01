@@ -16358,21 +16358,29 @@ function notasRenderGrid_(){
     });
   });
 
-  notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
-    input.addEventListener("input", () => {
-      const sIdx = Number(input.dataset.notaInput);
-      const key = String(input.dataset.notaKey || "");
-
-      if (!__notasEstudiantes[sIdx]) return;
-      if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
-
-      __notasEstudiantes[sIdx].notas[key] = input.value;
-    });
-
-    input.addEventListener("blur", () => {
-      notasRenderGrid_();
-    });
+notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+  input.addEventListener("focus", () => {
+    setTimeout(() => input.select(), 0);
   });
+
+  input.addEventListener("click", () => {
+    input.select();
+  });
+
+  input.addEventListener("input", () => {
+    const sIdx = Number(input.dataset.notaInput);
+    const key = String(input.dataset.notaKey || "");
+
+    if (!__notasEstudiantes[sIdx]) return;
+    if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+
+    __notasEstudiantes[sIdx].notas[key] = input.value;
+  });
+
+  input.addEventListener("change", () => {
+    notasRenderGrid_();
+  });
+});
 
   notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
     el.addEventListener("dblclick", () => {
