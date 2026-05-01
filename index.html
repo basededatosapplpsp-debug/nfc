@@ -5477,6 +5477,148 @@ h1,h2,
 }
 
 
+/* ===== ALERTAS NOTAS: ajuste portátil / pantallas bajas ===== */
+@media (min-width: 900px) and (max-height: 760px){
+  #notasAlertasModal{
+    padding: 8px !important;
+    align-items: stretch !important;
+    justify-content: center !important;
+  }
+
+  #notasAlertasModal .notas-card{
+    width: min(1500px, calc(100vw - 16px)) !important;
+    height: calc(100dvh - 16px) !important;
+    max-height: calc(100dvh - 16px) !important;
+    padding: 14px !important;
+
+    display: grid !important;
+    grid-template-columns: minmax(430px, 1fr) minmax(380px, .85fr);
+    grid-template-rows: auto auto 1fr auto auto;
+    gap: 8px 12px;
+    overflow: hidden !important;
+  }
+
+  #notasAlertasModal .modal-title{
+    grid-column: 1 / -1;
+    font-size: 16px !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal .modal-sub{
+    grid-column: 1 / -1;
+    font-size: 11px !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal .notas-filters{
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-template-columns: 170px 220px 170px 130px !important;
+    gap: 8px !important;
+    margin-top: 4px !important;
+    align-items: end;
+  }
+
+  #notasAlertasModal .modal-label{
+    margin: 0 !important;
+    font-size: 10px !important;
+  }
+
+  #notasAlertasModal .modal-input{
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    border-radius: 11px !important;
+  }
+
+  #notasAlertasModal #notasAlertasList{
+    grid-column: 1;
+    grid-row: 4;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 8px !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal #notasAlertasDetalle{
+    grid-column: 2;
+    grid-row: 4;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 12px !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal .disc-item{
+    min-height: 50px !important;
+    padding: 9px 10px !important;
+    border-radius: 13px !important;
+  }
+
+  #notasAlertasModal .disc-item .name{
+    font-size: 13px !important;
+  }
+
+  #notasAlertasModal .disc-item .small{
+    font-size: 10px !important;
+  }
+
+  #notasAlertasModal .badge{
+    font-size: 10px !important;
+    padding: 3px 7px !important;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-head h3{
+    font-size: 17px !important;
+    margin: 0 0 3px !important;
+  }
+
+  #notasAlertasModal .notas-alerta-detail-box{
+    margin-top: 10px !important;
+    padding: 10px !important;
+  }
+
+  #notasAlertasModal .notas-alerta-subject-list{
+    gap: 8px !important;
+  }
+
+  #notasAlertasModal .notas-alerta-subject-card{
+    padding: 10px !important;
+    border-radius: 13px !important;
+  }
+
+  #notasAlertasModal .modal-actions{
+    grid-column: 1 / -1;
+    grid-row: 5;
+    margin-top: 0 !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+  }
+
+  #notasAlertasModal .modal-actions .btn{
+    height: 38px !important;
+    min-height: 38px !important;
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  #notasAlertasModal #notasAlertasHint{
+    grid-column: 1 / -1;
+    grid-row: 6;
+    font-size: 11px !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal .notas-toolbar{
+    display: none !important;
+  }
+}
+
 
 </style>
 </head>
