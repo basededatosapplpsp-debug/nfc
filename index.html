@@ -6319,20 +6319,21 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-
-/* ===== MODO PC: reemplazo visual de verificación de ubicación ===== */
+/* ===== MODO PC: celular transmitiendo datos a PC ===== */
 .pc-mode-link-box{
   margin-top: 12px;
-  padding: 16px;
-  border-radius: 18px;
-  border: 1px solid rgba(96,165,250,.22);
+  padding: 18px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(96,165,250,.24);
   background:
-    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 42%),
-    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
+    radial-gradient(circle at 22% 20%, rgba(59,130,246,.22), transparent 34%),
+    radial-gradient(circle at 78% 28%, rgba(34,197,94,.12), transparent 30%),
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.035));
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.07),
-    0 12px 26px rgba(0,0,0,.18);
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 14px 30px rgba(0,0,0,.22);
   text-align: center;
+  overflow: hidden;
 }
 
 .pc-mode-link-box[hidden]{
@@ -6340,97 +6341,265 @@ body.is-pc-mode .single-action-wrap{
 }
 
 .pc-link-visual{
+  position: relative;
+  width: min(260px, 100%);
+  height: 74px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  min-height: 54px;
+  justify-content: space-between;
 }
 
 .pc-phone-icon,
 .pc-desktop-icon{
-  font-size: 30px;
-  color: #bfdbfe;
-  filter: drop-shadow(0 0 12px rgba(96,165,250,.28));
+  position: relative;
+  z-index: 3;
+  width: 54px;
+  height: 54px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  color: #dbeafe;
+  background:
+    linear-gradient(180deg, rgba(15,23,42,.92), rgba(30,41,59,.76));
+  border: 1px solid rgba(147,197,253,.24);
+  box-shadow:
+    0 12px 24px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.12),
+    0 0 24px rgba(96,165,250,.16);
 }
 
 .pc-phone-icon{
-  animation: pcPhonePulse 1.8s ease-in-out infinite;
+  animation: pcPhoneFloat 2.2s ease-in-out infinite;
 }
 
 .pc-desktop-icon{
-  animation: pcDesktopGlow 1.8s ease-in-out infinite;
+  animation: pcDesktopPulse 2.2s ease-in-out infinite;
 }
 
 .pc-link-waves{
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.pc-link-waves span{
-  width: 7px;
-  height: 7px;
+  position: absolute;
+  left: 58px;
+  right: 58px;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
   border-radius: 999px;
-  background: #60a5fa;
-  box-shadow: 0 0 12px rgba(96,165,250,.55);
-  animation: pcDataDot 1.2s ease-in-out infinite;
+  background: linear-gradient(
+    90deg,
+    rgba(96,165,250,.20),
+    rgba(96,165,250,.55),
+    rgba(34,197,94,.35),
+    rgba(96,165,250,.20)
+  );
+  overflow: hidden;
+  box-shadow: 0 0 18px rgba(96,165,250,.25);
 }
 
-.pc-link-waves span:nth-child(2){
-  animation-delay: .16s;
+.pc-link-waves::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(219,234,254,.95),
+    transparent
+  );
+  filter: blur(.2px);
+  animation: pcDataStream 1.25s ease-in-out infinite;
 }
 
-.pc-link-waves span:nth-child(3){
-  animation-delay: .32s;
+.pc-link-waves::after{
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  transform: translateY(-50%);
+  background: #bfdbfe;
+  box-shadow:
+    0 0 10px rgba(191,219,254,.95),
+    0 0 22px rgba(96,165,250,.65);
+  animation: pcPacketMove 1.25s ease-in-out infinite;
+}
+
+/* ocultamos los spans anteriores sin tocar HTML */
+.pc-link-waves span{
+  display: none !important;
 }
 
 .pc-link-title{
-  margin-top: 8px;
+  margin-top: 10px;
   font-weight: 950;
   font-size: 15px;
   letter-spacing: .2px;
 }
 
 .pc-link-sub{
-  margin-top: 5px;
+  margin: 6px auto 0;
+  max-width: 460px;
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
-@keyframes pcDataDot{
-  0%, 100%{
-    transform: translateY(0) scale(.72);
-    opacity: .45;
+@keyframes pcDataStream{
+  from{
+    transform: translateX(-110%);
+    opacity: .2;
   }
-  50%{
-    transform: translateY(-5px) scale(1.1);
+  35%{
     opacity: 1;
   }
+  to{
+    transform: translateX(260%);
+    opacity: .2;
+  }
 }
 
-@keyframes pcPhonePulse{
+@keyframes pcPacketMove{
+  from{
+    left: -8px;
+    opacity: 0;
+  }
+  15%{
+    opacity: 1;
+  }
+  85%{
+    opacity: 1;
+  }
+  to{
+    left: calc(100% + 8px);
+    opacity: 0;
+  }
+}
+
+@keyframes pcPhoneFloat{
   0%, 100%{
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
   }
   50%{
-    transform: translateX(2px) scale(1.04);
+    transform: translateY(-3px) scale(1.03);
   }
 }
 
-@keyframes pcDesktopGlow{
+@keyframes pcDesktopPulse{
   0%, 100%{
-    opacity: .82;
     transform: scale(1);
+    box-shadow:
+      0 12px 24px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 0 20px rgba(96,165,250,.14);
   }
   50%{
-    opacity: 1;
-    transform: scale(1.04);
+    transform: scale(1.035);
+    box-shadow:
+      0 12px 24px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.12),
+      0 0 32px rgba(96,165,250,.32);
   }
 }
 
 
+
+/* ===== LOGIN MODAL PRO - FIX DESBORDE BOTONES ===== */
+#loginModal{
+  padding: 14px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+}
+
+#loginModal .modal-card{
+  width: min(420px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 28px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 20px !important;
+  border-radius: 22px !important;
+  box-sizing: border-box !important;
+}
+
+#loginModal .modal-card *{
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+#loginModal .modal-title{
+  font-size: 20px !important;
+  margin-bottom: 6px !important;
+}
+
+#loginModal .modal-sub{
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  margin-bottom: 14px !important;
+}
+
+#loginModal .modal-label{
+  margin-top: 10px !important;
+  margin-bottom: 6px !important;
+}
+
+#loginModal .modal-input{
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
+}
+
+#loginModal .device-box{
+  padding: 10px !important;
+  border-radius: 16px !important;
+}
+
+#loginModal .device-row{
+  align-items: center !important;
+}
+
+#loginModal .device-id{
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+/* Botones dentro del modal, sin salirse */
+#loginModal .modal-actions{
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+  width: 100% !important;
+}
+
+#loginModal .modal-actions .btn{
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 8px 10px !important;
+  border-radius: 16px !important;
+  font-size: 12px !important;
+  line-height: 1.12 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* En pantallas muy angostas, botones de a uno */
+@media (max-width: 380px){
+  #loginModal .modal-actions{
+    grid-template-columns: 1fr !important;
+  }
+}
 
 </style>
 </head>
