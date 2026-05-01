@@ -6300,6 +6300,14 @@ grid-template-columns: 70px minmax(95px, 125px) 62px 1fr 1fr 34px !important;
   }
 }
 
+
+/* ===== MODO PC: sesión vinculada al celular, sin asistencia ===== */
+body.is-pc-mode #registerActions,
+body.is-pc-mode #btnEntrada,
+body.is-pc-mode #btnSalida{
+  display: none !important;
+}
+
 </style>
 </head>
 
@@ -6610,6 +6618,9 @@ grid-template-columns: 70px minmax(95px, 125px) 62px 1fr 1fr 34px !important;
 <div class="modal-actions">
   <button id="btnLoginSave" type="button" class="btn btn-primary">Entrar</button>
   <button id="btnRequestAuth" type="button" class="btn btn-ghost">Solicitar autorización</button>
+  <button id="btnPcLinkOpen" type="button" class="btn btn-secondary">
+  Vincular con celular
+</button>
   <button id="btnAdminOpen" type="button" class="btn btn-ghost">Administrador</button>
 </div>
 
@@ -6617,6 +6628,29 @@ grid-template-columns: 70px minmax(95px, 125px) 62px 1fr 1fr 34px !important;
 
 
     <div id="loginHint" class="modal-hint muted small"></div>
+  </div>
+</div>
+
+
+<div id="pcLinkModal" class="modal-backdrop" hidden>
+  <div class="modal-card">
+    <h2 class="modal-title">Vincular con celular</h2>
+    <p class="modal-sub">
+      Usa el mismo correo y nombre que tienes autorizado en tu celular. En PC entrarás en modo académico.
+    </p>
+
+    <label class="modal-label">Nombre</label>
+    <input id="pcLinkName" class="modal-input" type="text" placeholder="Ej: Deimer Herrera" />
+
+    <label class="modal-label">Correo</label>
+    <input id="pcLinkEmail" class="modal-input" type="email" placeholder="Ej: profesor@colegio.edu.co" />
+
+    <div id="pcLinkHint" class="modal-hint muted small"></div>
+
+    <div class="modal-actions" style="justify-content:flex-end;">
+      <button id="btnPcLinkCancel" type="button" class="btn btn-ghost">Cancelar</button>
+      <button id="btnPcLinkEnter" type="button" class="btn btn-primary">Entrar en modo PC</button>
+    </div>
   </div>
 </div>
 
@@ -8113,6 +8147,14 @@ const btnCopyDevice = $("btnCopyDevice");
 
 const btnRequestAuth = $("btnRequestAuth");
 const btnExportXlsx = $("btnExportXlsx");
+
+const btnPcLinkOpen = $("btnPcLinkOpen");
+const pcLinkModal = $("pcLinkModal");
+const pcLinkName = $("pcLinkName");
+const pcLinkEmail = $("pcLinkEmail");
+const pcLinkHint = $("pcLinkHint");
+const btnPcLinkCancel = $("btnPcLinkCancel");
+const btnPcLinkEnter = $("btnPcLinkEnter");
 
 
 const btnAdminConfig = $("btnAdminConfig");
@@ -18439,7 +18481,6 @@ function logout(reason = "") {
 
 
 function requireLogin() {
-  // ✅ Si está en modo admin, NO pedir perfil docente
   if (isAdminMode()) {
     return { name: "ADMINISTRADOR", email: "admin@local", course: "ADMIN" };
   }
@@ -18447,19 +18488,34 @@ function requireLogin() {
   const p = loadProfile();
 
   if (p && p.name && p.email && p.course) {
+    applyPcModeUI_();
+
+    if (String(p.mode || "").toLowerCase() === "pc") {
+      stopDeviceAuthWatcher_();
+      return p;
+    }
+
     startDeviceAuthWatcher_();
     return p;
   }
 
   stopDeviceAuthWatcher_();
 
-  // Mostrar modal y bloquear uso hasta guardar
   loginModal.hidden = false;
   updateDeviceIdUI();
   loginHint.textContent = "Completa tus datos para continuar.";
   return null;
 }
 
+
+function isPcMode(){
+  const p = typeof loadProfile === "function" ? loadProfile() : null;
+  return String(p?.mode || "").toLowerCase() === "pc";
+}
+
+function applyPcModeUI_(){
+  document.body.classList.toggle("is-pc-mode", isPcMode());
+}
 
 
 function updateDeviceIdUI() {
@@ -19468,6 +19524,7 @@ if (!btnRequestAuth) {
       const whatsappTo = (loginPhoneEl && loginPhoneEl.value)
         ? loginPhoneEl.value.trim()
         : "";
+
       const resp = await gsRequestDeviceAuth({
         action: "request_device_auth",
         name,
@@ -19477,11 +19534,86 @@ if (!btnRequestAuth) {
         device_id: getDeviceId()
       });
 
-      // ✅ Mensaje claro con respuesta del servidor
       loginHint.textContent = resp.msg || "Solicitud enviada ✅. Espera aprobación del administrador.";
     } catch (e) {
-      // ✅ Mostrar error real
       loginHint.textContent = String(e && e.message ? e.message : e);
+    } finally {
+      setLoading(false);
+    }
+  });
+}
+
+/* ===== Vincular PC con celular autorizado ===== */
+if (btnPcLinkOpen) {
+  btnPcLinkOpen.addEventListener("click", () => {
+    pcLinkName.value = loginNameEl?.value || "";
+    pcLinkEmail.value = loginEmailEl?.value || "";
+    pcLinkHint.textContent = "";
+    pcLinkModal.hidden = false;
+  });
+}
+
+if (btnPcLinkCancel) {
+  btnPcLinkCancel.addEventListener("click", () => {
+    pcLinkModal.hidden = true;
+  });
+}
+
+if (btnPcLinkEnter) {
+  btnPcLinkEnter.addEventListener("click", async () => {
+    const name = String(pcLinkName.value || "").trim();
+    const email = String(pcLinkEmail.value || "").trim().toLowerCase();
+
+    if (!name || !email) {
+      pcLinkHint.textContent = "Escribe nombre y correo.";
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      pcLinkHint.textContent = "Correo inválido.";
+      return;
+    }
+
+    try {
+      setLoading(true, "Vinculando…", "Validando celular autorizado.");
+      pcLinkHint.textContent = "Validando…";
+
+      const res = await fetch(GS_WEBAPP_URL, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "pc_link_login",
+          name,
+          email,
+          key: GS_API_KEY
+        })
+      });
+
+      const data = await res.json();
+
+      if (!data.ok || !data.authorized) {
+        throw new Error(data.msg || "No autorizado.");
+      }
+
+      const profile = {
+        name: data.allowed_name || data.name || name,
+        email,
+        course: "PC",
+        mode: "pc",
+        whatsapp_to: data.whatsapp_to || ""
+      };
+
+      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
+
+      stopDeviceAuthWatcher_();
+      pcLinkModal.hidden = true;
+      loginModal.hidden = true;
+
+      applySessionUI(profile);
+      applyPcModeUI_();
+
+      setStatus("", "Modo PC activo", "Entraste vinculado al celular. Entrada y salida quedan desactivadas.");
+    } catch (e) {
+      pcLinkHint.textContent = String(e && e.message ? e.message : e);
     } finally {
       setLoading(false);
     }
