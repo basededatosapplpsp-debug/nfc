@@ -6681,21 +6681,42 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-/* ===== NOTAS PC: columnas tipo Excel compactas ===== */
+/* ===== FIX DEFINITIVO NOTAS PC: columnas compactas tipo Excel ===== */
 @media (min-width: 900px){
-  #notasStudentsModal .notas-header-row .notas-cell{
-    max-width: 68px !important;
-    min-width: 68px !important;
-    width: 68px !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
-    overflow: hidden !important;
+
+  /* CLAVE: la tabla ya no se estira al 100%, mide solo lo necesario */
+  #notasStudentsModal #notasGrid.notas-grid.table-mode{
+    width: max-content !important;
+    min-width: max-content !important;
+    table-layout: auto !important;
+    border-collapse: collapse !important;
   }
 
+  #notasStudentsModal .notas-grid.table-mode .notas-cell{
+    padding: 5px 3px !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+  }
+
+  /* Columna estudiante */
+  #notasStudentsModal .notas-grid.table-mode .notas-student-name{
+    width: 210px !important;
+    min-width: 210px !important;
+    max-width: 210px !important;
+  }
+
+  /* Columnas de actividades */
+  #notasStudentsModal .notas-grid.table-mode .notas-cell:not(.notas-student-name):not(.notas-total-cell){
+    width: 66px !important;
+    min-width: 66px !important;
+    max-width: 66px !important;
+  }
+
+  /* Título de actividad con ... */
   #notasStudentsModal .notas-header-row .notas-col-title{
     display: block !important;
-    width: 62px !important;
-    max-width: 62px !important;
+    width: 60px !important;
+    max-width: 60px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -6703,9 +6724,10 @@ body.is-pc-mode .single-action-wrap{
     text-decoration: none !important;
   }
 
+  /* NO expandir al pasar mouse */
   #notasStudentsModal .notas-header-row .notas-col-title:hover{
-    width: 62px !important;
-    max-width: 62px !important;
+    width: 60px !important;
+    max-width: 60px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
@@ -6715,27 +6737,35 @@ body.is-pc-mode .single-action-wrap{
     padding: 0 !important;
   }
 
-  #notasStudentsModal .notas-header-row .notas-total-cell{
-    width: 86px !important;
-    min-width: 86px !important;
-    max-width: 86px !important;
-    text-align: center !important;
-    line-height: 1.15 !important;
-  }
-
-  #notasStudentsModal .notas-header-row .muted.small{
-    display: inline !important;
-    margin-left: 3px !important;
-    font-size: 10px !important;
-    border-bottom: none !important;
-    text-decoration: none !important;
-  }
-
+  /* Inputs compactos */
   #notasStudentsModal .notas-grid.table-mode input{
-    width: 60px !important;
-    max-width: 60px !important;
+    width: 56px !important;
+    max-width: 56px !important;
+    min-width: 56px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    text-align: center !important;
+  }
+
+  /* Totales un poco más anchos */
+  #notasStudentsModal .notas-grid.table-mode .notas-total-cell{
+    width: 82px !important;
+    min-width: 82px !important;
+    max-width: 82px !important;
+    text-align: center !important;
+    line-height: 1.1 !important;
+  }
+
+  #notasStudentsModal .notas-total-percent{
+    display: block !important;
+    margin-top: 2px !important;
+    font-size: 10px !important;
+    opacity: .82;
   }
 }
+
+
+
 </style>
 </head>
 
@@ -17470,7 +17500,8 @@ function notasRenderGrid_(){
       `).join("")}
 
       <div class="notas-cell notas-total-cell">
-    Total Proc. <span class="muted small">40%</span>
+   Total Proc.<br>
+<span class="muted small notas-total-percent">40%</span>
       </div>
 
       ${cogCols.map(col => `
@@ -17480,7 +17511,8 @@ function notasRenderGrid_(){
       `).join("")}
 
       <div class="notas-cell notas-total-cell">
- Total Cog. <span class="muted small">40%</span>
+Total Cog.<br>
+<span class="muted small notas-total-percent">40%</span>
       </div>
 
       <div class="notas-cell">
