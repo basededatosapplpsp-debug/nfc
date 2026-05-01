@@ -16858,9 +16858,15 @@ async function notasGuardarPlanilla_(){
     });
 
     const data = await res.json();
-    if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
+  if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
 
-    notasSetHint_(data.msg || "Planilla guardada ✅");
+notasAlertasLimpiarCache_();
+
+if (notasAlertasModal && !notasAlertasModal.hidden) {
+  notasAlertasBuscar_({ silent: true, useCache: false });
+}
+
+notasSetHint_(data.msg || "Planilla guardada ✅");
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
@@ -16982,11 +16988,79 @@ function notasAlertasHint_(msg){
   if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
 }
 
-async function notasAlertasLoadCourses_(){
-  const courses = await gsCoursesList();
-  fillSelect_(notasAlertasCursoEl, courses, "Todos los cursos");
+
+const NOTAS_ALERTAS_COURSES_CACHE = "notas_alertas_courses_cache_v1";
+const NOTAS_ALERTAS_DATA_CACHE = "notas_alertas_data_cache_v1";
+
+function notasCacheRead_(key){
+  try {
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
 }
 
+function notasCacheWrite_(key, value){
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      ts: Date.now(),
+      value
+    }));
+  } catch {}
+}
+
+function notasAlertasCacheKey_(){
+  const curso = String(notasAlertasCursoEl?.value || "").trim();
+  const periodo = String(notasAlertasPeriodoEl?.value || "").trim();
+  const year = new Date().getFullYear();
+
+  return `${NOTAS_ALERTAS_DATA_CACHE}::${year}::${curso || "TODOS"}::${periodo || "TODOS"}`;
+}
+
+function notasAlertasAplicarItems_(rawItems){
+  const asignaturaSeleccionada = String(notasAlertasAsignaturaEl?.value || "").trim();
+
+  const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(rawItems || []);
+
+  notasAlertasLlenarAsignaturas_(tipoFiltradoItems, asignaturaSeleccionada);
+
+  const asignaturaFinal = String(notasAlertasAsignaturaEl?.value || "").trim();
+
+  const subjectFilteredItems = asignaturaFinal
+    ? tipoFiltradoItems.filter(item =>
+        notasAlertasSubjectKey_(item.asignatura) === notasAlertasSubjectKey_(asignaturaFinal)
+      )
+    : tipoFiltradoItems;
+
+  __notasAlertasItems = notasAlertasAgruparPorEstudiante_(subjectFilteredItems);
+
+  notasAlertasHint_(
+    `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas filtradas: ${subjectFilteredItems.length} · Alertas totales: ${(rawItems || []).length}`
+  );
+
+  notasAlertasRender_();
+}
+
+function notasAlertasLimpiarCache_(){
+  try {
+    Object.keys(localStorage).forEach(k => {
+      if (k.startsWith(NOTAS_ALERTAS_DATA_CACHE)) localStorage.removeItem(k);
+    });
+  } catch {}
+}
+
+
+async function notasAlertasLoadCourses_(){
+  const cached = notasCacheRead_(NOTAS_ALERTAS_COURSES_CACHE);
+
+  if (cached?.value?.length) {
+    fillSelect_(notasAlertasCursoEl, cached.value, "Todos los cursos");
+  }
+
+  const courses = await gsCoursesList();
+  fillSelect_(notasAlertasCursoEl, courses, "Todos los cursos");
+  notasCacheWrite_(NOTAS_ALERTAS_COURSES_CACHE, courses);
+}
 
 function notasAlertasNum_(v){
   const n = Number(String(v ?? "").replace(",", "."));
@@ -17236,13 +17310,23 @@ function notasAlertasLlenarAsignaturas_(items, keepValue = ""){
   }
 }
 
-async function notasAlertasBuscar_(){
+async function notasAlertasBuscar_(opts = {}){
+  const silent = opts?.silent === true;
+  const useCache = opts?.useCache !== false;
+
   const curso = String(notasAlertasCursoEl?.value || "").trim();
-  const asignaturaSeleccionada = String(notasAlertasAsignaturaEl?.value || "").trim();
   const periodo = String(notasAlertasPeriodoEl?.value || "").trim();
+  const cacheKey = notasAlertasCacheKey_();
+
+  if (useCache) {
+    const cached = notasCacheRead_(cacheKey);
+    if (cached?.value) {
+      notasAlertasAplicarItems_(cached.value);
+    }
+  }
 
   try {
-    setLoading(true, "Buscando…", "Consultando alertas de notas.");
+    if (!silent) setLoading(true, "Buscando…", "Consultando alertas de notas.");
 
     const res = await fetch(GS_WEBAPP_URL, {
       method: "POST",
@@ -17261,29 +17345,12 @@ async function notasAlertasBuscar_(){
 
     const rawItems = Array.isArray(data.items) ? data.items : [];
 
-    const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(rawItems);
-
-    notasAlertasLlenarAsignaturas_(tipoFiltradoItems, asignaturaSeleccionada);
-
-    const asignaturaFinal = String(notasAlertasAsignaturaEl?.value || "").trim();
-
-    const subjectFilteredItems = asignaturaFinal
-      ? tipoFiltradoItems.filter(item =>
-          notasAlertasSubjectKey_(item.asignatura) === notasAlertasSubjectKey_(asignaturaFinal)
-        )
-      : tipoFiltradoItems;
-
-    __notasAlertasItems = notasAlertasAgruparPorEstudiante_(subjectFilteredItems);
-
-    notasAlertasHint_(
-      `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas filtradas: ${subjectFilteredItems.length} · Alertas totales: ${rawItems.length}`
-    );
-
-    notasAlertasRender_();
+    notasCacheWrite_(cacheKey, rawItems);
+    notasAlertasAplicarItems_(rawItems);
   } catch (e) {
     notasAlertasHint_(String(e?.message || e));
   } finally {
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
 }
 
@@ -17291,17 +17358,18 @@ async function notasAlertasOpen_(){
   if (!notasAlertasModal) return;
 
   notasAlertasModal.hidden = false;
-  notasAlertasHint_("");
-  __notasAlertasItems = [];
-  notasAlertasRender_();
+  notasAlertasHint_("Cargando alertas…");
 
   try {
-    setLoading(true, "Cargando…", "Preparando alertas.");
     await notasAlertasLoadCourses_();
+
+    // Muestra cache de inmediato si existe, y luego actualiza desde Supabase.
+    await notasAlertasBuscar_({
+      silent: true,
+      useCache: true
+    });
   } catch (e) {
     notasAlertasHint_(String(e?.message || e));
-  } finally {
-    setLoading(false);
   }
 }
 
