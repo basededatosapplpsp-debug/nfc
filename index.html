@@ -16706,11 +16706,16 @@ function notasAlertasFiltrarPorTipo_(items){
     }
 
     if (tipo === "debe") {
-      return estado === "DEBE_NOTAS" || detalles.includes("debe");
+      return estado === "DEBE_NOTAS" || detalles.includes("vacía") || detalles.includes("vacia");
     }
 
     if (tipo === "procedimental") {
-      return detalles.includes("procedimental") || detalles.includes("proced");
+      const totalProc =
+        notasAlertasNum_(item.total_procedimental) ??
+        notasAlertasNum_(item.procedimental) ??
+        notasAlertasNum_(item.promedio_procedimental);
+
+      return totalProc !== null && totalProc < 3.5;
     }
 
     return true;
