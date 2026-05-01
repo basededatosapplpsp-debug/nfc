@@ -6308,6 +6308,19 @@ body.is-pc-mode #btnSalida{
   display: none !important;
 }
 
+
+
+/* ===== MODO PC: ocultar registro de asistencia ===== */
+body.is-pc-mode #registerActions,
+body.is-pc-mode #btnEntrada,
+body.is-pc-mode #btnSalida,
+body.is-pc-mode .single-action-wrap{
+  display: none !important;
+}
+
+
+
+
 </style>
 </head>
 
@@ -11821,6 +11834,10 @@ function resetLoadingNow_() {
 }
 
 function refreshHomeStatus_() {
+    if (isPcMode()) {
+    setPcModeHomeStatus_();
+    return;
+  }
   const hasGeo =
     typeof currentGeo !== "undefined" &&
     currentGeo &&
@@ -18488,6 +18505,31 @@ function logout(reason = "") {
 }
 
 
+
+function isPcMode(){
+  const p = typeof loadProfile === "function" ? loadProfile() : null;
+  return String(p?.mode || "").toLowerCase() === "pc";
+}
+
+function setPcModeHomeStatus_(){
+  setStatus(
+    "",
+    "Modo PC académico activo",
+    "Sesión vinculada al celular. Puedes gestionar notas, alertas, reportes y asignaturas. La asistencia por ubicación está desactivada en este equipo."
+  );
+}
+
+function applyPcModeUI_(){
+  const pc = isPcMode();
+  document.body.classList.toggle("is-pc-mode", pc);
+
+  if (pc) {
+    setPcModeHomeStatus_();
+  }
+}
+
+
+
 function requireLogin() {
   if (isAdminMode()) {
     return { name: "ADMINISTRADOR", email: "admin@local", course: "ADMIN" };
@@ -18500,6 +18542,8 @@ function requireLogin() {
 
     if (String(p.mode || "").toLowerCase() === "pc") {
       stopDeviceAuthWatcher_();
+      loginModal.hidden = true;
+      setPcModeHomeStatus_();
       return p;
     }
 
@@ -25815,7 +25859,12 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 // Inicial: rápido (cache) + refresh silencioso
 refreshFromSheet({ useCache: true, silent: true });
-setStatus("warn", "Listo", "Para registrar, activa ubicación.");
+
+if (isPcMode()) {
+  applyPcModeUI_();
+} else {
+  setStatus("warn", "Listo", "Para registrar, activa ubicación.");
+}
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
 discBindUI_();
