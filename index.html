@@ -5477,50 +5477,60 @@ h1,h2,
 }
 
 
-/* ===== ALERTAS NOTAS: ajuste portátil / pantallas bajas ===== */
-@media (min-width: 900px) and (max-height: 760px){
+/* ===== ALERTAS NOTAS: layout portátil definitivo ===== */
+@media (min-width: 900px) and (max-width: 1280px){
   #notasAlertasModal{
+    position: fixed !important;
+    inset: 0 !important;
     padding: 8px !important;
+    overflow: hidden !important;
     align-items: stretch !important;
     justify-content: center !important;
   }
 
   #notasAlertasModal .notas-card{
-    width: min(1500px, calc(100vw - 16px)) !important;
+    width: calc(100vw - 16px) !important;
+    max-width: calc(100vw - 16px) !important;
     height: calc(100dvh - 16px) !important;
     max-height: calc(100dvh - 16px) !important;
-    padding: 14px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    padding: 12px !important;
 
     display: grid !important;
-    grid-template-columns: minmax(430px, 1fr) minmax(380px, .85fr);
-    grid-template-rows: auto auto 1fr auto auto;
-    gap: 8px 12px;
-    overflow: hidden !important;
+    grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr) !important;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto !important;
+    gap: 8px 10px !important;
   }
 
   #notasAlertasModal .modal-title{
-    grid-column: 1 / -1;
-    font-size: 16px !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 1 !important;
     margin: 0 !important;
+    font-size: 16px !important;
   }
 
   #notasAlertasModal .modal-sub{
-    grid-column: 1 / -1;
-    font-size: 11px !important;
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
     margin: 0 !important;
+    font-size: 11px !important;
   }
 
   #notasAlertasModal .notas-filters{
-    grid-column: 1 / -1;
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    max-width: 720px !important;
     display: grid !important;
-    grid-template-columns: 170px 220px 170px 130px !important;
+    grid-template-columns: 170px 210px 170px 130px !important;
     gap: 8px !important;
-    margin-top: 4px !important;
-    align-items: end;
+    margin: 0 !important;
+    align-items: end !important;
   }
 
   #notasAlertasModal .modal-label{
-    margin: 0 !important;
+    margin: 0 0 3px !important;
     font-size: 10px !important;
   }
 
@@ -5532,121 +5542,66 @@ h1,h2,
     border-radius: 11px !important;
   }
 
+  #notasAlertasModal .notas-toolbar{
+    display: none !important;
+  }
+
   #notasAlertasModal #notasAlertasList{
-    grid-column: 1;
-    grid-row: 4;
-    height: 100% !important;
+    grid-column: 1 !important;
+    grid-row: 4 !important;
+    width: 100% !important;
+    min-width: 0 !important;
     min-height: 0 !important;
-    overflow-y: auto !important;
-    padding: 8px !important;
+    height: 100% !important;
     margin: 0 !important;
+    padding: 8px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
   #notasAlertasModal #notasAlertasDetalle{
-    grid-column: 2;
-    grid-row: 4;
-    height: 100% !important;
+    grid-column: 2 !important;
+    grid-row: 4 !important;
+    width: 100% !important;
+    min-width: 0 !important;
     min-height: 0 !important;
-    overflow-y: auto !important;
-    padding: 12px !important;
+    height: 100% !important;
     margin: 0 !important;
+    padding: 12px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  #notasAlertasModal .modal-actions{
+    grid-column: 2 !important;
+    grid-row: 5 !important;
+    margin: 0 !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+  }
+
+  #notasAlertasModal #notasAlertasHint{
+    grid-column: 1 !important;
+    grid-row: 5 !important;
+    margin: 0 !important;
+    align-self: center !important;
+    font-size: 11px !important;
   }
 
   #notasAlertasModal .disc-item{
+    max-width: 100% !important;
     min-height: 50px !important;
     padding: 9px 10px !important;
-    border-radius: 13px !important;
+    overflow: hidden !important;
   }
 
   #notasAlertasModal .disc-item .name{
     font-size: 13px !important;
   }
 
-  #notasAlertasModal .disc-item .small{
-    font-size: 10px !important;
-  }
-
+  #notasAlertasModal .disc-item .small,
   #notasAlertasModal .badge{
     font-size: 10px !important;
-    padding: 3px 7px !important;
-  }
-
-  #notasAlertasModal .notas-alerta-detail-head h3{
-    font-size: 17px !important;
-    margin: 0 0 3px !important;
-  }
-
-  #notasAlertasModal .notas-alerta-detail-box{
-    margin-top: 10px !important;
-    padding: 10px !important;
-  }
-
-  #notasAlertasModal .notas-alerta-subject-list{
-    gap: 8px !important;
-  }
-
-  #notasAlertasModal .notas-alerta-subject-card{
-    padding: 10px !important;
-    border-radius: 13px !important;
-  }
-
-  #notasAlertasModal .modal-actions{
-    grid-column: 1 / -1;
-    grid-row: 5;
-    margin-top: 0 !important;
-    display: flex !important;
-    justify-content: flex-end !important;
-    gap: 8px !important;
-  }
-
-  #notasAlertasModal .modal-actions .btn{
-    height: 38px !important;
-    min-height: 38px !important;
-    padding: 8px 12px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
-  }
-
-  #notasAlertasModal #notasAlertasHint{
-    grid-column: 1 / -1;
-    grid-row: 6;
-    font-size: 11px !important;
-    margin: 0 !important;
-  }
-
-  #notasAlertasModal .notas-toolbar{
-    display: none !important;
-  }
-}
-
-
-
-/* ===== ALERTAS NOTAS: quitar scroll horizontal en portátil ===== */
-@media (min-width: 900px) and (max-height: 760px){
-  #notasAlertasModal{
-    overflow-x: hidden !important;
-  }
-
-  #notasAlertasModal .notas-card{
-    max-width: calc(100vw - 16px) !important;
-    overflow-x: hidden !important;
-  }
-
-  #notasAlertasModal .notas-filters{
-    width: 100% !important;
-    max-width: 620px !important;
-    grid-template-columns: 170px 190px 170px 130px !important;
-  }
-
-  #notasAlertasModal #notasAlertasList,
-  #notasAlertasModal #notasAlertasDetalle{
-    overflow-x: hidden !important;
-  }
-
-  #notasAlertasModal .disc-item,
-  #notasAlertasModal .notas-alerta-subject-card{
-    max-width: 100% !important;
-    overflow: hidden !important;
   }
 }
 
