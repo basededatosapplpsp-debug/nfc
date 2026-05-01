@@ -5172,71 +5172,7 @@ h1,h2,
 }
 
 
-/* ===== FIX NOTAS: celular horizontal en una sola línea ===== */
-@media (max-width: 899px) and (orientation: landscape){
-  #notasStudentsModal .notas-screen-header{
-    padding: 8px 10px 6px !important;
-  }
 
-  #notasStudentsModal .modal-title{
-    font-size: 18px !important;
-    margin-bottom: 2px !important;
-  }
-
-  #notasStudentsModal .modal-sub{
-    display: none !important;
-  }
-
-  #notasStudentsModal #btnNotasStudentsBack{
-    top: 8px !important;
-    right: 10px !important;
-    min-height: 32px !important;
-    padding: 5px 10px !important;
-    font-size: 11px !important;
-  }
-
-  #notasStudentsModal .notas-pc-toolbar{
-    margin-top: 6px !important;
-    padding: 6px !important;
-  }
-
-  #notasStudentsModal .notas-pc-ribbon-row{
-    grid-template-columns: 74px minmax(120px, 180px) 70px minmax(220px, 1fr) !important;
-    gap: 5px !important;
-    align-items: end !important;
-  }
-
-  #notasStudentsModal .notas-pc-actions{
-    grid-column: auto !important;
-    display: flex !important;
-    align-items: end !important;
-    gap: 5px !important;
-    margin-top: 0 !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
-  }
-
-  #notasStudentsModal .notas-pc-field select,
-  #notasStudentsModal .notas-pc-field input,
-  #notasStudentsModal .notas-pc-field .modal-input{
-    height: 30px !important;
-    min-height: 30px !important;
-    font-size: 10px !important;
-    padding: 4px 6px !important;
-  }
-
-  #notasStudentsModal .notas-pc-actions .btn{
-    flex: 1 1 0 !important;
-    width: auto !important;
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 4px 3px !important;
-  }
-
-  #notasStudentsModal .notas-pc-hint{
-    display: none !important;
-  }
-}
 
 /* Celulares muy angostos */
 @media (max-width: 380px){
@@ -6167,6 +6103,113 @@ grid-template-columns: 70px minmax(95px, 125px) 62px 1fr 1fr 34px !important;
     margin-top: 6px !important;
   }
 }
+
+
+
+
+
+/* ===== ALERTAS NOTAS: celular horizontal compacto ===== */
+@media (max-width: 899px) and (orientation: landscape){
+  #notasAlertasModal{
+    padding: 6px 10px !important;
+  }
+
+  #notasAlertasModal .notas-card{
+    padding: 8px !important;
+    border-radius: 16px !important;
+  }
+
+  #notasAlertasModal .modal-title{
+    font-size: 17px !important;
+    margin-bottom: 2px !important;
+  }
+
+  #notasAlertasModal .modal-sub{
+    display: none !important;
+  }
+
+  #notasAlertasModal .notas-filters{
+    display: grid !important;
+    grid-template-columns: 70px minmax(95px, 125px) 98px 62px !important;
+    gap: 6px !important;
+    margin-top: 6px !important;
+    align-items: end !important;
+  }
+
+  #notasAlertasModal .modal-label{
+    font-size: 9px !important;
+    margin: 0 0 2px !important;
+    line-height: 1 !important;
+  }
+
+  #notasAlertasModal .modal-input,
+  #notasAlertasModal select{
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 4px 7px !important;
+    border-radius: 10px !important;
+    font-size: 11px !important;
+  }
+
+  #notasAlertasModal #notasAlertasHint{
+    margin-top: 5px !important;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+  }
+
+  #notasAlertasModal #notasAlertasList{
+    margin-top: 6px !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    padding: 6px !important;
+  }
+
+  #notasAlertasModal .disc-item{
+    min-height: 44px !important;
+    padding: 7px 8px !important;
+    gap: 8px !important;
+  }
+
+  #notasAlertasModal .disc-item .name{
+    font-size: 12px !important;
+  }
+
+  #notasAlertasModal .disc-item .small{
+    font-size: 9.5px !important;
+  }
+
+  #notasAlertasModal .disc-item .right{
+    max-width: 88px !important;
+  }
+
+  #notasAlertasModal .disc-item .right .badge{
+    font-size: 9.5px !important;
+    padding: 3px 6px !important;
+  }
+
+  #notasAlertasModal .notas-alertas-actions{
+    margin-top: 6px !important;
+    padding-top: 6px !important;
+    gap: 6px !important;
+  }
+
+  #notasAlertasModal .notas-alertas-actions .btn{
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 4px 8px !important;
+    border-radius: 10px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  #notasAlertasModal .notas-alertas-share-all{
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 31px !important;
+  }
+}
+
+
 
 
 </style>
