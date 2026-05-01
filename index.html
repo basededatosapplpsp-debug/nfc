@@ -6681,57 +6681,43 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-/* ===== NOTAS PC: equilibrio tipo Excel (compacto pero con aire) ===== */
+/* ===== NOTAS PC: equilibrio tipo Excel + ellipsis correcto ===== */
 @media (min-width: 900px){
 
-  /* La tabla vuelve a ocupar toda la pantalla */
   #notasStudentsModal #notasGrid.notas-grid.table-mode{
     width: 100% !important;
     table-layout: fixed !important;
   }
 
-  /* Espaciado equilibrado */
   #notasStudentsModal .notas-grid.table-mode .notas-cell{
     padding: 6px 6px !important;
+    overflow: hidden !important;
   }
 
-  /* Columnas de actividades (ni muy juntas ni separadas) */
   #notasStudentsModal .notas-grid.table-mode .notas-cell:not(.notas-student-name):not(.notas-total-cell){
     width: 78px !important;
     min-width: 78px !important;
     max-width: 78px !important;
   }
 
-  /* Nombre estudiante más limpio */
   #notasStudentsModal .notas-grid.table-mode .notas-student-name{
     width: 220px !important;
     min-width: 220px !important;
     max-width: 220px !important;
   }
 
-  /* Inputs mejor proporcionados */
   #notasStudentsModal .notas-grid.table-mode input{
     width: 64px !important;
     max-width: 64px !important;
   }
 
-  /* Totales con más presencia */
   #notasStudentsModal .notas-grid.table-mode .notas-total-cell{
     width: 95px !important;
     min-width: 95px !important;
     max-width: 95px !important;
   }
 
-  /* Títulos con buen corte */
-  #notasStudentsModal .notas-header-row .notas-col-title{
-    width: 70px !important;
-    max-width: 70px !important;
-  }
-}
-
-/* ===== FIX: títulos con ... en layout equilibrado ===== */
-@media (min-width: 900px){
-
+  /* 🔥 CLAVE: ellipsis funcionando correctamente */
   #notasStudentsModal .notas-header-row .notas-col-title{
     display: block !important;
     width: 100% !important;
@@ -6741,14 +6727,7 @@ body.is-pc-mode .single-action-wrap{
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
   }
-
-  /* asegura que el contenedor también recorte */
-  #notasStudentsModal .notas-header-row .notas-cell{
-    overflow: hidden !important;
-  }
 }
-
-
 
 
 </style>
