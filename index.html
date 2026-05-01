@@ -5631,7 +5631,33 @@ h1,h2,
 }
 
 
+/* ===== ALERTAS: acciones inferiores corregidas ===== */
+#notasAlertasModal .notas-alertas-actions{
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
 
+@media (min-width: 900px) and (max-width: 1280px){
+  #notasAlertasModal .notas-alertas-actions{
+    grid-column: 1 / -1 !important;
+    grid-row: 5 !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+  }
+
+  #notasAlertasModal #btnNotasAlertasBuscar{
+    margin-right: auto !important;
+  }
+
+  #notasAlertasModal #notasAlertasHint{
+    grid-column: 1 !important;
+    grid-row: 5 !important;
+    align-self: center !important;
+    margin: 0 !important;
+    padding-right: 12px !important;
+  }
+}
 
 </style>
 </head>
@@ -7350,17 +7376,14 @@ h1,h2,
       </div>
     </div>
 
-    <div class="notas-toolbar">
-      <button id="btnNotasAlertasBuscar" class="btn btn-primary" type="button">Buscar alertas</button>
-    </div>
+<div id="notasAlertasHint" class="muted small" style="margin-top:10px;"></div>
 
-    <div id="notasAlertasHint" class="muted small" style="margin-top:10px;"></div>
+<div id="notasAlertasList" class="disc-reported-list" style="margin-top:14px; min-height:220px;"></div>
 
-    <div id="notasAlertasList" class="disc-reported-list" style="margin-top:14px; min-height:220px;"></div>
+<div id="notasAlertasDetalle" class="record-card" style="margin-top:14px;" hidden></div>
 
-    <div id="notasAlertasDetalle" class="record-card" style="margin-top:14px;" hidden></div>
-
-    <div class="modal-actions" style="justify-content:flex-end;">
+<div class="modal-actions notas-alertas-actions" style="justify-content:flex-end;">
+  <button id="btnNotasAlertasBuscar" class="btn btn-primary" type="button">Buscar alertas</button>
     <button id="btnNotasAlertasCompartirTodos" class="btn notas-alertas-share-all" type="button" title="Compartir todas las alertas" hidden>
   <i class="fa-solid fa-share-nodes"></i>
 </button>
