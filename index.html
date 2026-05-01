@@ -5672,6 +5672,16 @@ h1,h2,
 }
 
 
+/* NOTAS móvil: quitar guardar superior, dejar solo guardar inferior */
+@media (max-width: 899px){
+  #notasStudentsModal #btnNotasGuardar{
+    display: none !important;
+  }
+
+  #notasStudentsModal #btnNotasStudentsGuardar{
+    display: inline-flex !important;
+  }
+}
 
 </style>
 </head>
@@ -16673,6 +16683,53 @@ function notasEnsureAsignatura_(){
   return asignatura;
 }
 
+
+const NOTAS_PLANILLA_CACHE_PREFIX = "notas_planilla_cache_v1";
+
+function notasPlanillaCacheKey_(curso, asignatura, periodo, email){
+  return `${NOTAS_PLANILLA_CACHE_PREFIX}::${new Date().getFullYear()}::${email || "sin-email"}::${curso || "sin-curso"}::${asignatura || "sin-asignatura"}::${periodo || "1"}`;
+}
+
+function notasPlanillaCacheWrite_(key, value){
+  try {
+    localStorage.setItem(key, JSON.stringify({
+      ts: Date.now(),
+      value
+    }));
+  } catch {}
+}
+
+function notasPlanillaCacheRead_(key){
+  try {
+    return JSON.parse(localStorage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function notasAplicarPlanillaCache_(cachedValue){
+  if (!cachedValue) return false;
+
+  if (Array.isArray(cachedValue.columnas)) {
+    __notasColumnas = cachedValue.columnas;
+  }
+
+  if (Array.isArray(cachedValue.estudiantes)) {
+    __notasEstudiantes = cachedValue.estudiantes;
+  }
+
+  notasRenderColumnas_();
+  notasRenderGrid_();
+
+  if (__notasEstudiantes.length) {
+    notasSetHint_(`Planilla cargada desde cache ✅ Estudiantes: ${__notasEstudiantes.length}`);
+    return true;
+  }
+
+  return false;
+}
+
+
 async function notasAbrirPlanillaActual_(){
   const curso = String(notasCursoEl?.value || "").trim();
   const asignatura = notasEnsureAsignatura_();
@@ -16696,6 +16753,13 @@ async function notasAbrirPlanillaActual_(){
   }
 
   if (!email) return notasSetHint_("No encontré el correo del docente.");
+
+  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
+  const cached = notasPlanillaCacheRead_(cacheKey);
+
+  if (cached?.value) {
+    notasAplicarPlanillaCache_(cached.value);
+  }
 
   try {
     setLoading(true, "Cargando…", "Abriendo planilla de notas.");
@@ -16729,6 +16793,11 @@ async function notasAbrirPlanillaActual_(){
         notas: r.notas || {}
       })).filter(x => x.estudiante);
 
+      notasPlanillaCacheWrite_(cacheKey, {
+        columnas: __notasColumnas,
+        estudiantes: __notasEstudiantes
+      });
+
       notasRenderColumnas_();
       notasRenderGrid_();
       notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
@@ -16741,6 +16810,11 @@ async function notasAbrirPlanillaActual_(){
       estudiante: String(name || "").trim(),
       notas: {}
     })).filter(x => x.estudiante);
+
+    notasPlanillaCacheWrite_(cacheKey, {
+      columnas: __notasColumnas,
+      estudiantes: __notasEstudiantes
+    });
 
     notasRenderColumnas_();
     notasRenderGrid_();
@@ -16907,6 +16981,12 @@ async function notasGuardarPlanilla_(){
 
     const data = await res.json();
   if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
+
+  const planillaCacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
+notasPlanillaCacheWrite_(planillaCacheKey, {
+  columnas: __notasColumnas,
+  estudiantes: __notasEstudiantes
+});
 
   notasSaveLastSelection_();
 
