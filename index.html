@@ -5243,6 +5243,12 @@ h1,h2,
   }
 }
 
+/* Ya no se usa: la planilla se carga automáticamente */
+#btnNotasCargarPlanilla,
+#btnNotasCargarEstudiantes{
+  display: none !important;
+}
+
 
 </style>
 </head>
@@ -16062,56 +16068,8 @@ async function notasLoadCourses_(){
 }
 
 async function notasLoadStudents_(){
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = String(notasAsignaturaEl?.value || "").trim();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
-
-  if (!curso) return notasSetHint_("Selecciona un curso.");
-if (!asignatura && notasAsignaturaEl) {
-  const firstOption = Array.from(notasAsignaturaEl.options || [])
-    .find(opt => String(opt.value || "").trim());
-
-  if (firstOption) {
-    notasAsignaturaEl.value = firstOption.value;
-  }
+  await notasAbrirPlanillaActual_();
 }
-
-const asignaturaFinal = String(notasAsignaturaEl?.value || "").trim();
-
-if (!asignaturaFinal) {
-  return notasSetHint_("Selecciona una asignatura.");
-}
-
-  try {
-    setLoading(true, "Cargando…", "Cargando estudiantes del curso.");
-
-    const students = await gsCourseStudents(curso);
-
-    __notasEstudiantes = (students || []).map(name => ({
-      estudiante: String(name || "").trim(),
-      notas: {}
-    })).filter(x => x.estudiante);
-
-    if (notasStudentsSub) {
-      notasStudentsSub.textContent = `${curso} • ${asignaturaFinal} • Periodo ${periodo}`;
-    }
-
-    if (notasPlanillaModal) notasPlanillaModal.hidden = true;
-    if (notasStudentsModal) notasStudentsModal.hidden = false;
-
-    if (notasIsPc_()) {
-      notasBuildPcToolbar_();
-      if (notasPcToolbar) notasPcToolbar.hidden = false;
-    }
-
-    notasRenderGrid_();
-  } catch (e) {
-    notasSetHint_(String(e?.message || e));
-  } finally {
-    setLoading(false);
-  }
-}
-
 
 async function notasLoadAsignaturas_(){
   if (!notasAsignaturaEl) return;
@@ -16230,45 +16188,58 @@ function notasOpenPcSheet_(){
 }
 
 
-async function notasOpenPlanilla_(){
-  if (!notasPlanillaModal && !notasStudentsModal) return;
+function notasSetSubtitulo_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
 
-  notasSetHint_("");
-
-  try {
-    setLoading(true, "Cargando…", "Preparando planilla de notas.");
-    await notasLoadCourses_();
-    await notasLoadAsignaturas_();
-
-    const profile = typeof loadProfile === "function" ? loadProfile() : null;
-    const profileCourse = String(profile?.course || "").trim();
-
-    if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
-
-    notasOpenPcSheet_();
-  } catch (e) {
-    notasSetHint_(String(e?.message || e));
-  } finally {
-    setLoading(false);
+  if (notasStudentsSub) {
+    notasStudentsSub.textContent = `${curso || "Selecciona curso"} • ${asignatura || "Selecciona asignatura"} • Periodo ${periodo}`;
   }
 }
 
+function notasEnsureAsignatura_(){
+  let asignatura = String(notasAsignaturaEl?.value || "").trim();
 
-async function notasCargarPlanillaGuardada_(){
+  if (!asignatura && notasAsignaturaEl) {
+    const firstOption = Array.from(notasAsignaturaEl.options || [])
+      .find(opt => String(opt.value || "").trim());
+
+    if (firstOption) {
+      notasAsignaturaEl.value = firstOption.value;
+      asignatura = String(firstOption.value || "").trim();
+    }
+  }
+
+  return asignatura;
+}
+
+async function notasAbrirPlanillaActual_(){
   const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const asignatura = notasEnsureAsignatura_();
   const periodo = String(notasPeriodoEl?.value || "1").trim();
 
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
   const email = String(profile?.email || "").trim().toLowerCase();
 
-  if (!curso) return notasSetHint_("Selecciona un curso.");
-const asignaturaFinal = notasEnsureAsignatura_();
-if (!asignaturaFinal) return notasSetHint_("Selecciona una asignatura.");
+  notasSetSubtitulo_();
+
+  if (!curso) {
+    __notasEstudiantes = [];
+    notasRenderGrid_();
+    return notasSetHint_("Selecciona un curso.");
+  }
+
+  if (!asignatura) {
+    __notasEstudiantes = [];
+    notasRenderGrid_();
+    return notasSetHint_("Selecciona una asignatura.");
+  }
+
   if (!email) return notasSetHint_("No encontré el correo del docente.");
 
   try {
-    setLoading(true, "Cargando…", "Buscando planilla guardada.");
+    setLoading(true, "Cargando…", "Abriendo planilla de notas.");
 
     const res = await fetch(GS_WEBAPP_URL, {
       method: "POST",
@@ -16286,27 +16257,35 @@ if (!asignaturaFinal) return notasSetHint_("Selecciona una asignatura.");
     const data = await res.json();
     if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_get_failed");
 
-    if (!data.exists) {
-      notasSetHint_("No hay planilla guardada para esos filtros.");
+    if (data.exists) {
+      __notasColumnas = (data.columnas || []).map((c, idx) => ({
+        orden: Number(c.orden || idx + 1),
+        nombre: String(c.nombre || `Actividad ${idx + 1}`),
+        porcentaje: Number(c.porcentaje || 0),
+        componente: String(c.componente || "procedimental").trim().toLowerCase()
+      }));
+
+      __notasEstudiantes = (data.estudiantes || []).map(r => ({
+        estudiante: String(r.estudiante || "").trim(),
+        notas: r.notas || {}
+      })).filter(x => x.estudiante);
+
+      notasRenderColumnas_();
+      notasRenderGrid_();
+      notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
       return;
     }
 
-  __notasColumnas = (data.columnas || []).map((c, idx) => ({
-  orden: Number(c.orden || idx + 1),
-  nombre: String(c.nombre || `Actividad ${idx + 1}`),
-  porcentaje: Number(c.porcentaje || 0),
-  componente: String(c.componente || "procedimental").trim().toLowerCase()
-}));
+    const students = await gsCourseStudents(curso);
 
-    __notasEstudiantes = (data.estudiantes || []).map(r => ({
-      estudiante: String(r.estudiante || "").trim(),
-      notas: r.notas || {}
+    __notasEstudiantes = (students || []).map(name => ({
+      estudiante: String(name || "").trim(),
+      notas: {}
     })).filter(x => x.estudiante);
 
     notasRenderColumnas_();
     notasRenderGrid_();
-
-    notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
+    notasSetHint_("Planilla nueva. Guarda para conservar las notas.");
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
@@ -16314,6 +16293,36 @@ if (!asignaturaFinal) return notasSetHint_("Selecciona una asignatura.");
   }
 }
 
+
+
+async function notasOpenPlanilla_(){
+  if (!notasPlanillaModal && !notasStudentsModal) return;
+
+  notasSetHint_("");
+
+  try {
+    setLoading(true, "Cargando…", "Preparando planilla de notas.");
+    await notasLoadCourses_();
+    await notasLoadAsignaturas_();
+
+    const profile = typeof loadProfile === "function" ? loadProfile() : null;
+    const profileCourse = String(profile?.course || "").trim();
+
+    if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
+
+    notasOpenPcSheet_();
+    await notasAbrirPlanillaActual_();
+  } catch (e) {
+    notasSetHint_(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
+}
+
+
+async function notasCargarPlanillaGuardada_(){
+  await notasAbrirPlanillaActual_();
+}
 
 async function notasGuardarPlanilla_(){
   const curso = String(notasCursoEl?.value || "").trim();
@@ -16402,21 +16411,20 @@ btnNotasStudentsBack?.addEventListener("click", () => {
 
 let __notasAutoLoadTimer = null;
 
-function notasEnsureAsignatura_(){
-  let asignatura = String(notasAsignaturaEl?.value || "").trim();
+function notasProgramarCargaPlanilla_(){
+  if (!notasStudentsModal || notasStudentsModal.hidden) return;
 
-  if (!asignatura && notasAsignaturaEl) {
-    const firstOption = Array.from(notasAsignaturaEl.options || [])
-      .find(opt => String(opt.value || "").trim());
+  notasSetSubtitulo_();
 
-    if (firstOption) {
-      notasAsignaturaEl.value = firstOption.value;
-      asignatura = String(firstOption.value || "").trim();
-    }
-  }
-
-  return asignatura;
+  clearTimeout(__notasAutoLoadTimer);
+  __notasAutoLoadTimer = setTimeout(() => {
+    notasAbrirPlanillaActual_();
+  }, 250);
 }
+
+[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+  el?.addEventListener("change", notasProgramarCargaPlanilla_);
+});
 
 async function notasAutoLoadStudentsOnCourse_(){
   if (!notasStudentsModal || notasStudentsModal.hidden) return;
