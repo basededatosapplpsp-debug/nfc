@@ -6735,16 +6735,16 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-/* ===== FIX: centrar porcentaje de actitudinal ===== */
-#notasStudentsModal .notas-header-row .notas-cell:has(.notas-actitudinal),
-#notasStudentsModal .notas-header-row .notas-cell:has([data-nota-col="actitudinal"]),
-#notasStudentsModal .notas-header-row .notas-cell:last-child{
+/* ===== FIX: centrar encabezado Actitudinal ===== */
+#notasStudentsModal .notas-header-row .notas-actitudinal-head{
   text-align: center !important;
+  line-height: 1.1 !important;
 }
 
-#notasStudentsModal .notas-header-row .notas-cell:last-child .muted.small{
+#notasStudentsModal .notas-header-row .notas-actitudinal-head .muted.small{
   display: block !important;
-  margin-top: 2px !important;
+  margin-top: 4px !important;
+  text-align: center !important;
 }
 
 </style>
@@ -17496,10 +17496,10 @@ Total Cog.<br>
 <span class="muted small notas-total-percent">40%</span>
       </div>
 
-      <div class="notas-cell">
-        Actitudinal<br>
-        <span class="muted small">20%</span>
-      </div>
+   <div class="notas-cell notas-actitudinal-head">
+  Actitudinal<br>
+  <span class="muted small">20%</span>
+</div>
 
       <div class="notas-cell">Definitiva</div>
       <div class="notas-cell">Estado</div>
