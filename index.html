@@ -6607,7 +6607,7 @@ body.is-pc-mode .single-action-wrap{
 
 /* ===== NOTAS: modal pro crear/editar actividad ===== */
 .notas-activity-modal{
-  z-index: 100002 !important;
+  z-index: 100000 !important;
   padding: 16px !important;
 }
 
@@ -6667,7 +6667,18 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
+/* ===== FIX: confirmación encima del modal de actividad ===== */
+#appConfirm{
+  z-index: 100010 !important;
+}
 
+#appConfirm.modal-backdrop{
+  z-index: 100010 !important;
+}
+
+#appConfirm .modal-card{
+  z-index: 100011 !important;
+}
 
 
 
