@@ -6210,7 +6210,95 @@ grid-template-columns: 70px minmax(95px, 125px) 62px 1fr 1fr 34px !important;
 }
 
 
+/* ===== FIX NOTAS: celular horizontal en una sola línea ===== */
+@media (max-width: 899px) and (orientation: landscape){
+  #notasStudentsModal .notas-screen-header{
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
 
+  #notasStudentsModal .modal-title{
+    font-size: 16px !important;
+    margin: 0 0 2px !important;
+    line-height: 1 !important;
+  }
+
+  #notasStudentsModal .modal-sub{
+    display: none !important;
+  }
+
+  #notasStudentsModal .notas-pc-toolbar{
+    display: block !important;
+    margin-top: 5px !important;
+    padding: 5px !important;
+    border-radius: 14px !important;
+  }
+
+  #notasStudentsModal .notas-pc-ribbon-row{
+    display: grid !important;
+    grid-template-columns: 64px minmax(88px, 118px) 56px 1fr !important;
+    gap: 5px !important;
+    align-items: end !important;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(1),
+  #notasStudentsModal .notas-pc-field:nth-child(2),
+  #notasStudentsModal .notas-pc-field:nth-child(3){
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  #notasStudentsModal .notas-pc-actions{
+    grid-column: 4 !important;
+    display: flex !important;
+    gap: 4px !important;
+    padding-left: 0 !important;
+    border-left: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  #notasStudentsModal .notas-pc-field > span{
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
+  }
+
+  #notasStudentsModal .notas-pc-field select,
+  #notasStudentsModal .notas-pc-field input,
+  #notasStudentsModal .notas-pc-field .modal-input{
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 3px 5px !important;
+    border-radius: 9px !important;
+    font-size: 9.5px !important;
+  }
+
+  #notasStudentsModal .notas-pc-actions .btn{
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    padding: 3px 4px !important;
+    border-radius: 9px !important;
+    font-size: 9px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  #notasStudentsModal #btnNotasCompartirDebe{
+    flex: 0 0 30px !important;
+    width: 30px !important;
+    min-width: 30px !important;
+    padding: 0 !important;
+  }
+
+  #notasStudentsModal .notas-pc-hint{
+    display: none !important;
+  }
+}
 
 </style>
 </head>
