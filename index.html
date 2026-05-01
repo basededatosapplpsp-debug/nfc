@@ -25122,7 +25122,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-63";
+const APP_BUILD = "2026-04-10-64";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
@@ -25229,30 +25229,62 @@ async function registerAndUpdateSW_() {
 window.registerAndUpdateSW = registerAndUpdateSW_;
 
 
-// ======= SW register + auto refresh por build =======
-if ("serviceWorker" in navigator) {
-  let __swReloading = false;
-  let __autoBuildRefreshRunning = false;
+// ======= SW register + auto refresh por build - seguro =======
+let __swReloading = false;
+let __autoBuildRefreshRunning = false;
 
-  async function checkAppBuildAndRefresh_() {
-    try {
-      const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
+async function registerAndUpdateSW() {
+  try {
+    if (!("serviceWorker" in navigator)) return null;
 
-      if (!savedBuild) {
-        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
-        return;
-      }
+    const build = typeof APP_BUILD !== "undefined" ? APP_BUILD : "dev";
 
-      if (savedBuild !== APP_BUILD) {
-        if (__autoBuildRefreshRunning) return;
-        __autoBuildRefreshRunning = true;
+    const reg = await navigator.serviceWorker.register("./sw.js?v=" + encodeURIComponent(build), {
+      updateViaCache: "none"
+    });
 
-        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
-        await hardRefreshPWA();
-      }
-    } catch {}
+    await reg.update();
+
+    if (reg.waiting) {
+      reg.waiting.postMessage("SKIP_WAITING");
+    }
+
+    return reg;
+  } catch (e) {
+    console.warn("SW no registrado/actualizado:", e);
+    return null;
   }
+}
 
+// Compatibilidad con el nombre nuevo
+const registerAndUpdateSW_ = registerAndUpdateSW;
+
+async function checkAppBuildAndRefresh_() {
+  try {
+    const build = typeof APP_BUILD !== "undefined" ? APP_BUILD : "dev";
+    const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
+
+    if (!savedBuild) {
+      localStorage.setItem("APP_BUILD_INSTALLED", build);
+      return;
+    }
+
+    if (savedBuild !== build) {
+      if (__autoBuildRefreshRunning) return;
+      __autoBuildRefreshRunning = true;
+
+      localStorage.setItem("APP_BUILD_INSTALLED", build);
+
+      if (typeof hardRefreshPWA === "function") {
+        await hardRefreshPWA();
+      } else {
+        location.reload();
+      }
+    }
+  } catch {}
+}
+
+if ("serviceWorker" in navigator) {
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (__swReloading) return;
 
@@ -25264,22 +25296,21 @@ if ("serviceWorker" in navigator) {
     __swReloading = true;
     sessionStorage.removeItem("showRefreshAfterReload");
 
-    // ✅ evita segundo reload inmediato si hardRefreshPWA ya hizo location.replace
     setTimeout(() => {
-      if (!__hardRefreshRunning) {
+      if (typeof __hardRefreshRunning === "undefined" || !__hardRefreshRunning) {
         location.reload();
       }
     }, 250);
   });
 
   window.addEventListener("load", async () => {
-    await registerAndUpdateSW_();
+    await registerAndUpdateSW();
     await checkAppBuildAndRefresh_();
   });
 
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible") {
-      await registerAndUpdateSW_();
+      await registerAndUpdateSW();
       await checkAppBuildAndRefresh_();
     }
   });
