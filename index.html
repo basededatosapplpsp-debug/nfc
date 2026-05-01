@@ -6795,6 +6795,40 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== NOTAS PC: definitiva destacada pro ===== */
+@media (min-width: 900px){
+
+  #notasStudentsModal .notas-definitiva-cell{
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  #notasStudentsModal .notas-definitiva-badge{
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    min-width: 58px !important;
+    padding: 8px 16px !important;
+
+    border-radius: 999px !important;
+
+    font-size: 16px !important;
+    font-weight: 900 !important;
+
+    color: #ffffff !important;
+
+    background: linear-gradient(180deg, rgba(34,197,94,.30), rgba(34,197,94,.16)) !important;
+    border: 1px solid rgba(74,222,128,.40) !important;
+
+    box-shadow:
+      0 0 0 4px rgba(34,197,94,.08),
+      0 12px 28px rgba(0,0,0,.25) !important;
+  }
+}
+
+
 
 </style>
 </head>
@@ -17606,7 +17640,9 @@ Total Cog.<br>
           </div>
 
           <div class="notas-summary">
-            <div class="notas-cell"><strong>${escapeHtml(String(calc.definitiva ?? "—"))}</strong></div>
+          <div class="notas-cell notas-definitiva-cell">
+  <span class="notas-definitiva-badge">${escapeHtml(String(calc.definitiva ?? "—"))}</span>
+</div>
             <div class="notas-cell">
               ${calc.detalles ? `
                 <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
