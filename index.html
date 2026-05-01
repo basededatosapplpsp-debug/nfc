@@ -16713,6 +16713,60 @@ function notasAlertasAgruparPorEstudiante_(items){
 }
 
 
+function notasAlertasRender_(){
+  if (!notasAlertasListEl) return;
+
+  if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
+  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
+  __notasAlertaMsg = "";
+
+  if (!__notasAlertasItems.length) {
+    notasAlertasListEl.innerHTML = `<div class="notas-empty">No hay alertas con esos filtros.</div>`;
+    return;
+  }
+
+  notasAlertasListEl.innerHTML = __notasAlertasItems.map((x, idx) => {
+    const estado = String(x.estado || "").trim();
+    const dotClass =
+      estado === "BAJO" ? "lvl-4" :
+      estado === "DEBE_NOTAS" ? "lvl-2" :
+      "lvl-3";
+
+    return `
+      <button class="disc-item notas-alerta-row" type="button" data-nota-alerta-idx="${idx}">
+        <div class="left">
+          <span class="lvl-dot ${dotClass}"></span>
+          <div>
+            <div class="name">${escapeHtml(x.estudiante || "Sin nombre")}</div>
+            <div class="muted small">
+              ${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")} • Periodo ${escapeHtml(String(x.periodo || "—"))}
+            </div>
+          </div>
+        </div>
+
+        <div class="right">
+          <span class="badge badge-neutral">Def: ${escapeHtml(String(x.definitiva ?? "—"))}</span>
+          ${notasEstadoBadge_(estado)}
+        </div>
+      </button>
+    `;
+  }).join("");
+
+  notasAlertasListEl.querySelectorAll("[data-nota-alerta-idx]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const idx = Number(btn.dataset.notaAlertaIdx);
+      const item = __notasAlertasItems[idx];
+      __notasAlertaSeleccionada = item;
+
+      notasAlertasListEl.querySelectorAll(".disc-item").forEach(x => x.classList.remove("selected"));
+      btn.classList.add("selected");
+
+      await notasAlertasDetalle_(item);
+    });
+  });
+}
+
+
 async function notasAlertasDetalle_(item){
   if (!item || !notasAlertasDetalleEl) return;
 
