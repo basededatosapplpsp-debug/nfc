@@ -12816,11 +12816,15 @@ function asignaturasClearCache_(deviceId) {
 }
 
 async function gsAsignaturasGet(deviceId) {
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
       action: "asignaturas_get",
       key: GS_API_KEY,
+      email,
       device_id: deviceId
     })
   });
@@ -12834,6 +12838,9 @@ async function gsAsignaturasGet(deviceId) {
 }
 
 async function gsAsignaturasSave(deviceId, items) {
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
   const cleanItems = Array.isArray(items)
     ? items.map(x => String(x || "").trim())
     : [];
@@ -12843,6 +12850,7 @@ async function gsAsignaturasSave(deviceId, items) {
     body: JSON.stringify({
       action: "asignaturas_save",
       key: GS_API_KEY,
+      email,
       device_id: deviceId,
       items: cleanItems
     })
