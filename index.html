@@ -5620,6 +5620,38 @@ h1,h2,
 }
 
 
+
+/* ===== ALERTAS NOTAS: quitar scroll horizontal en portátil ===== */
+@media (min-width: 900px) and (max-height: 760px){
+  #notasAlertasModal{
+    overflow-x: hidden !important;
+  }
+
+  #notasAlertasModal .notas-card{
+    max-width: calc(100vw - 16px) !important;
+    overflow-x: hidden !important;
+  }
+
+  #notasAlertasModal .notas-filters{
+    width: 100% !important;
+    max-width: 620px !important;
+    grid-template-columns: 170px 190px 170px 130px !important;
+  }
+
+  #notasAlertasModal #notasAlertasList,
+  #notasAlertasModal #notasAlertasDetalle{
+    overflow-x: hidden !important;
+  }
+
+  #notasAlertasModal .disc-item,
+  #notasAlertasModal .notas-alerta-subject-card{
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+}
+
+
+
 </style>
 </head>
 
