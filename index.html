@@ -5978,100 +5978,110 @@ h1,h2,
 
 
 
-/* ===== NOTAS CELULAR HORIZONTAL: compacto sin afectar vertical ===== */
+/* ===== NOTAS CELULAR HORIZONTAL: toolbar en una sola línea ===== */
 @media (max-width: 899px) and (orientation: landscape){
-  #notasStudentsModal .notas-full-card{
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    overflow: hidden !important;
-  }
-
   #notasStudentsModal .notas-screen-header{
-    padding: 8px 12px !important;
+    padding: 6px 10px !important;
     gap: 8px !important;
-    align-items: flex-start !important;
   }
 
-  #notasStudentsModal .notas-students-head-main{
-    min-width: 0 !important;
-    flex: 1 1 auto !important;
-  }
-
-  #notasStudentsModal .notas-screen-header h2,
-  #notasStudentsModal .modal-title{
-    font-size: 22px !important;
-    line-height: 1.05 !important;
+  #notasStudentsModal .notas-screen-header h2{
+    font-size: 20px !important;
+    line-height: 1 !important;
     margin: 0 !important;
   }
 
   #notasStudentsModal #notasStudentsSub{
-    font-size: 13px !important;
-    line-height: 1.2 !important;
-    margin-top: 4px !important;
+    font-size: 12px !important;
+    margin-top: 3px !important;
   }
 
   #notasStudentsModal #btnNotasStudentsBack{
-    min-height: 38px !important;
-    height: 38px !important;
-    padding: 8px 14px !important;
-    border-radius: 14px !important;
-    font-size: 13px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
   }
 
   #notasStudentsModal .notas-mobile-toolbar{
-    margin-top: 8px !important;
-    padding: 10px !important;
-    border-radius: 18px !important;
+    margin-top: 6px !important;
+    padding: 8px !important;
+    border-radius: 16px !important;
+    display: flex !important;
+    align-items: end !important;
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   #notasStudentsModal .notas-mobile-row{
-    gap: 8px !important;
+    display: contents !important;
   }
 
-  #notasStudentsModal .notas-mobile-row:first-child{
-    display: grid !important;
-    grid-template-columns: 110px minmax(180px, 1fr) 140px !important;
-    align-items: end !important;
+  #notasStudentsModal .notas-mobile-field{
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
   }
 
-  #notasStudentsModal .notas-mobile-row:nth-child(2){
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 90px !important;
-    align-items: stretch !important;
+  #notasStudentsModal .notas-mobile-field:nth-of-type(1){
+    width: clamp(82px, 12vw, 105px) !important;
   }
 
-  #notasStudentsModal .notas-mobile-field span,
-  #notasStudentsModal .modal-label{
-    font-size: 10px !important;
-    margin-bottom: 3px !important;
+  #notasStudentsModal .notas-mobile-field:nth-of-type(2){
+    width: clamp(130px, 24vw, 210px) !important;
+  }
+
+  #notasStudentsModal .notas-mobile-field:nth-of-type(3){
+    width: clamp(105px, 15vw, 135px) !important;
+  }
+
+  #notasStudentsModal .notas-mobile-field span{
+    font-size: 9px !important;
+    margin-bottom: 2px !important;
+    line-height: 1 !important;
   }
 
   #notasStudentsModal .notas-mobile-field select,
   #notasStudentsModal .notas-mobile-field .modal-input{
-    height: 34px !important;
-    min-height: 34px !important;
-    padding: 6px 10px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 5px 8px !important;
+    border-radius: 11px !important;
+    font-size: 11px !important;
   }
 
   #notasStudentsModal .notas-mobile-toolbar .btn{
-    min-height: 36px !important;
-    height: 36px !important;
-    padding: 7px 10px !important;
-    border-radius: 12px !important;
-    font-size: 12px !important;
+    flex: 0 0 auto !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 5px 9px !important;
+    border-radius: 11px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
   }
 
-  #notasStudentsModal .notas-pc-hint,
+  #notasStudentsModal .notas-mobile-toolbar .notas-share-all-btn,
+  #notasStudentsModal #btnNotasCompartirDebe{
+    width: 34px !important;
+    min-width: 34px !important;
+    padding: 0 !important;
+  }
+
+  #notasStudentsModal #btnNotasGuardar{
+    display: none !important;
+  }
+
   #notasStudentsModal #notasHint{
-    font-size: 12px !important;
-    margin-top: 8px !important;
-    line-height: 1.2 !important;
+    font-size: 11px !important;
+    margin-top: 6px !important;
+    line-height: 1.15 !important;
   }
 
   #notasStudentsModal .notas-grid-scroll{
-    padding: 8px 12px 6px !important;
+    padding: 6px 10px !important;
   }
 
   #notasStudentsModal #notasGrid{
@@ -6079,33 +6089,28 @@ h1,h2,
   }
 
   #notasStudentsModal .notas-student-card{
-    border-radius: 16px !important;
-    padding: 10px 12px !important;
+    min-height: 58px !important;
+    padding: 8px 10px !important;
+    border-radius: 14px !important;
   }
 
   #notasStudentsModal .notas-student-name{
-    font-size: 14px !important;
-    line-height: 1.15 !important;
-  }
-
-  #notasStudentsModal .notas-summary,
-  #notasStudentsModal .notas-detail-mini{
-    font-size: 11px !important;
+    font-size: 13px !important;
+    line-height: 1.1 !important;
   }
 
   #notasStudentsModal .notas-bottom-actions{
-    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom)) !important;
   }
 
   #notasStudentsModal #btnNotasStudentsGuardar{
-    min-height: 40px !important;
-    height: 40px !important;
-    padding: 8px 14px !important;
-    border-radius: 14px !important;
-    font-size: 13px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 12px !important;
   }
 }
-
 
 
 </style>
