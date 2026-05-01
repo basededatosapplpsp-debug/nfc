@@ -5978,8 +5978,9 @@ h1,h2,
 
 
 
-/* ===== NOTAS CELULAR HORIZONTAL: toolbar en una sola línea ===== */
+/* ===== NOTAS CELULAR HORIZONTAL: toolbar real en una sola línea ===== */
 @media (max-width: 899px) and (orientation: landscape){
+
   #notasStudentsModal .notas-screen-header{
     padding: 6px 10px !important;
     gap: 8px !important;
@@ -5993,6 +5994,7 @@ h1,h2,
 
   #notasStudentsModal #notasStudentsSub{
     font-size: 12px !important;
+    line-height: 1.15 !important;
     margin-top: 3px !important;
   }
 
@@ -6006,67 +6008,87 @@ h1,h2,
 
   #notasStudentsModal .notas-mobile-toolbar{
     margin-top: 6px !important;
-    padding: 8px !important;
+    padding: 7px !important;
     border-radius: 16px !important;
-    display: flex !important;
+
+    display: grid !important;
+    grid-template-columns: 76px minmax(125px, 150px) 106px 82px 74px 38px !important;
+    grid-auto-rows: auto !important;
     align-items: end !important;
     gap: 6px !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
+
+    overflow: hidden !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
-  #notasStudentsModal .notas-mobile-row{
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row{
     display: contents !important;
   }
 
-  #notasStudentsModal .notas-mobile-field{
-    flex: 0 0 auto !important;
+  /* Curso */
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:first-child .notas-mobile-field:nth-child(1){
+    grid-column: 1 !important;
+    width: auto !important;
     min-width: 0 !important;
   }
 
-  #notasStudentsModal .notas-mobile-field:nth-of-type(1){
-    width: clamp(82px, 12vw, 105px) !important;
+  /* Asignatura */
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:first-child .notas-mobile-field:nth-child(2){
+    grid-column: 2 !important;
+    width: auto !important;
+    min-width: 0 !important;
   }
 
-  #notasStudentsModal .notas-mobile-field:nth-of-type(2){
-    width: clamp(130px, 24vw, 210px) !important;
-  }
-
-  #notasStudentsModal .notas-mobile-field:nth-of-type(3){
-    width: clamp(105px, 15vw, 135px) !important;
+  /* Periodo */
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:first-child .notas-mobile-field:nth-child(3){
+    grid-column: 3 !important;
+    width: auto !important;
+    min-width: 0 !important;
   }
 
   #notasStudentsModal .notas-mobile-field span{
     font-size: 9px !important;
-    margin-bottom: 2px !important;
     line-height: 1 !important;
+    margin: 0 0 2px !important;
   }
 
   #notasStudentsModal .notas-mobile-field select,
   #notasStudentsModal .notas-mobile-field .modal-input{
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 5px 8px !important;
-    border-radius: 11px !important;
+    width: 100% !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 4px 7px !important;
+    border-radius: 10px !important;
     font-size: 11px !important;
+  }
+
+  /* Botones segunda fila, pero puestos en la MISMA línea */
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:nth-child(2) .btn:nth-child(1){
+    grid-column: 4 !important;
+  }
+
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:nth-child(2) .btn:nth-child(2){
+    grid-column: 5 !important;
+  }
+
+  #notasStudentsModal .notas-mobile-toolbar > .notas-mobile-row:nth-child(2) .btn:nth-child(3){
+    grid-column: 6 !important;
   }
 
   #notasStudentsModal .notas-mobile-toolbar .btn{
-    flex: 0 0 auto !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    padding: 5px 9px !important;
-    border-radius: 11px !important;
-    font-size: 11px !important;
+    width: 100% !important;
+    height: 31px !important;
+    min-height: 31px !important;
+    padding: 4px 6px !important;
+    border-radius: 10px !important;
+    font-size: 10px !important;
     white-space: nowrap !important;
   }
 
-  #notasStudentsModal .notas-mobile-toolbar .notas-share-all-btn,
   #notasStudentsModal #btnNotasCompartirDebe{
-    width: 34px !important;
-    min-width: 34px !important;
+    width: 38px !important;
+    min-width: 38px !important;
     padding: 0 !important;
   }
 
@@ -6076,39 +6098,8 @@ h1,h2,
 
   #notasStudentsModal #notasHint{
     font-size: 11px !important;
-    margin-top: 6px !important;
     line-height: 1.15 !important;
-  }
-
-  #notasStudentsModal .notas-grid-scroll{
-    padding: 6px 10px !important;
-  }
-
-  #notasStudentsModal #notasGrid{
-    gap: 8px !important;
-  }
-
-  #notasStudentsModal .notas-student-card{
-    min-height: 58px !important;
-    padding: 8px 10px !important;
-    border-radius: 14px !important;
-  }
-
-  #notasStudentsModal .notas-student-name{
-    font-size: 13px !important;
-    line-height: 1.1 !important;
-  }
-
-  #notasStudentsModal .notas-bottom-actions{
-    padding: 6px 10px calc(6px + env(safe-area-inset-bottom)) !important;
-  }
-
-  #notasStudentsModal #btnNotasStudentsGuardar{
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    border-radius: 12px !important;
+    margin-top: 6px !important;
   }
 }
 
@@ -24727,7 +24718,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-62";
+const APP_BUILD = "2026-04-10-63";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
