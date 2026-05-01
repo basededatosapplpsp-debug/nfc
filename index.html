@@ -5461,6 +5461,21 @@ h1,h2,
   }
 }
 
+/* Alertas: botón compartir todas */
+.notas-alertas-share-all{
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.notas-alertas-share-all i{
+  font-size: 15px;
+}
+
 
 
 </style>
@@ -7189,8 +7204,12 @@ h1,h2,
     <div id="notasAlertasDetalle" class="record-card" style="margin-top:14px;" hidden></div>
 
     <div class="modal-actions" style="justify-content:flex-end;">
-      <button id="btnNotasAlertasCompartir" class="btn btn-secondary" type="button" hidden>Compartir</button>
-      <button id="btnNotasAlertasCerrar" class="btn btn-ghost" type="button">Cerrar</button>
+    <button id="btnNotasAlertasCompartirTodos" class="btn notas-alertas-share-all" type="button" title="Compartir todas las alertas" hidden>
+  <i class="fa-solid fa-share-nodes"></i>
+</button>
+
+<button id="btnNotasAlertasCompartir" class="btn btn-secondary" hidden>Compartir</button>
+<button id="btnNotasAlertasCerrar" class="btn">Cerrar</button>
     </div>
   </div>
 </div>
@@ -9075,6 +9094,7 @@ const btnNotasGuardar = $("btnNotasGuardar");
 let btnNotasCompartirDebe = null;
 const btnNotasCerrar = $("btnNotasCerrar");
 
+
 const notasStudentsModal = $("notasStudentsModal");
 const notasStudentsSub = $("notasStudentsSub");
 const btnNotasStudentsBack = $("btnNotasStudentsBack");
@@ -9103,6 +9123,7 @@ const notasAlertasHintEl = $("notasAlertasHint");
 const btnNotasAlertasBuscar = $("btnNotasAlertasBuscar");
 const btnNotasAlertasCerrar = $("btnNotasAlertasCerrar");
 const btnNotasAlertasCompartir = $("btnNotasAlertasCompartir");
+const btnNotasAlertasCompartirTodos = $("btnNotasAlertasCompartirTodos");
 
 let __notasAlertasItems = [];
 let __notasAlertaSeleccionada = null;
@@ -16864,9 +16885,10 @@ function notasAlertasAgruparPorEstudiante_(items){
 function notasAlertasRender_(){
   if (!notasAlertasListEl) return;
 
-  if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
-  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
-  __notasAlertaMsg = "";
+if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
+if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
+if (btnNotasAlertasCompartirTodos) btnNotasAlertasCompartirTodos.hidden = !__notasAlertasItems.length;
+__notasAlertaMsg = "";
 
   if (!__notasAlertasItems.length) {
     notasAlertasListEl.innerHTML = `<div class="notas-empty">No hay alertas con esos filtros.</div>`;
@@ -17048,6 +17070,52 @@ async function notasAlertasCompartir_(){
   window.open(url, "_blank");
 }
 
+
+async function notasAlertasCompartirTodos_(){
+  if (!Array.isArray(__notasAlertasItems) || !__notasAlertasItems.length) {
+    return notasAlertasHint_("No hay alertas para compartir.");
+  }
+
+  const cursoFiltro = String(notasAlertasCursoEl?.value || "").trim();
+  const asignaturaFiltro = String(notasAlertasAsignaturaEl?.value || "").trim();
+  const tipoFiltro = String(notasAlertasTipoEl?.selectedOptions?.[0]?.textContent || "Todas").trim();
+  const periodoFiltro = String(notasAlertasPeriodoEl?.value || "").trim();
+
+  const msg =
+    `Reporte de alertas académicas\n\n` +
+    `Curso: ${cursoFiltro || "Todos"}\n` +
+    `Asignatura: ${asignaturaFiltro || "Todas"}\n` +
+    `Filtro: ${tipoFiltro || "Todas"}\n` +
+    `Periodo: ${periodoFiltro || "Todos"}\n\n` +
+    __notasAlertasItems.map((item, idx) => {
+      const alertas = Array.isArray(item._alertas) && item._alertas.length
+        ? item._alertas
+        : [item];
+
+      return `${idx + 1}. ${item.estudiante || "Sin nombre"}\n` +
+        `Curso: ${item.curso || "—"}\n` +
+        `Periodo: ${item.periodo || "—"}\n` +
+        `Materias:\n` +
+        alertas.map(a =>
+          `  - ${a.asignatura || "Asignatura"}\n` +
+          `    Estado: ${a.estado || "—"}\n` +
+          `    Definitiva: ${a.definitiva ?? "—"}\n` +
+          `    Detalles: ${a.detalles || "Sin detalles."}`
+        ).join("\n");
+    }).join("\n\n");
+
+  if (navigator.share) {
+    await navigator.share({
+      title: "Alertas de notas",
+      text: msg
+    });
+    return;
+  }
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+}
+
+
 btnNotasAlertas?.addEventListener("click", async () => {
   if (notasSubMenu) notasSubMenu.hidden = true;
   if (userMenu) userMenu.hidden = true;
@@ -17070,6 +17138,8 @@ btnNotasAlertasCerrar?.addEventListener("click", () => {
 });
 
 btnNotasAlertasCompartir?.addEventListener("click", notasAlertasCompartir_);
+
+btnNotasAlertasCompartirTodos?.addEventListener("click", notasAlertasCompartirTodos_);
 
 function getInitials(name) {
   const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
