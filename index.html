@@ -6508,6 +6508,99 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== LOGIN MODAL PRO - FIX DESBORDE BOTONES ===== */
+#loginModal{
+  padding: 14px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow-y: auto !important;
+}
+
+#loginModal .modal-card{
+  width: min(420px, calc(100vw - 28px)) !important;
+  max-height: calc(100dvh - 28px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 20px !important;
+  border-radius: 22px !important;
+  box-sizing: border-box !important;
+}
+
+#loginModal .modal-card *{
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+#loginModal .modal-title{
+  font-size: 20px !important;
+  margin-bottom: 6px !important;
+}
+
+#loginModal .modal-sub{
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  margin-bottom: 14px !important;
+}
+
+#loginModal .modal-label{
+  margin-top: 10px !important;
+  margin-bottom: 6px !important;
+}
+
+#loginModal .modal-input{
+  height: 38px !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border-radius: 14px !important;
+  font-size: 13px !important;
+}
+
+#loginModal .device-box{
+  padding: 10px !important;
+  border-radius: 16px !important;
+}
+
+#loginModal .device-row{
+  align-items: center !important;
+}
+
+#loginModal .device-id{
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+/* Botones dentro del modal, sin salirse */
+#loginModal .modal-actions{
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+  width: 100% !important;
+}
+
+#loginModal .modal-actions .btn{
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 8px 10px !important;
+  border-radius: 16px !important;
+  font-size: 12px !important;
+  line-height: 1.12 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* En pantallas muy angostas, botones de a uno */
+@media (max-width: 380px){
+  #loginModal .modal-actions{
+    grid-template-columns: 1fr !important;
+  }
+}
+
 </style>
 </head>
 
