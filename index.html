@@ -17049,7 +17049,40 @@ function notasAplicarPlanillaCache_(cachedValue){
 }
 
 
-async function notasAbrirPlanillaActual_(){
+
+function notasTryOpenFromLastCache_(){
+  const last = notasReadLastSelection_();
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
+  const curso = String(last.curso || "").trim();
+  const asignatura = String(last.asignatura || "").trim();
+  const periodo = String(last.periodo || "1").trim();
+
+  if (!curso || !asignatura || !email) return false;
+
+  if (notasCursoEl) notasCursoEl.value = curso;
+  if (notasAsignaturaEl) notasAsignaturaEl.value = asignatura;
+  if (notasPeriodoEl) notasPeriodoEl.value = periodo;
+
+  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
+  const cached = notasPlanillaCacheRead_(cacheKey);
+
+  if (!cached?.value) return false;
+
+  notasOpenPcSheet_();
+  notasAplicarPlanillaCache_(cached.value);
+  notasSetSubtitulo_();
+
+  return true;
+}
+
+
+
+async function notasAbrirPlanillaActual_(opts = {}){
+  const silent = opts?.silent === true;
+  const useCache = opts?.useCache !== false;
+
   const curso = String(notasCursoEl?.value || "").trim();
   const asignatura = notasEnsureAsignatura_();
   const periodo = String(notasPeriodoEl?.value || "1").trim();
@@ -17074,14 +17107,16 @@ async function notasAbrirPlanillaActual_(){
   if (!email) return notasSetHint_("No encontré el correo del docente.");
 
   const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-  const cached = notasPlanillaCacheRead_(cacheKey);
+  const cached = useCache ? notasPlanillaCacheRead_(cacheKey) : null;
 
   if (cached?.value) {
     notasAplicarPlanillaCache_(cached.value);
   }
 
   try {
-    setLoading(true, "Cargando…", "Abriendo planilla de notas.");
+    if (!silent) {
+      setLoading(true, "Cargando…", "Abriendo planilla de notas.");
+    }
 
     const res = await fetch(GS_WEBAPP_URL, {
       method: "POST",
@@ -17141,7 +17176,7 @@ async function notasAbrirPlanillaActual_(){
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
 }
 
@@ -17183,8 +17218,12 @@ async function notasOpenPlanilla_(){
 
   notasSetHint_("");
 
+  const openedFromCache = notasTryOpenFromLastCache_();
+
   try {
-    setLoading(true, "Cargando…", "Preparando planilla de notas.");
+    if (!openedFromCache) {
+      setLoading(true, "Cargando…", "Preparando planilla de notas.");
+    }
 
     await notasLoadCourses_();
     await notasLoadAsignaturas_();
@@ -17204,11 +17243,14 @@ async function notasOpenPlanilla_(){
 
     notasOpenPcSheet_();
 
-    await notasAbrirPlanillaActual_();
+    await notasAbrirPlanillaActual_({
+      silent: openedFromCache,
+      useCache: true
+    });
   } catch (e) {
     notasSetHint_(String(e?.message || e));
   } finally {
-    setLoading(false);
+    if (!openedFromCache) setLoading(false);
   }
 }
 
