@@ -7166,10 +7166,12 @@ h1,h2,
         <select id="notasAlertasCurso" class="modal-input"></select>
       </div>
 
-      <div>
-        <label class="modal-label">Asignatura</label>
-        <input id="notasAlertasAsignatura" class="modal-input" type="text" placeholder="Opcional" />
-      </div>
+     <div>
+  <label class="modal-label">Asignatura</label>
+  <select id="notasAlertasAsignatura" class="modal-input">
+    <option value="">Todas</option>
+  </select>
+</div>
 
 <label class="modal-label">
   Filtrar por
@@ -16998,9 +17000,53 @@ async function notasAlertasDetalle_(item){
   if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = false;
 }
 
+
+
+function notasAlertasSubjectKey_(v){
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+function notasAlertasLlenarAsignaturas_(items, keepValue = ""){
+  if (!notasAlertasAsignaturaEl) return;
+
+  const current = String(keepValue || notasAlertasAsignaturaEl.value || "").trim();
+  const map = new Map();
+
+  (items || []).forEach(item => {
+    const name = String(item.asignatura || "").trim();
+    const key = notasAlertasSubjectKey_(name);
+
+    if (name && key && !map.has(key)) {
+      map.set(key, name);
+    }
+  });
+
+  const options = Array.from(map.values())
+    .sort((a, b) => a.localeCompare(b, "es"));
+
+  notasAlertasAsignaturaEl.innerHTML =
+    `<option value="">Todas</option>` +
+    options.map(name => `
+      <option value="${escapeHtml(name)}">${escapeHtml(name)}</option>
+    `).join("");
+
+  if (current && options.some(x => notasAlertasSubjectKey_(x) === notasAlertasSubjectKey_(current))) {
+    notasAlertasAsignaturaEl.value = options.find(x =>
+      notasAlertasSubjectKey_(x) === notasAlertasSubjectKey_(current)
+    ) || "";
+  } else {
+    notasAlertasAsignaturaEl.value = "";
+  }
+}
+
 async function notasAlertasBuscar_(){
   const curso = String(notasAlertasCursoEl?.value || "").trim();
-  const asignatura = String(notasAlertasAsignaturaEl?.value || "").trim();
+  const asignaturaSeleccionada = String(notasAlertasAsignaturaEl?.value || "").trim();
   const periodo = String(notasAlertasPeriodoEl?.value || "").trim();
 
   try {
@@ -17011,7 +17057,7 @@ async function notasAlertasBuscar_(){
       body: JSON.stringify({
         action: "notas_alertas_list",
         curso,
-        asignatura,
+        asignatura: "",
         periodo,
         year: new Date().getFullYear(),
         key: GS_API_KEY
@@ -17021,14 +17067,26 @@ async function notasAlertasBuscar_(){
     const data = await res.json();
     if (!data.ok) throw new Error(data.msg || data.error || "notas_alertas_list_failed");
 
-const rawItems = Array.isArray(data.items) ? data.items : [];
-const filteredItems = notasAlertasFiltrarPorTipo_(rawItems);
+    const rawItems = Array.isArray(data.items) ? data.items : [];
 
-__notasAlertasItems = notasAlertasAgruparPorEstudiante_(filteredItems);
+    const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(rawItems);
 
-notasAlertasHint_(
-  `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas filtradas: ${filteredItems.length} · Alertas totales: ${rawItems.length}`
-);
+    notasAlertasLlenarAsignaturas_(tipoFiltradoItems, asignaturaSeleccionada);
+
+    const asignaturaFinal = String(notasAlertasAsignaturaEl?.value || "").trim();
+
+    const subjectFilteredItems = asignaturaFinal
+      ? tipoFiltradoItems.filter(item =>
+          notasAlertasSubjectKey_(item.asignatura) === notasAlertasSubjectKey_(asignaturaFinal)
+        )
+      : tipoFiltradoItems;
+
+    __notasAlertasItems = notasAlertasAgruparPorEstudiante_(subjectFilteredItems);
+
+    notasAlertasHint_(
+      `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas filtradas: ${subjectFilteredItems.length} · Alertas totales: ${rawItems.length}`
+    );
+
     notasAlertasRender_();
   } catch (e) {
     notasAlertasHint_(String(e?.message || e));
@@ -17125,11 +17183,19 @@ btnNotasAlertas?.addEventListener("click", async () => {
 btnNotasAlertasBuscar?.addEventListener("click", notasAlertasBuscar_);
 
 notasAlertasCursoEl?.addEventListener("change", async () => {
-  if (notasAlertasAsignaturaEl) notasAlertasAsignaturaEl.value = "";
+  if (notasAlertasAsignaturaEl) {
+    notasAlertasAsignaturaEl.innerHTML = `<option value="">Todas</option>`;
+    notasAlertasAsignaturaEl.value = "";
+  }
+
   await notasAlertasBuscar_();
 });
 
 notasAlertasTipoEl?.addEventListener("change", async () => {
+  await notasAlertasBuscar_();
+});
+
+notasAlertasAsignaturaEl?.addEventListener("change", async () => {
   await notasAlertasBuscar_();
 });
 
