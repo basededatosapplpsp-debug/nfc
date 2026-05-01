@@ -6681,55 +6681,50 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-/* ===== NOTAS: títulos de actividades compactos con puntos suspensivos ===== */
-#notasStudentsModal .notas-header-row .notas-cell,
-#notasStudentsModal .notas-grid.table-mode .notas-cell{
-  max-width: 150px !important;
-}
+/* ===== NOTAS PC: columnas compactas + títulos largos con ellipsis ===== */
+@media (min-width: 900px){
+  #notasStudentsModal .notas-header-row .notas-cell{
+    max-width: 108px !important;
+    min-width: 78px !important;
+    width: auto !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    overflow: hidden !important;
+  }
 
-#notasStudentsModal .notas-header-row .notas-cell strong,
-#notasStudentsModal .notas-header-row .notas-cell span,
-#notasStudentsModal .notas-cell .notas-col-title,
-#notasStudentsModal .notas-cell label{
-  display: block !important;
-  max-width: 130px !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-/* En PC: al pasar el mouse muestra el título completo */
-#notasStudentsModal .notas-header-row .notas-cell:hover,
-#notasStudentsModal .notas-cell label:hover{
-  overflow: visible !important;
-  white-space: normal !important;
-  position: relative !important;
-  z-index: 20 !important;
-}
-
-/* Inputs mantienen tamaño uniforme */
-#notasStudentsModal .notas-grid.table-mode input{
-  width: 78px !important;
-  max-width: 78px !important;
-}
-
-/* Celular: no afecta tarjetas, solo evita desbordes */
-@media (max-width: 899px){
-  #notasStudentsModal .notas-input-row label{
-    max-width: 100% !important;
+  #notasStudentsModal .notas-header-row .notas-col-title{
+    display: inline-block !important;
+    max-width: 92px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    vertical-align: bottom !important;
+    border-bottom: none !important;
   }
 
-  #notasStudentsModal .notas-input-row label:active{
+  #notasStudentsModal .notas-header-row .notas-col-title:hover{
+    max-width: 260px !important;
     white-space: normal !important;
     overflow: visible !important;
+    position: relative !important;
+    z-index: 50 !important;
+    padding: 4px 6px !important;
+    border-radius: 8px !important;
+    background: rgba(15,23,42,.96) !important;
+    box-shadow: 0 10px 24px rgba(0,0,0,.35) !important;
+  }
+
+  #notasStudentsModal .notas-header-row .muted.small{
+    display: block !important;
+    margin-top: 2px !important;
+    border-bottom: none !important;
+  }
+
+  #notasStudentsModal .notas-grid.table-mode input{
+    width: 72px !important;
+    max-width: 72px !important;
   }
 }
-
-
-
 
 </style>
 </head>
@@ -17460,7 +17455,7 @@ function notasRenderGrid_(){
 
       ${procCols.map(col => `
         <div class="notas-cell">
-          <span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span><br>
+         <span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span><br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
         </div>
       `).join("")}
@@ -17472,7 +17467,7 @@ function notasRenderGrid_(){
 
       ${cogCols.map(col => `
         <div class="notas-cell">
-          <span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span><br>
+<span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span><br>
           <span class="muted small">${Number(col.porcentaje || 0)}%</span>
         </div>
       `).join("")}
