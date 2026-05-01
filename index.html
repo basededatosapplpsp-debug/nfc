@@ -6601,6 +6601,76 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
+
+
+
+
+/* ===== NOTAS: modal pro crear/editar actividad ===== */
+.notas-activity-modal{
+  z-index: 100002 !important;
+  padding: 16px !important;
+}
+
+.notas-activity-card{
+  width: min(430px, calc(100vw - 32px)) !important;
+  border-radius: 24px !important;
+  padding: 20px !important;
+  text-align: left;
+  overflow: hidden;
+}
+
+.notas-activity-icon{
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+  color: #bfdbfe;
+  background: rgba(59,130,246,.16);
+  border: 1px solid rgba(147,197,253,.22);
+  box-shadow: 0 0 26px rgba(96,165,250,.16);
+}
+
+.notas-activity-icon i{
+  font-size: 18px;
+}
+
+.notas-activity-input{
+  height: 44px !important;
+  border-radius: 15px !important;
+  font-weight: 800;
+}
+
+.notas-activity-actions{
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.notas-activity-actions .btn{
+  min-height: 44px;
+  border-radius: 15px;
+  white-space: normal;
+}
+
+.notas-activity-delete{
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+@media (max-width: 420px){
+  .notas-activity-actions{
+    grid-template-columns: 1fr;
+  }
+}
+
+
+
+
+
 </style>
 </head>
 
@@ -17134,13 +17204,121 @@ function notasNextOrden_(){
   return nums.length ? Math.max(...nums) + 1 : 1;
 }
 
-function notasCrearColumna_(componente){
+
+function notasActividadModal_({
+  mode = "create",
+  title = "Actividad",
+  sub = "",
+  initialValue = "",
+  allowDelete = false
+} = {}) {
+  return new Promise(resolve => {
+    const modal = document.createElement("div");
+    modal.className = "modal-backdrop notas-activity-modal";
+
+    modal.innerHTML = `
+      <div class="modal-card notas-activity-card">
+        <div class="notas-activity-icon">
+          <i class="fa-solid fa-pen-to-square"></i>
+        </div>
+
+        <h2 class="modal-title">${escapeHtml(title)}</h2>
+        <p class="modal-sub">${escapeHtml(sub)}</p>
+
+        <label class="modal-label">Nombre de la actividad</label>
+        <input class="modal-input notas-activity-input" type="text" value="${escapeHtml(initialValue)}" placeholder="Ej: Taller sistema digestivo">
+
+        <div class="modal-hint muted small notas-activity-hint"></div>
+
+        <div class="notas-activity-actions">
+          ${allowDelete ? `<button type="button" class="btn btn-danger notas-activity-delete">Eliminar</button>` : ""}
+          <button type="button" class="btn btn-ghost notas-activity-cancel">Cancelar</button>
+          <button type="button" class="btn btn-primary notas-activity-save">${mode === "create" ? "Crear" : "Guardar"}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+    document.body.classList.add("is-loading");
+
+    const input = modal.querySelector(".notas-activity-input");
+    const hint = modal.querySelector(".notas-activity-hint");
+    const btnCancel = modal.querySelector(".notas-activity-cancel");
+    const btnSave = modal.querySelector(".notas-activity-save");
+    const btnDelete = modal.querySelector(".notas-activity-delete");
+
+    const close = (result) => {
+      modal.remove();
+      document.body.classList.remove("is-loading");
+      resolve(result);
+    };
+
+    setTimeout(() => {
+      try {
+        input.focus();
+        input.select();
+      } catch {}
+    }, 30);
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) close(null);
+    });
+
+    btnCancel.addEventListener("click", () => close(null));
+
+    btnSave.addEventListener("click", () => {
+      const value = String(input.value || "").trim();
+      if (!value) {
+        hint.textContent = "Escribe un nombre para la actividad.";
+        return;
+      }
+      close({ action: "save", value });
+    });
+
+    if (btnDelete) {
+      btnDelete.addEventListener("click", async () => {
+        const ok = await confirmPro({
+          title: "Eliminar actividad",
+          msg: "¿Seguro que deseas eliminar esta actividad? También se quitarán sus notas digitadas.",
+          okText: "Sí, eliminar",
+          cancelText: "Cancelar",
+          danger: true
+        });
+
+        if (ok) close({ action: "delete" });
+      });
+    }
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        btnSave.click();
+      }
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        close(null);
+      }
+    });
+  });
+}
+
+
+async function notasCrearColumna_(componente){
   const comp = String(componente || "").trim().toLowerCase();
   const label = comp === "cognitivo" ? "Quiz / Evaluación" : "Tarea / Taller";
 
-  const nombre = prompt(`Nombre de la nueva actividad (${label}):`, "");
-  const clean = String(nombre || "").trim();
+  const result = await notasActividadModal_({
+    mode: "create",
+    title: "Nueva actividad",
+    sub: `Componente ${comp === "cognitivo" ? "cognitivo" : "procedimental"} · ${label}`,
+    initialValue: "",
+    allowDelete: false
+  });
 
+  if (!result || result.action !== "save") return;
+
+  const clean = String(result.value || "").trim();
   if (!clean) return;
 
   __notasColumnas.push({
@@ -17154,25 +17332,27 @@ function notasCrearColumna_(componente){
   notasRenderGrid_();
 }
 
-function notasEditarColumna_(idx){
+async function notasEditarColumna_(idx){
   idx = Number(idx);
   const col = __notasColumnas[idx];
   if (!col) return;
 
-  const nuevo = prompt(
-    `Editar nombre de actividad.\n\nPara eliminarla escribe: ELIMINAR`,
-    col.nombre || ""
-  );
+  const comp = String(col.componente || "").trim().toLowerCase();
+  const label = comp === "cognitivo" ? "Quiz / Evaluación" : "Tarea / Taller";
 
-  if (nuevo === null) return;
+  const result = await notasActividadModal_({
+    mode: "edit",
+    title: "Editar actividad",
+    sub: `${label} · Puedes guardar cambios o eliminarla sin escribir comandos.`,
+    initialValue: col.nombre || "",
+    allowDelete: true
+  });
 
-  const clean = String(nuevo || "").trim();
+  if (!result) return;
 
-  if (clean.toUpperCase() === "ELIMINAR") {
-    const ok = confirm(`¿Eliminar "${col.nombre}"? También se quitarán sus notas digitadas.`);
-    if (!ok) return;
-
+  if (result.action === "delete") {
     const key = String(col.orden);
+
     __notasColumnas.splice(idx, 1);
 
     (__notasEstudiantes || []).forEach(st => {
@@ -17186,12 +17366,15 @@ function notasEditarColumna_(idx){
     return;
   }
 
-  if (!clean) return;
+  if (result.action === "save") {
+    const clean = String(result.value || "").trim();
+    if (!clean) return;
 
-  col.nombre = clean;
+    col.nombre = clean;
 
-  notasRenderColumnas_();
-  notasRenderGrid_();
+    notasRenderColumnas_();
+    notasRenderGrid_();
+  }
 }
 
 
