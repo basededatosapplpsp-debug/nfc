@@ -6320,6 +6320,117 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== MODO PC: reemplazo visual de verificación de ubicación ===== */
+.pc-mode-link-box{
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(96,165,250,.22);
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,.18), transparent 42%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 12px 26px rgba(0,0,0,.18);
+  text-align: center;
+}
+
+.pc-mode-link-box[hidden]{
+  display: none !important;
+}
+
+.pc-link-visual{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 54px;
+}
+
+.pc-phone-icon,
+.pc-desktop-icon{
+  font-size: 30px;
+  color: #bfdbfe;
+  filter: drop-shadow(0 0 12px rgba(96,165,250,.28));
+}
+
+.pc-phone-icon{
+  animation: pcPhonePulse 1.8s ease-in-out infinite;
+}
+
+.pc-desktop-icon{
+  animation: pcDesktopGlow 1.8s ease-in-out infinite;
+}
+
+.pc-link-waves{
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pc-link-waves span{
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #60a5fa;
+  box-shadow: 0 0 12px rgba(96,165,250,.55);
+  animation: pcDataDot 1.2s ease-in-out infinite;
+}
+
+.pc-link-waves span:nth-child(2){
+  animation-delay: .16s;
+}
+
+.pc-link-waves span:nth-child(3){
+  animation-delay: .32s;
+}
+
+.pc-link-title{
+  margin-top: 8px;
+  font-weight: 950;
+  font-size: 15px;
+  letter-spacing: .2px;
+}
+
+.pc-link-sub{
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+@keyframes pcDataDot{
+  0%, 100%{
+    transform: translateY(0) scale(.72);
+    opacity: .45;
+  }
+  50%{
+    transform: translateY(-5px) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes pcPhonePulse{
+  0%, 100%{
+    transform: translateX(0) scale(1);
+  }
+  50%{
+    transform: translateX(2px) scale(1.04);
+  }
+}
+
+@keyframes pcDesktopGlow{
+  0%, 100%{
+    opacity: .82;
+    transform: scale(1);
+  }
+  50%{
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+
 
 </style>
 </head>
@@ -6465,14 +6576,38 @@ body.is-pc-mode .single-action-wrap{
         </div>
       </div>
 
-      <details class="details">
-        <summary>Verificación de ubicación</summary>
-        <div class="kv">
-          <div><span class="k">Distancia:</span> <span id="dist">—</span></div>
-          <div><span class="k">Precisión:</span> <span id="acc">—</span></div>
-          <div><span class="k">Coordenadas:</span> <span id="coords">—</span></div>
-        </div>
-      </details>
+
+
+      
+  <!-- Tarjeta modo PC (NUEVA) -->
+<div id="pcModeLinkBox" class="pc-mode-link-box" hidden>
+  <div class="pc-link-visual">
+    <i class="fa-solid fa-mobile-screen-button pc-phone-icon"></i>
+
+    <div class="pc-link-waves">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <i class="fa-solid fa-desktop pc-desktop-icon"></i>
+  </div>
+
+  <div class="pc-link-title">Modo PC académico</div>
+  <div class="pc-link-sub">
+    Sesión vinculada al celular. La verificación de ubicación y el registro de asistencia están desactivados en este equipo.
+  </div>
+</div>
+
+<!-- TU BLOQUE ORIGINAL (solo se le agrega id) -->
+<details id="locationVerifyDetails" class="details">
+  <summary>Verificación de ubicación</summary>
+  <div class="kv">
+    <div><span class="k">Distancia:</span> <span id="dist">—</span></div>
+    <div><span class="k">Precisión:</span> <span id="acc">—</span></div>
+    <div><span class="k">Coordenadas:</span> <span id="coords">—</span></div>
+  </div>
+</details>
     </section>
 
     <!-- ===== Registros: tarjeta grande (botón) ===== -->
@@ -9868,6 +10003,9 @@ const btnAdminDevicesReload = $("btnAdminDevicesReload");
 const btnUserMenu = $("btnUserMenu");
 const userMenu = $("userMenu");
 const userInitialsEl = $("userInitials");
+
+const locationVerifyDetails = $("locationVerifyDetails");
+const pcModeLinkBox = $("pcModeLinkBox");
 
 // ======= REPORTES =======
 const btnReportesMenu = $("btnReportesMenu");
@@ -14506,6 +14644,10 @@ async function ubicateLoadTeachers_(forceRefresh = false) {
 }
 
 async function ubicateOpen_() {
+    if (isPcMode()) {
+    setPcModeHomeStatus_();
+    return;
+  }
   __ubicateSelectedDayKey = "";
   __ubicateScheduleCache = [];
   __ubicateNextIndex = -1;
@@ -18521,7 +18663,16 @@ function setPcModeHomeStatus_(){
 
 function applyPcModeUI_(){
   const pc = isPcMode();
+
   document.body.classList.toggle("is-pc-mode", pc);
+
+  if (locationVerifyDetails) {
+    locationVerifyDetails.hidden = pc;
+  }
+
+  if (pcModeLinkBox) {
+    pcModeLinkBox.hidden = !pc;
+  }
 
   if (pc) {
     setPcModeHomeStatus_();
@@ -18565,9 +18716,6 @@ function isPcMode(){
   return String(p?.mode || "").toLowerCase() === "pc";
 }
 
-function applyPcModeUI_(){
-  document.body.classList.toggle("is-pc-mode", isPcMode());
-}
 
 
 function updateDeviceIdUI() {
