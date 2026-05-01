@@ -5976,6 +5976,138 @@ h1,h2,
 }
 
 
+
+
+/* ===== NOTAS CELULAR HORIZONTAL: compacto sin afectar vertical ===== */
+@media (max-width: 899px) and (orientation: landscape){
+  #notasStudentsModal .notas-full-card{
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  #notasStudentsModal .notas-screen-header{
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    align-items: flex-start !important;
+  }
+
+  #notasStudentsModal .notas-students-head-main{
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  #notasStudentsModal .notas-screen-header h2,
+  #notasStudentsModal .modal-title{
+    font-size: 22px !important;
+    line-height: 1.05 !important;
+    margin: 0 !important;
+  }
+
+  #notasStudentsModal #notasStudentsSub{
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    margin-top: 4px !important;
+  }
+
+  #notasStudentsModal #btnNotasStudentsBack{
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 8px 14px !important;
+    border-radius: 14px !important;
+    font-size: 13px !important;
+  }
+
+  #notasStudentsModal .notas-mobile-toolbar{
+    margin-top: 8px !important;
+    padding: 10px !important;
+    border-radius: 18px !important;
+  }
+
+  #notasStudentsModal .notas-mobile-row{
+    gap: 8px !important;
+  }
+
+  #notasStudentsModal .notas-mobile-row:first-child{
+    display: grid !important;
+    grid-template-columns: 110px minmax(180px, 1fr) 140px !important;
+    align-items: end !important;
+  }
+
+  #notasStudentsModal .notas-mobile-row:nth-child(2){
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 90px !important;
+    align-items: stretch !important;
+  }
+
+  #notasStudentsModal .notas-mobile-field span,
+  #notasStudentsModal .modal-label{
+    font-size: 10px !important;
+    margin-bottom: 3px !important;
+  }
+
+  #notasStudentsModal .notas-mobile-field select,
+  #notasStudentsModal .notas-mobile-field .modal-input{
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 6px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  #notasStudentsModal .notas-mobile-toolbar .btn{
+    min-height: 36px !important;
+    height: 36px !important;
+    padding: 7px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  #notasStudentsModal .notas-pc-hint,
+  #notasStudentsModal #notasHint{
+    font-size: 12px !important;
+    margin-top: 8px !important;
+    line-height: 1.2 !important;
+  }
+
+  #notasStudentsModal .notas-grid-scroll{
+    padding: 8px 12px 6px !important;
+  }
+
+  #notasStudentsModal #notasGrid{
+    gap: 8px !important;
+  }
+
+  #notasStudentsModal .notas-student-card{
+    border-radius: 16px !important;
+    padding: 10px 12px !important;
+  }
+
+  #notasStudentsModal .notas-student-name{
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+  }
+
+  #notasStudentsModal .notas-summary,
+  #notasStudentsModal .notas-detail-mini{
+    font-size: 11px !important;
+  }
+
+  #notasStudentsModal .notas-bottom-actions{
+    padding: 8px 12px calc(8px + env(safe-area-inset-bottom)) !important;
+  }
+
+  #notasStudentsModal #btnNotasStudentsGuardar{
+    min-height: 40px !important;
+    height: 40px !important;
+    padding: 8px 14px !important;
+    border-radius: 14px !important;
+    font-size: 13px !important;
+  }
+}
+
+
+
 </style>
 </head>
 
