@@ -6681,48 +6681,51 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
-/* ===== NOTAS PC: columnas compactas + títulos largos con ellipsis ===== */
+/* ===== NOTAS PC: columnas tipo Excel + tooltip nativo ===== */
 @media (min-width: 900px){
   #notasStudentsModal .notas-header-row .notas-cell{
-    max-width: 108px !important;
-    min-width: 78px !important;
-    width: auto !important;
-    padding-left: 6px !important;
-    padding-right: 6px !important;
+    max-width: 82px !important;
+    min-width: 82px !important;
+    width: 82px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     overflow: hidden !important;
   }
 
   #notasStudentsModal .notas-header-row .notas-col-title{
-    display: inline-block !important;
-    max-width: 92px !important;
+    display: block !important;
+    width: 74px !important;
+    max-width: 74px !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
-    vertical-align: bottom !important;
     border-bottom: none !important;
+    text-decoration: none !important;
   }
 
+  /* IMPORTANTE: no expandir al pasar el mouse */
   #notasStudentsModal .notas-header-row .notas-col-title:hover{
-    max-width: 260px !important;
-    white-space: normal !important;
-    overflow: visible !important;
-    position: relative !important;
-    z-index: 50 !important;
-    padding: 4px 6px !important;
-    border-radius: 8px !important;
-    background: rgba(15,23,42,.96) !important;
-    box-shadow: 0 10px 24px rgba(0,0,0,.35) !important;
+    width: 74px !important;
+    max-width: 74px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    position: static !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 
   #notasStudentsModal .notas-header-row .muted.small{
     display: block !important;
     margin-top: 2px !important;
     border-bottom: none !important;
+    text-decoration: none !important;
   }
 
   #notasStudentsModal .notas-grid.table-mode input{
-    width: 72px !important;
-    max-width: 72px !important;
+    width: 66px !important;
+    max-width: 66px !important;
   }
 }
 
