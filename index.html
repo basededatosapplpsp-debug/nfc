@@ -18537,6 +18537,21 @@ function requireLogin() {
 
   const p = loadProfile();
 
+    // ✅ Recuperar sesión PC si algún watcher viejo borró el perfil principal
+  if (!p) {
+    try {
+      const backup = JSON.parse(localStorage.getItem("pc_profile_backup_v1") || "null");
+      if (backup && String(backup.mode || "").toLowerCase() === "pc" && backup.email && backup.name) {
+        localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(backup));
+        loginModal.hidden = true;
+        applySessionUI(backup);
+        applyPcModeUI_();
+        stopDeviceAuthWatcher_();
+        return backup;
+      }
+    } catch {}
+  }
+
   if (p && p.name && p.email && p.course) {
     applyPcModeUI_();
 
@@ -19654,7 +19669,8 @@ if (btnPcLinkEnter) {
         whatsapp_to: data.whatsapp_to || ""
       };
 
-      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
+     localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
+localStorage.setItem("pc_profile_backup_v1", JSON.stringify(profile));
 
       stopDeviceAuthWatcher_();
       pcLinkModal.hidden = true;
@@ -23529,6 +23545,14 @@ async function validateCurrentDeviceSession_(options = {}) {
 
   const profile = loadProfile();
   if (!profile || !profile.email) return true;
+
+    // ✅ Modo PC: no validar device_id ni cerrar sesión
+  if (String(profile.mode || "").toLowerCase() === "pc") {
+    stopDeviceAuthWatcher_();
+    loginModal.hidden = true;
+    applyPcModeUI_();
+    return true;
+  }
 
   // En modo admin no forzamos este control
   if (isAdminMode()) return true;
