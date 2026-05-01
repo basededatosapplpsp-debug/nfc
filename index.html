@@ -16744,7 +16744,38 @@ async function notasAbrirPlanillaActual_(){
   }
 }
 
+const NOTAS_LAST_SELECTION_KEY = "notas_last_selection_v1";
 
+function notasSaveLastSelection_(){
+  try {
+    localStorage.setItem(NOTAS_LAST_SELECTION_KEY, JSON.stringify({
+      curso: String(notasCursoEl?.value || "").trim(),
+      asignatura: String(notasAsignaturaEl?.value || "").trim(),
+      periodo: String(notasPeriodoEl?.value || "1").trim()
+    }));
+  } catch {}
+}
+
+function notasReadLastSelection_(){
+  try {
+    return JSON.parse(localStorage.getItem(NOTAS_LAST_SELECTION_KEY) || "null") || {};
+  } catch {
+    return {};
+  }
+}
+
+function notasApplySelectValueIfExists_(select, value){
+  if (!select || !value) return false;
+
+  const exists = Array.from(select.options || []).some(opt =>
+    String(opt.value || "").trim() === String(value || "").trim()
+  );
+
+  if (!exists) return false;
+
+  select.value = value;
+  return true;
+}
 
 async function notasOpenPlanilla_(){
   if (!notasPlanillaModal && !notasStudentsModal) return;
@@ -16753,15 +16784,25 @@ async function notasOpenPlanilla_(){
 
   try {
     setLoading(true, "Cargando…", "Preparando planilla de notas.");
+
     await notasLoadCourses_();
     await notasLoadAsignaturas_();
+
+    const last = notasReadLastSelection_();
 
     const profile = typeof loadProfile === "function" ? loadProfile() : null;
     const profileCourse = String(profile?.course || "").trim();
 
-    if (profileCourse && notasCursoEl) notasCursoEl.value = profileCourse;
+    const appliedLastCourse = notasApplySelectValueIfExists_(notasCursoEl, last.curso);
+    if (!appliedLastCourse && profileCourse && notasCursoEl) {
+      notasApplySelectValueIfExists_(notasCursoEl, profileCourse);
+    }
+
+    notasApplySelectValueIfExists_(notasAsignaturaEl, last.asignatura);
+    notasApplySelectValueIfExists_(notasPeriodoEl, last.periodo);
 
     notasOpenPcSheet_();
+
     await notasAbrirPlanillaActual_();
   } catch (e) {
     notasSetHint_(String(e?.message || e));
@@ -16769,7 +16810,6 @@ async function notasOpenPlanilla_(){
     setLoading(false);
   }
 }
-
 
 async function notasCargarPlanillaGuardada_(){
   await notasAbrirPlanillaActual_();
@@ -16860,6 +16900,8 @@ async function notasGuardarPlanilla_(){
     const data = await res.json();
   if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
 
+  notasSaveLastSelection_();
+
 notasAlertasLimpiarCache_();
 
 if (notasAlertasModal && !notasAlertasModal.hidden) {
@@ -16925,7 +16967,10 @@ function notasProgramarCargaPlanilla_(){
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
-  el?.addEventListener("change", notasProgramarCargaPlanilla_);
+  el?.addEventListener("change", () => {
+    notasSaveLastSelection_();
+    notasProgramarCargaPlanilla_();
+  });
 });
 
 async function notasAutoLoadStudentsOnCourse_(){
