@@ -6308,19 +6308,6 @@ body.is-pc-mode #btnSalida{
   display: none !important;
 }
 
-
-
-/* ===== MODO PC: ocultar registro de asistencia ===== */
-body.is-pc-mode #registerActions,
-body.is-pc-mode #btnEntrada,
-body.is-pc-mode #btnSalida,
-body.is-pc-mode .single-action-wrap{
-  display: none !important;
-}
-
-
-
-
 </style>
 </head>
 
@@ -11834,10 +11821,6 @@ function resetLoadingNow_() {
 }
 
 function refreshHomeStatus_() {
-    if (isPcMode()) {
-    setPcModeHomeStatus_();
-    return;
-  }
   const hasGeo =
     typeof currentGeo !== "undefined" &&
     currentGeo &&
@@ -18505,31 +18488,6 @@ function logout(reason = "") {
 }
 
 
-
-function isPcMode(){
-  const p = typeof loadProfile === "function" ? loadProfile() : null;
-  return String(p?.mode || "").toLowerCase() === "pc";
-}
-
-function setPcModeHomeStatus_(){
-  setStatus(
-    "",
-    "Modo PC académico activo",
-    "Sesión vinculada al celular. Puedes gestionar notas, alertas, reportes y asignaturas. La asistencia por ubicación está desactivada en este equipo."
-  );
-}
-
-function applyPcModeUI_(){
-  const pc = isPcMode();
-  document.body.classList.toggle("is-pc-mode", pc);
-
-  if (pc) {
-    setPcModeHomeStatus_();
-  }
-}
-
-
-
 function requireLogin() {
   if (isAdminMode()) {
     return { name: "ADMINISTRADOR", email: "admin@local", course: "ADMIN" };
@@ -18537,28 +18495,11 @@ function requireLogin() {
 
   const p = loadProfile();
 
-    // ✅ Recuperar sesión PC si algún watcher viejo borró el perfil principal
-  if (!p) {
-    try {
-      const backup = JSON.parse(localStorage.getItem("pc_profile_backup_v1") || "null");
-      if (backup && String(backup.mode || "").toLowerCase() === "pc" && backup.email && backup.name) {
-        localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(backup));
-        loginModal.hidden = true;
-        applySessionUI(backup);
-        applyPcModeUI_();
-        stopDeviceAuthWatcher_();
-        return backup;
-      }
-    } catch {}
-  }
-
   if (p && p.name && p.email && p.course) {
     applyPcModeUI_();
 
     if (String(p.mode || "").toLowerCase() === "pc") {
       stopDeviceAuthWatcher_();
-      loginModal.hidden = true;
-      setPcModeHomeStatus_();
       return p;
     }
 
@@ -19669,8 +19610,7 @@ if (btnPcLinkEnter) {
         whatsapp_to: data.whatsapp_to || ""
       };
 
-     localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
-localStorage.setItem("pc_profile_backup_v1", JSON.stringify(profile));
+      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
 
       stopDeviceAuthWatcher_();
       pcLinkModal.hidden = true;
@@ -23546,14 +23486,6 @@ async function validateCurrentDeviceSession_(options = {}) {
   const profile = loadProfile();
   if (!profile || !profile.email) return true;
 
-    // ✅ Modo PC: no validar device_id ni cerrar sesión
-  if (String(profile.mode || "").toLowerCase() === "pc") {
-    stopDeviceAuthWatcher_();
-    loginModal.hidden = true;
-    applyPcModeUI_();
-    return true;
-  }
-
   // En modo admin no forzamos este control
   if (isAdminMode()) return true;
 
@@ -25122,7 +25054,7 @@ function setRecordsOpen(open) {
 setRecordsOpen(false);
 btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hidden));
 
-const APP_BUILD = "2026-04-10-64";
+const APP_BUILD = "2026-04-10-63";
 
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
@@ -25202,63 +25134,30 @@ if (btnLogout) {
   });
 }
 
-// ======= SW register + auto refresh por build - seguro =======
-let __swReloading = false;
-let __autoBuildRefreshRunning = false;
-
-async function registerAndUpdateSW() {
-  try {
-    if (!("serviceWorker" in navigator)) return null;
-
-    const build = typeof APP_BUILD !== "undefined" ? APP_BUILD : "dev";
-
-    const reg = await navigator.serviceWorker.register("./sw.js?v=" + encodeURIComponent(build), {
-      updateViaCache: "none"
-    });
-
-    await reg.update();
-
-    if (reg.waiting) {
-      reg.waiting.postMessage("SKIP_WAITING");
-    }
-
-    return reg;
-  } catch (e) {
-    console.warn("SW no registrado/actualizado:", e);
-    return null;
-  }
-}
-
-async function registerAndUpdateSW_() {
-  return await registerAndUpdateSW();
-}
-
-async function checkAppBuildAndRefresh_() {
-  try {
-    const build = typeof APP_BUILD !== "undefined" ? APP_BUILD : "dev";
-    const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
-
-    if (!savedBuild) {
-      localStorage.setItem("APP_BUILD_INSTALLED", build);
-      return;
-    }
-
-    if (savedBuild !== build) {
-      if (__autoBuildRefreshRunning) return;
-      __autoBuildRefreshRunning = true;
-
-      localStorage.setItem("APP_BUILD_INSTALLED", build);
-
-      if (typeof hardRefreshPWA === "function") {
-        await hardRefreshPWA();
-      } else {
-        location.reload();
-      }
-    }
-  } catch {}
-}
-
+// ======= SW register + auto refresh por build =======
 if ("serviceWorker" in navigator) {
+  let __swReloading = false;
+  let __autoBuildRefreshRunning = false;
+
+  async function checkAppBuildAndRefresh_() {
+    try {
+      const savedBuild = localStorage.getItem("APP_BUILD_INSTALLED") || "";
+
+      if (!savedBuild) {
+        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
+        return;
+      }
+
+      if (savedBuild !== APP_BUILD) {
+        if (__autoBuildRefreshRunning) return;
+        __autoBuildRefreshRunning = true;
+
+        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
+        await hardRefreshPWA();
+      }
+    } catch {}
+  }
+
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     if (__swReloading) return;
 
@@ -25270,21 +25169,22 @@ if ("serviceWorker" in navigator) {
     __swReloading = true;
     sessionStorage.removeItem("showRefreshAfterReload");
 
+    // ✅ evita segundo reload inmediato si hardRefreshPWA ya hizo location.replace
     setTimeout(() => {
-      if (typeof __hardRefreshRunning === "undefined" || !__hardRefreshRunning) {
+      if (!__hardRefreshRunning) {
         location.reload();
       }
     }, 250);
   });
 
   window.addEventListener("load", async () => {
-    await registerAndUpdateSW();
+    await registerAndUpdateSW_();
     await checkAppBuildAndRefresh_();
   });
 
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible") {
-      await registerAndUpdateSW();
+      await registerAndUpdateSW_();
       await checkAppBuildAndRefresh_();
     }
   });
@@ -25915,12 +25815,7 @@ btnExport.addEventListener("click", downloadUserExcel);
 
 // Inicial: rápido (cache) + refresh silencioso
 refreshFromSheet({ useCache: true, silent: true });
-
-if (isPcMode()) {
-  applyPcModeUI_();
-} else {
-  setStatus("warn", "Listo", "Para registrar, activa ubicación.");
-}
+setStatus("warn", "Listo", "Para registrar, activa ubicación.");
 
   // DISCIPLINA: bind + polling para sincronizar entre celulares
 discBindUI_();
