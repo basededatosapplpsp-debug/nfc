@@ -5418,6 +5418,19 @@ h1,h2,
 }
 
 
+/* Alertas de notas: filtro tipo */
+@media (min-width: 900px){
+  #notasAlertasModal .notas-filters{
+    grid-template-columns: 170px 220px 170px 130px !important;
+  }
+}
+
+@media (max-width: 899px){
+  #notasAlertasModal .notas-filters{
+    grid-template-columns: 1fr !important;
+  }
+}
+
 
 
 </style>
@@ -7112,6 +7125,16 @@ h1,h2,
         <label class="modal-label">Asignatura</label>
         <input id="notasAlertasAsignatura" class="modal-input" type="text" placeholder="Opcional" />
       </div>
+
+<label class="modal-label">
+  Filtrar por
+  <select id="notasAlertasTipo" class="modal-input">
+    <option value="">Todas</option>
+    <option value="procedimental">Procedimental</option>
+    <option value="definitiva">Nota definitiva</option>
+    <option value="debe">Debe actividad</option>
+  </select>
+</label>
 
       <div>
         <label class="modal-label">Periodo</label>
@@ -9042,6 +9065,7 @@ const notasAlertasModal = $("notasAlertasModal");
 const notasAlertasCursoEl = $("notasAlertasCurso");
 const notasAlertasAsignaturaEl = $("notasAlertasAsignatura");
 const notasAlertasPeriodoEl = $("notasAlertasPeriodo");
+const notasAlertasTipoEl = $("notasAlertasTipo");
 const notasAlertasListEl = $("notasAlertasList");
 const notasAlertasDetalleEl = $("notasAlertasDetalle");
 const notasAlertasHintEl = $("notasAlertasHint");
@@ -16662,6 +16686,37 @@ async function notasAlertasLoadCourses_(){
 }
 
 
+function notasAlertasNum_(v){
+  const n = Number(String(v ?? "").replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+function notasAlertasFiltrarPorTipo_(items){
+  const tipo = String(notasAlertasTipoEl?.value || "").trim();
+
+  if (!tipo) return items || [];
+
+  return (items || []).filter(item => {
+    const estado = String(item.estado || "").trim().toUpperCase();
+    const detalles = String(item.detalles || "").toLowerCase();
+    const definitiva = notasAlertasNum_(item.definitiva);
+
+    if (tipo === "definitiva") {
+      return estado === "BAJO" || (definitiva !== null && definitiva < 3.5);
+    }
+
+    if (tipo === "debe") {
+      return estado === "DEBE_NOTAS" || detalles.includes("debe");
+    }
+
+    if (tipo === "procedimental") {
+      return detalles.includes("procedimental") || detalles.includes("proced");
+    }
+
+    return true;
+  });
+}
+
 
 function notasAlertasKey_(item){
   const curso = String(item.curso || item.course_key || "").trim().toUpperCase();
@@ -16852,10 +16907,12 @@ async function notasAlertasBuscar_(){
     if (!data.ok) throw new Error(data.msg || data.error || "notas_alertas_list_failed");
 
 const rawItems = Array.isArray(data.items) ? data.items : [];
-__notasAlertasItems = notasAlertasAgruparPorEstudiante_(rawItems);
+const filteredItems = notasAlertasFiltrarPorTipo_(rawItems);
+
+__notasAlertasItems = notasAlertasAgruparPorEstudiante_(filteredItems);
 
 notasAlertasHint_(
-  `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas totales: ${rawItems.length}`
+  `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas filtradas: ${filteredItems.length} · Alertas totales: ${rawItems.length}`
 );
     notasAlertasRender_();
   } catch (e) {
@@ -16908,6 +16965,10 @@ btnNotasAlertasBuscar?.addEventListener("click", notasAlertasBuscar_);
 
 notasAlertasCursoEl?.addEventListener("change", async () => {
   if (notasAlertasAsignaturaEl) notasAlertasAsignaturaEl.value = "";
+  await notasAlertasBuscar_();
+});
+
+notasAlertasTipoEl?.addEventListener("change", async () => {
   await notasAlertasBuscar_();
 });
 
