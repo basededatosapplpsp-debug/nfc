@@ -5635,7 +5635,9 @@ h1,h2,
 #notasAlertasModal .notas-alertas-actions{
   display: flex !important;
   align-items: center !important;
+  justify-content: flex-end !important;
   gap: 8px !important;
+  flex-wrap: nowrap !important;
 }
 
 @media (min-width: 900px) and (max-width: 1280px){
@@ -5646,9 +5648,7 @@ h1,h2,
     margin: 0 !important;
   }
 
-  #notasAlertasModal #btnNotasAlertasBuscar{
-    margin-right: auto !important;
-  }
+
 
   #notasAlertasModal #notasAlertasHint{
     grid-column: 1 !important;
@@ -5658,6 +5658,20 @@ h1,h2,
     padding-right: 12px !important;
   }
 }
+
+#notasAlertasModal #btnNotasAlertasBuscar{
+  order: 1;
+}
+
+#notasAlertasModal #btnNotasAlertasCompartir{
+  order: 2;
+}
+
+#notasAlertasModal .modal-actions .btn:last-child{
+  order: 3;
+}
+
+
 
 </style>
 </head>
