@@ -5388,36 +5388,6 @@ h1,h2,
 }
 
 
-/* ===== Alertas agrupadas por estudiante ===== */
-.notas-alerta-subject-list{
-  display: grid;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.notas-alerta-subject-card{
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px;
-  background: rgba(255,255,255,.045);
-}
-
-.notas-alerta-subject-top{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 6px;
-}
-
-.notas-alerta-subject-details{
-  margin-top: 8px;
-  color: var(--muted);
-  line-height: 1.45;
-  white-space: normal;
-}
-
-
 
 
 </style>
@@ -16663,62 +16633,62 @@ async function notasAlertasLoadCourses_(){
 
 
 
-function notasAlertasKey_(item){
-  const curso = String(item.curso || item.course_key || "").trim().toUpperCase();
-  const estudiante = String(item.estudiante || item.student_key || "")
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s+/g, " ");
 
-  const periodo = String(item.periodo || "").trim();
+function notasAlertasRender_(){
+  if (!notasAlertasListEl) return;
 
-  return `${curso}__${periodo}__${estudiante}`;
-}
+  if (notasAlertasDetalleEl) notasAlertasDetalleEl.hidden = true;
+  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = true;
+  __notasAlertaMsg = "";
 
-function notasAlertasEstadoPrioridad_(estado){
-  estado = String(estado || "").trim();
+  if (!__notasAlertasItems.length) {
+    notasAlertasListEl.innerHTML = `<div class="notas-empty">No hay alertas con esos filtros.</div>`;
+    return;
+  }
 
-  if (estado === "BAJO") return 4;
-  if (estado === "DEBE_NOTAS") return 3;
-  if (estado === "RIESGO") return 2;
-  return 1;
-}
+  notasAlertasListEl.innerHTML = __notasAlertasItems.map((x, idx) => {
+    const estado = String(x.estado || "").trim();
+    const dotClass =
+      estado === "BAJO" ? "lvl-4" :
+      estado === "DEBE_NOTAS" ? "lvl-2" :
+      "lvl-3";
 
-function notasAlertasAgruparPorEstudiante_(items){
-  const map = new Map();
+    return `
+      <button class="disc-item notas-alerta-row" type="button" data-nota-alerta-idx="${idx}">
+        <div class="left">
+          <span class="lvl-dot ${dotClass}"></span>
+          <div>
+            <div class="name">${escapeHtml(x.estudiante || "Sin nombre")}</div>
+            <div class="muted small">
+              ${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")} • Periodo ${escapeHtml(String(x.periodo || "—"))}
+            </div>
+          </div>
+        </div>
 
-  (items || []).forEach(item => {
-    const key = notasAlertasKey_(item);
+        <div class="right">
+          <span class="badge badge-neutral">Def: ${escapeHtml(String(x.definitiva ?? "—"))}</span>
+          ${notasEstadoBadge_(estado)}
+        </div>
+      </button>
+    `;
+  }).join("");
 
-    if (!map.has(key)) {
-      map.set(key, {
-        ...item,
-        _alertas: []
-      });
-    }
+  notasAlertasListEl.querySelectorAll("[data-nota-alerta-idx]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const idx = Number(btn.dataset.notaAlertaIdx);
+      const item = __notasAlertasItems[idx];
+      __notasAlertaSeleccionada = item;
 
-    const group = map.get(key);
-    group._alertas.push(item);
+      notasAlertasListEl.querySelectorAll(".disc-item").forEach(x => x.classList.remove("selected"));
+      btn.classList.add("selected");
 
-    if (notasAlertasEstadoPrioridad_(item.estado) > notasAlertasEstadoPrioridad_(group.estado)) {
-      group.estado = item.estado;
-    }
+      await notasAlertasDetalle_(item);
+    });
   });
-
-  return Array.from(map.values()).sort((a, b) =>
-    String(a.estudiante || "").localeCompare(String(b.estudiante || ""), "es")
-  );
 }
-
 
 async function notasAlertasDetalle_(item){
   if (!item || !notasAlertasDetalleEl) return;
-
-  const alertas = Array.isArray(item._alertas) && item._alertas.length
-    ? item._alertas
-    : [item];
 
   notasAlertasDetalleEl.hidden = false;
 
@@ -16727,51 +16697,54 @@ async function notasAlertasDetalle_(item){
       <div>
         <h3>${escapeHtml(item.estudiante || "Sin nombre")}</h3>
         <div class="muted small">
-          ${escapeHtml(item.curso || "—")} • Periodo ${escapeHtml(String(item.periodo || "—"))}
+          ${escapeHtml(item.curso || "—")} • ${escapeHtml(item.asignatura || "—")} • Periodo ${escapeHtml(String(item.periodo || "—"))}
         </div>
       </div>
       ${notasEstadoBadge_(item.estado)}
     </div>
 
-    <div class="notas-alerta-detail-box">
-      <b>Materias con alerta</b>
-
-      <div class="notas-alerta-subject-list">
-        ${alertas.map(a => `
-          <div class="notas-alerta-subject-card">
-            <div class="notas-alerta-subject-top">
-              <strong>${escapeHtml(a.asignatura || "Asignatura")}</strong>
-              ${notasEstadoBadge_(a.estado)}
-            </div>
-
-            <div class="muted small">
-              Definitiva: <b>${escapeHtml(String(a.definitiva ?? "—"))}</b>
-              ${a.docente_nombre ? ` · Docente: ${escapeHtml(a.docente_nombre)}` : ""}
-            </div>
-
-            <div class="notas-alerta-subject-details">
-              ${escapeHtml(a.detalles || "Sin detalles.")}
-            </div>
-          </div>
-        `).join("")}
+    <div class="notas-alerta-detail-stats">
+      <div>
+        <span>Definitiva</span>
+        <strong>${escapeHtml(String(item.definitiva ?? "—"))}</strong>
       </div>
+
+      <div>
+        <span>Docente</span>
+        <strong>${escapeHtml(item.docente_nombre || "—")}</strong>
+      </div>
+
+      <div>
+        <span>Estado</span>
+        <strong>${escapeHtml(String(item.estado || "—"))}</strong>
+      </div>
+    </div>
+
+    <div class="notas-alerta-detail-box">
+      <b>Detalles de la alerta</b>
+      <p>${escapeHtml(item.detalles || "Sin detalles.")}</p>
     </div>
   `;
 
-  __notasAlertaMsg =
-    `Reporte académico\n\n` +
-    `Estudiante: ${item.estudiante || "Sin nombre"}\n` +
-    `Curso: ${item.curso || "—"}\n` +
-    `Periodo: ${item.periodo || "—"}\n\n` +
-    `Materias con alerta:\n\n` +
-    alertas.map(a =>
-      `- ${a.asignatura || "Asignatura"}\n` +
-      `  Estado: ${a.estado || "—"}\n` +
-      `  Definitiva: ${a.definitiva ?? "—"}\n` +
-      `  Detalles: ${a.detalles || "Sin detalles."}`
-    ).join("\n\n");
+  try {
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "notas_reporte_student",
+        registro_id: item.registro_id,
+        key: GS_API_KEY
+      })
+    });
 
-  if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = false;
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.msg || data.error || "notas_reporte_student_failed");
+
+    __notasAlertaMsg = data.msg || "";
+    if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = false;
+  } catch (e) {
+    __notasAlertaMsg = "";
+    notasAlertasHint_(String(e?.message || e));
+  }
 }
 
 async function notasAlertasBuscar_(){
@@ -16797,12 +16770,8 @@ async function notasAlertasBuscar_(){
     const data = await res.json();
     if (!data.ok) throw new Error(data.msg || data.error || "notas_alertas_list_failed");
 
-const rawItems = Array.isArray(data.items) ? data.items : [];
-__notasAlertasItems = notasAlertasAgruparPorEstudiante_(rawItems);
-
-notasAlertasHint_(
-  `Estudiantes con alerta: ${__notasAlertasItems.length} · Alertas totales: ${rawItems.length}`
-);
+    __notasAlertasItems = Array.isArray(data.items) ? data.items : [];
+    notasAlertasHint_(`Alertas encontradas: ${__notasAlertasItems.length}`);
     notasAlertasRender_();
   } catch (e) {
     notasAlertasHint_(String(e?.message || e));
@@ -16851,11 +16820,6 @@ btnNotasAlertas?.addEventListener("click", async () => {
 });
 
 btnNotasAlertasBuscar?.addEventListener("click", notasAlertasBuscar_);
-
-notasAlertasCursoEl?.addEventListener("change", async () => {
-  if (notasAlertasAsignaturaEl) notasAlertasAsignaturaEl.value = "";
-  await notasAlertasBuscar_();
-});
 
 btnNotasAlertasCerrar?.addEventListener("click", () => {
   if (notasAlertasModal) notasAlertasModal.hidden = true;
