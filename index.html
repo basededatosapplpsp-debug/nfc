@@ -6681,6 +6681,55 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
+/* ===== NOTAS: títulos de actividades compactos con puntos suspensivos ===== */
+#notasStudentsModal .notas-header-row .notas-cell,
+#notasStudentsModal .notas-grid.table-mode .notas-cell{
+  max-width: 150px !important;
+}
+
+#notasStudentsModal .notas-header-row .notas-cell strong,
+#notasStudentsModal .notas-header-row .notas-cell span,
+#notasStudentsModal .notas-cell .notas-col-title,
+#notasStudentsModal .notas-cell label{
+  display: block !important;
+  max-width: 130px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* En PC: al pasar el mouse muestra el título completo */
+#notasStudentsModal .notas-header-row .notas-cell:hover,
+#notasStudentsModal .notas-cell label:hover{
+  overflow: visible !important;
+  white-space: normal !important;
+  position: relative !important;
+  z-index: 20 !important;
+}
+
+/* Inputs mantienen tamaño uniforme */
+#notasStudentsModal .notas-grid.table-mode input{
+  width: 78px !important;
+  max-width: 78px !important;
+}
+
+/* Celular: no afecta tarjetas, solo evita desbordes */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-input-row label{
+    max-width: 100% !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+
+  #notasStudentsModal .notas-input-row label:active{
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+}
+
+
+
 
 </style>
 </head>
