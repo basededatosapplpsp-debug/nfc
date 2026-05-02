@@ -7717,6 +7717,13 @@ body.is-pc-mode .single-action-wrap{
       <div class="behavior-panel">
         <div class="behavior-panel-card">
 
+          <div style="margin-bottom:10px;">
+  <label class="modal-label" for="lateMonth">Mes</label>
+  <select id="lateMonth" class="modal-input behavior-big-select">
+    <option value="">Cargando meses...</option>
+  </select>
+</div>
+
         <div class="late-compact-row">
   <div class="late-course-box">
     <label class="modal-label" for="lateCourse">Curso</label>
@@ -8369,7 +8376,9 @@ body.is-pc-mode .single-action-wrap{
           <div class="behavior-viewer-filters">
             <div>
               <label class="modal-label" for="discViewerMonth">Mes</label>
-              <input id="discViewerMonth" class="modal-input behavior-big-select" type="month" />
+              <select id="discViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
             </div>
 
             <div>
@@ -8414,7 +8423,9 @@ body.is-pc-mode .single-action-wrap{
           <div class="behavior-viewer-filters">
             <div>
               <label class="modal-label" for="piercViewerMonth">Mes</label>
-              <input id="piercViewerMonth" class="modal-input behavior-big-select" type="month" />
+             <select id="piercViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
             </div>
 
             <div>
@@ -8459,7 +8470,9 @@ body.is-pc-mode .single-action-wrap{
           <div class="behavior-viewer-filters">
             <div>
               <label class="modal-label" for="uniViewerMonth">Mes</label>
-              <input id="uniViewerMonth" class="modal-input behavior-big-select" type="month" />
+              <select id="uniViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
             </div>
 
             <div>
@@ -9398,6 +9411,30 @@ function behaviorMetaByKind_(kind){
   };
 }
 
+async function loadBehaviorMonths_(kind, selectEl){
+  if (!selectEl) return;
+
+  selectEl.innerHTML = `<option value="">Cargando meses...</option>`;
+
+  const r = await apiPost_({
+    action: "behavior_months",
+    kind
+  });
+
+  const months = Array.isArray(r.months) ? r.months : [];
+
+  if (!months.length) {
+    selectEl.innerHTML = `<option value="">Sin reportes</option>`;
+    return;
+  }
+
+  selectEl.innerHTML = months.map(m =>
+    `<option value="${escapeHtml_(m.key)}">${escapeHtml_(m.label || m.key)}</option>`
+  ).join("");
+
+  selectEl.value = months[0].key;
+}
+
 
 function behaviorInitMonthInputs_(){
   const current = behaviorSelectedMonth_(null);
@@ -9648,10 +9685,11 @@ async function openBehaviorViewer_(){
 
   if (__behaviorKind === "discipline") {
     if (disciplineViewerModal) disciplineViewerModal.hidden = false;
-    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
+    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes.</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("discipline", { silent: false });
+      await loadBehaviorMonths_("discipline", discViewerMonth);
+      await ensureBehaviorDataLoaded_("discipline", { force: true, silent: false });
       renderBehaviorViewer_("discipline");
     } catch (e) {
       if (discViewerList) {
@@ -9666,7 +9704,8 @@ async function openBehaviorViewer_(){
     if (piercViewerList) piercViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("piercing", { silent: false });
+      await loadBehaviorMonths_("piercing", piercViewerMonth);
+      await ensureBehaviorDataLoaded_("piercing", { force: true, silent: false });
       renderBehaviorViewer_("piercing");
     } catch (e) {
       if (piercViewerList) {
@@ -9681,7 +9720,8 @@ async function openBehaviorViewer_(){
     if (uniViewerList) uniViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("uniform", { silent: false });
+      await loadBehaviorMonths_("uniform", uniViewerMonth);
+      await ensureBehaviorDataLoaded_("uniform", { force: true, silent: false });
       renderBehaviorViewer_("uniform");
     } catch (e) {
       if (uniViewerList) {
@@ -26870,7 +26910,7 @@ async function lateEditOne_(student, row){
   }
 }
 
-async function openLateArrivalModal_(){ 
+async function openLateArrivalModal_(){
   if (!lateArrivalModal) return;
 
   lateArrivalModal.hidden = false;
@@ -26884,7 +26924,13 @@ async function openLateArrivalModal_(){
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
 
-  /* ✅ Carga instantánea desde localStorage */
+  try {
+    await loadBehaviorMonths_("late", lateMonthEl);
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  }
+
+  /* ✅ Carga instantánea desde localStorage según el mes seleccionado */
   lateLoadCacheFromStorage_();
   lateRenderReportedList_();
   lateUpdateAutoBox_();
