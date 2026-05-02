@@ -6828,7 +6828,21 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
+/* ===== FIX ESTADO PORTÁTIL ===== */
+@media (min-width: 900px){
+  #notasStudentsModal .notas-grid.table-mode .notas-estado-cell{
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+    text-align: center !important;
+  }
 
+  #notasStudentsModal .notas-grid.table-mode .notas-estado-cell .badge{
+    display: inline-flex !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+}
 
 </style>
 </head>
@@ -17585,7 +17599,7 @@ Total Cog.<br>
 </div>
 
       <div class="notas-cell">Definitiva</div>
-      <div class="notas-cell">Estado</div>
+      <div class="notas-cell notas-estado-cell">Estado</div>
     </div>
   ` : "";
 
@@ -17643,13 +17657,13 @@ Total Cog.<br>
           <div class="notas-cell notas-definitiva-cell">
   <span class="notas-definitiva-badge">${escapeHtml(String(calc.definitiva ?? "—"))}</span>
 </div>
-            <div class="notas-cell">
-              ${calc.detalles ? `
-                <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
-                  ${notasEstadoBadge_(calc.estado)}
-                </button>
-              ` : notasEstadoBadge_(calc.estado)}
-            </div>
+        <div class="notas-cell notas-estado-cell">
+  ${calc.detalles ? `
+    <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
+      ${notasEstadoBadge_(calc.estado)}
+    </button>
+  ` : notasEstadoBadge_(calc.estado)}
+</div>
           </div>
         </div>
       `;
