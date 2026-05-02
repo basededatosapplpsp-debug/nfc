@@ -9661,6 +9661,41 @@ function behaviorKindReadStorage_(kind){
   return behaviorReadCache_(kind, month);
 }
 
+
+async function behaviorReloadReportMonthStudent_(kind){
+  await ensureBehaviorDataLoaded_(kind, { force: false, silent: false });
+
+  if (kind === "discipline" && __discCurrentStudent) {
+    const student = normalizeStudent_(__discCurrentStudent);
+    discUpdateSelectedBox_(student);
+    const item = discFindInCache_(student);
+    discApplyLevelUI_(behaviorLevelFromItem_(item));
+    behaviorReloadReportMonthStudent_("discipline");
+    __discPendingLevel = 0;
+    return;
+  }
+
+  if (kind === "piercing" && __piercCurrentStudent) {
+    const student = piercNormalizeStudent_(__piercCurrentStudent);
+    piercUpdateSelectedBox_(student);
+    const item = piercFindInCache_(student);
+    piercApplyLevelUI_(behaviorLevelFromItem_(item));
+    behaviorReloadReportMonthStudent_("discipline");
+    __piercPendingLevel = 0;
+    return;
+  }
+
+  if (kind === "uniform" && __uniCurrentStudent) {
+    const student = uniNormalizeStudent_(__uniCurrentStudent);
+    uniUpdateSelectedBox_(student);
+    const item = uniFindInCache_(student);
+    uniApplyLevelUI_(behaviorLevelFromItem_(item));
+    behaviorReloadReportMonthStudent_("uniform");
+    __uniPendingLevel = 0;
+  }
+}
+
+
 async function behaviorKindFetchList_(kind, monthOverride){
   const month = monthOverride || behaviorKindMonth_(kind);
 
@@ -24815,36 +24850,15 @@ if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uni
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
 
 if (discReportMonth) discReportMonth.onchange = async () => {
-  __discPendingLevel = 0;
-  await ensureBehaviorDataLoaded_("discipline", { force: false, silent: false });
-
-  if (__discCurrentStudent) {
-    discUpdateSelectedBox_(__discCurrentStudent);
-    const item = discFindInCache_(__discCurrentStudent);
-    discApplyLevelUI_(behaviorLevelFromItem_(item));
-  }
+  await behaviorReloadReportMonthStudent_("discipline");
 };
 
 if (piercReportMonth) piercReportMonth.onchange = async () => {
-  __piercPendingLevel = 0;
-  await ensureBehaviorDataLoaded_("piercing", { force: false, silent: false });
-
-  if (__piercCurrentStudent) {
-    piercUpdateSelectedBox_(__piercCurrentStudent);
-    const item = piercFindInCache_(__piercCurrentStudent);
-    piercApplyLevelUI_(behaviorLevelFromItem_(item));
-  }
+  await behaviorReloadReportMonthStudent_("piercing");
 };
 
 if (uniReportMonth) uniReportMonth.onchange = async () => {
-  __uniPendingLevel = 0;
-  await ensureBehaviorDataLoaded_("uniform", { force: false, silent: false });
-
-  if (__uniCurrentStudent) {
-    uniUpdateSelectedBox_(__uniCurrentStudent);
-    const item = uniFindInCache_(__uniCurrentStudent);
-    uniApplyLevelUI_(behaviorLevelFromItem_(item));
-  }
+  await behaviorReloadReportMonthStudent_("uniform");
 };
 
 
