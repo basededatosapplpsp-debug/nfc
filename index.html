@@ -9665,6 +9665,10 @@ function behaviorKindReadStorage_(kind){
 async function behaviorReloadReportMonthStudent_(kind){
   await ensureBehaviorDataLoaded_(kind, { force: true, silent: false });
 
+  if (kind === "discipline") ensureCurrentMonthShown_(discReportMonth);
+  if (kind === "piercing") ensureCurrentMonthShown_(piercReportMonth);
+  if (kind === "uniform") ensureCurrentMonthShown_(uniReportMonth);
+
   if (kind === "discipline" && __discCurrentStudent) {
     const student = normalizeStudent_(__discCurrentStudent);
     discUpdateSelectedBox_(student);
@@ -9753,6 +9757,32 @@ async function ensureBehaviorDataLoaded_(kind, options = {}){
   })();
 
   return await __behaviorLoadPromises[promiseKey];
+}
+
+function ensureCurrentMonthShown_(selectEl) {
+  if (!selectEl) return;
+
+  const now = new Date();
+  const currentMonth = now.toLocaleString('es-ES', { month: 'long' });
+
+  // Verifica si el valor actual no coincide con el mes actual
+  const currentValue = (selectEl.value || "").toLowerCase();
+
+  if (currentValue !== currentMonth.toLowerCase()) {
+    // Solo cambia el texto visual SIN afectar lógica interna
+    const optionExists = Array.from(selectEl.options).some(
+      opt => opt.value.toLowerCase() === currentMonth.toLowerCase()
+    );
+
+    if (!optionExists) {
+      const opt = document.createElement("option");
+      opt.value = currentMonth;
+      opt.textContent = currentMonth;
+      selectEl.prepend(opt);
+    }
+
+    selectEl.value = currentMonth;
+  }
 }
 
 async function preloadBehaviorModule_(kind){
