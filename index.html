@@ -17738,19 +17738,23 @@ notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
     input.select();
   });
 
-  input.addEventListener("input", () => {
-    const sIdx = Number(input.dataset.notaInput);
-    const key = String(input.dataset.notaKey || "");
+input.addEventListener("input", () => {
+  const sIdx = Number(input.dataset.notaInput);
+  const key = String(input.dataset.notaKey || "");
 
-    if (!__notasEstudiantes[sIdx]) return;
-    if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+  if (!__notasEstudiantes[sIdx]) return;
+  if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
 
-    __notasEstudiantes[sIdx].notas[key] = input.value;
-  });
+  __notasEstudiantes[sIdx].notas[key] = input.value;
 
-  input.addEventListener("change", () => {
-    notasRenderGrid_();
-  });
+  // Autoguardado tipo Excel
+  notasProgramarAutoGuardado_();
+});
+
+input.addEventListener("change", () => {
+  notasProgramarAutoGuardado_();
+  notasRenderGrid_();
+});
 });
 
   notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
@@ -18092,6 +18096,280 @@ function notasAplicarPlanillaCache_(cachedValue){
 
 
 
+/* ===== NOTAS OFFLINE PRO: IndexedDB + cola de sincronización ===== */
+const NOTAS_IDB_NAME = "notas_offline_db_v1";
+const NOTAS_IDB_VERSION = 1;
+const NOTAS_IDB_PLANILLAS = "planillas";
+const NOTAS_IDB_QUEUE = "sync_queue";
+
+let __notasSyncRunning = false;
+let __notasAutoSaveTimer = null;
+let __notasLastAutoSaveHash = "";
+
+function notasIdbOpen_(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(NOTAS_IDB_NAME, NOTAS_IDB_VERSION);
+
+    req.onupgradeneeded = () => {
+      const db = req.result;
+
+      if (!db.objectStoreNames.contains(NOTAS_IDB_PLANILLAS)) {
+        db.createObjectStore(NOTAS_IDB_PLANILLAS, { keyPath: "id" });
+      }
+
+      if (!db.objectStoreNames.contains(NOTAS_IDB_QUEUE)) {
+        db.createObjectStore(NOTAS_IDB_QUEUE, { keyPath: "id" });
+      }
+    };
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function notasIdbPut_(storeName, value){
+  const db = await notasIdbOpen_();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).put(value);
+    tx.oncomplete = () => {
+      db.close();
+      resolve(true);
+    };
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
+
+async function notasIdbGet_(storeName, id){
+  const db = await notasIdbOpen_();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const req = tx.objectStore(storeName).get(id);
+
+    req.onsuccess = () => {
+      db.close();
+      resolve(req.result || null);
+    };
+
+    req.onerror = () => {
+      db.close();
+      reject(req.error);
+    };
+  });
+}
+
+async function notasIdbGetAll_(storeName){
+  const db = await notasIdbOpen_();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const req = tx.objectStore(storeName).getAll();
+
+    req.onsuccess = () => {
+      db.close();
+      resolve(req.result || []);
+    };
+
+    req.onerror = () => {
+      db.close();
+      reject(req.error);
+    };
+  });
+}
+
+async function notasIdbDelete_(storeName, id){
+  const db = await notasIdbOpen_();
+
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readwrite");
+    tx.objectStore(storeName).delete(id);
+
+    tx.oncomplete = () => {
+      db.close();
+      resolve(true);
+    };
+
+    tx.onerror = () => {
+      db.close();
+      reject(tx.error);
+    };
+  });
+}
+
+function notasBuildSavePayload_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const teacher = String(profile?.name || teacherNameEl?.value || "").trim();
+  const email = String(profile?.email || "").trim().toLowerCase();
+  const deviceId = typeof getDeviceId === "function" ? getDeviceId() : "";
+
+  if (!curso || !asignatura || !__notasEstudiantes.length) return null;
+
+  return {
+    action: "notas_planilla_save",
+    curso,
+    asignatura,
+    periodo,
+    year: new Date().getFullYear(),
+    columnas: __notasColumnas,
+    estudiantes: __notasEstudiantes,
+    teacher,
+    email,
+    device_id: deviceId,
+    key: GS_API_KEY
+  };
+}
+
+function notasPayloadCacheKey_(payload){
+  return notasPlanillaCacheKey_(
+    payload.curso,
+    payload.asignatura,
+    payload.periodo,
+    payload.email
+  );
+}
+
+async function notasGuardarLocalSeguro_(payload, { pending = true } = {}){
+  if (!payload) return null;
+
+  const cacheKey = notasPayloadCacheKey_(payload);
+  const now = Date.now();
+
+  const localValue = {
+    columnas: payload.columnas,
+    estudiantes: payload.estudiantes,
+    offline_meta: {
+      ts: now,
+      pending: !!pending
+    }
+  };
+
+  // Mantiene tu cache actual
+  notasPlanillaCacheWrite_(cacheKey, localValue);
+
+  // Copia fuerte en IndexedDB
+  await notasIdbPut_(NOTAS_IDB_PLANILLAS, {
+    id: cacheKey,
+    ts: now,
+    value: localValue
+  });
+
+  // Cola de sincronización
+  if (pending) {
+    await notasIdbPut_(NOTAS_IDB_QUEUE, {
+      id: cacheKey,
+      ts: now,
+      attempts: 0,
+      payload
+    });
+  }
+
+  try {
+    notasSaveLastSelection_();
+  } catch {}
+
+  return cacheKey;
+}
+
+async function notasEnviarPayloadSupabase_(payload){
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (!data.ok) {
+    throw new Error(data.msg || data.error || "notas_planilla_save_failed");
+  }
+
+  return data;
+}
+
+async function notasSyncPendientes_({ silent = true } = {}){
+  if (__notasSyncRunning) return;
+  if (!navigator.onLine) return;
+
+  __notasSyncRunning = true;
+
+  try {
+    const items = await notasIdbGetAll_(NOTAS_IDB_QUEUE);
+
+    for (const item of items) {
+      try {
+        const payload = item.payload;
+        await notasEnviarPayloadSupabase_(payload);
+
+        const cacheKey = notasPayloadCacheKey_(payload);
+
+        await notasGuardarLocalSeguro_(payload, { pending: false });
+        await notasIdbDelete_(NOTAS_IDB_QUEUE, item.id);
+
+        if (!silent) {
+          notasSetHint_("Notas sincronizadas con Supabase ✅");
+        }
+
+        if (notasAlertasModal && !notasAlertasModal.hidden) {
+          notasAlertasLimpiarCache_();
+          notasAlertasBuscar_({ silent: true, useCache: false });
+        }
+      } catch (e) {
+        await notasIdbPut_(NOTAS_IDB_QUEUE, {
+          ...item,
+          attempts: Number(item.attempts || 0) + 1,
+          lastError: String(e?.message || e),
+          lastAttempt: Date.now()
+        });
+      }
+    }
+  } finally {
+    __notasSyncRunning = false;
+  }
+}
+
+function notasProgramarAutoGuardado_(){
+  clearTimeout(__notasAutoSaveTimer);
+
+  __notasAutoSaveTimer = setTimeout(async () => {
+    try {
+      const payload = notasBuildSavePayload_();
+      if (!payload) return;
+
+      const currentHash = JSON.stringify({
+        curso: payload.curso,
+        asignatura: payload.asignatura,
+        periodo: payload.periodo,
+        columnas: payload.columnas,
+        estudiantes: payload.estudiantes
+      });
+
+      if (currentHash === __notasLastAutoSaveHash) return;
+      __notasLastAutoSaveHash = currentHash;
+
+      await notasGuardarLocalSeguro_(payload, { pending: true });
+
+      if (navigator.onLine) {
+        notasSyncPendientes_({ silent: true });
+        notasSetHint_("Autoguardado local ✅ Sincronizando…");
+      } else {
+        notasSetHint_("Autoguardado local ✅ Pendiente por sincronizar.");
+      }
+    } catch (e) {
+      console.warn("Autoguardado notas falló:", e);
+    }
+  }, 900);
+}
+
+
+
 function notasTryOpenFromLastCache_(){
   const last = notasReadLastSelection_();
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
@@ -18149,11 +18427,16 @@ async function notasAbrirPlanillaActual_(opts = {}){
   if (!email) return notasSetHint_("No encontré el correo del docente.");
 
   const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-  const cached = useCache ? notasPlanillaCacheRead_(cacheKey) : null;
+const cached = useCache ? notasPlanillaCacheRead_(cacheKey) : null;
 
-  if (cached?.value) {
-    notasAplicarPlanillaCache_(cached.value);
+if (cached?.value) {
+  notasAplicarPlanillaCache_(cached.value);
+} else if (useCache) {
+  const idbCached = await notasIdbGet_(NOTAS_IDB_PLANILLAS, cacheKey);
+  if (idbCached?.value) {
+    notasAplicarPlanillaCache_(idbCached.value);
   }
+}
 
   try {
     if (!silent) {
@@ -18215,9 +18498,13 @@ async function notasAbrirPlanillaActual_(opts = {}){
     notasRenderColumnas_();
     notasRenderGrid_();
     notasSetHint_("Planilla nueva. Guarda para conservar las notas.");
-  } catch (e) {
+} catch (e) {
+  if (__notasEstudiantes.length) {
+    notasSetHint_("Sin conexión o sin respuesta del servidor. Planilla abierta desde guardado local ✅");
+  } else {
     notasSetHint_(String(e?.message || e));
-  } finally {
+  }
+} finally {
     if (!silent) setLoading(false);
   }
 }
@@ -18346,62 +18633,49 @@ async function notasCompartirDebeTodos_(){
 
 
 async function notasGuardarPlanilla_(){
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = String(notasAsignaturaEl?.value || "").trim();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
+  const payload = notasBuildSavePayload_();
 
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const teacher = String(profile?.name || teacherNameEl?.value || "").trim();
-  const email = String(profile?.email || "").trim().toLowerCase();
-  const deviceId = typeof getDeviceId === "function" ? getDeviceId() : "";
+  if (!payload) {
+    const curso = String(notasCursoEl?.value || "").trim();
+    const asignatura = String(notasAsignaturaEl?.value || "").trim();
 
-  if (!curso) return notasSetHint_("Falta seleccionar curso.");
-  if (!asignatura) return notasSetHint_("Falta asignatura.");
-  if (!__notasEstudiantes.length) return notasSetHint_("Primero carga estudiantes.");
+    if (!curso) return notasSetHint_("Falta seleccionar curso.");
+    if (!asignatura) return notasSetHint_("Falta asignatura.");
+    if (!__notasEstudiantes.length) return notasSetHint_("Primero carga estudiantes.");
 
-
-
-  const payload = {
-    action: "notas_planilla_save",
-    curso,
-    asignatura,
-    periodo,
-    year: new Date().getFullYear(),
-    columnas: __notasColumnas,
-    estudiantes: __notasEstudiantes,
-    teacher,
-    email,
-    device_id: deviceId,
-    key: GS_API_KEY
-  };
+    return notasSetHint_("No se pudo preparar la planilla.");
+  }
 
   try {
-    setLoading(true, "Guardando…", "Enviando planilla a Supabase.");
-    const res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
+    setLoading(true, "Guardando…", "Guardando copia local segura.");
 
-    const data = await res.json();
-  if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_save_failed");
+    // 1) SIEMPRE guarda local primero
+    await notasGuardarLocalSeguro_(payload, { pending: true });
 
-  const planillaCacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-notasPlanillaCacheWrite_(planillaCacheKey, {
-  columnas: __notasColumnas,
-  estudiantes: __notasEstudiantes
-});
+    notasAlertasLimpiarCache_();
 
-  notasSaveLastSelection_();
+    // 2) Luego intenta sincronizar si hay internet
+    if (!navigator.onLine) {
+      notasSetHint_("Planilla guardada localmente ✅ Se sincronizará cuando vuelva internet.");
+      return;
+    }
 
-notasAlertasLimpiarCache_();
+    setLoading(true, "Sincronizando…", "Enviando planilla a Supabase.");
 
-if (notasAlertasModal && !notasAlertasModal.hidden) {
-  notasAlertasBuscar_({ silent: true, useCache: false });
-}
+    const data = await notasEnviarPayloadSupabase_(payload);
 
-notasSetHint_(data.msg || "Planilla guardada ✅");
+    // 3) Si subió bien, marca como sincronizada
+    await notasGuardarLocalSeguro_(payload, { pending: false });
+    await notasIdbDelete_(NOTAS_IDB_QUEUE, notasPayloadCacheKey_(payload));
+
+    if (notasAlertasModal && !notasAlertasModal.hidden) {
+      notasAlertasBuscar_({ silent: true, useCache: false });
+    }
+
+    notasSetHint_(data.msg || "Planilla guardada y sincronizada ✅");
   } catch (e) {
-    notasSetHint_(String(e?.message || e));
+    // Aunque falle Supabase, NO se pierde el trabajo
+    notasSetHint_("Planilla guardada localmente ✅ Pendiente por sincronizar.");
   } finally {
     setLoading(false);
   }
@@ -18429,6 +18703,23 @@ btnNotasAgregarCognitivo?.addEventListener("click", () => {
 });
 
 btnNotasGuardar?.addEventListener("click", notasGuardarPlanilla_);
+
+window.addEventListener("online", () => {
+  notasSyncPendientes_({ silent: false });
+});
+
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    notasSyncPendientes_({ silent: true });
+  }, 1200);
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    notasSyncPendientes_({ silent: true });
+  }
+});
+
 
 window.addEventListener("resize", () => {
   if (notasPlanillaModal && !notasPlanillaModal.hidden) notasRenderGrid_();
