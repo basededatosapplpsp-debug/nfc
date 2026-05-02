@@ -9472,6 +9472,24 @@ function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
 }
 
 
+function behaviorMonthsTouchCurrent_(kind, selectEl){
+  const current = behaviorCurrentMonthKey_();
+  const cached = behaviorMonthsReadCache_(kind) || [];
+
+  let list = cached.filter(m => String(m && m.key || "") !== current);
+
+  list.unshift({
+    key: current,
+    label: "Mes actual"
+  });
+
+  behaviorMonthsSaveCache_(kind, list);
+
+  if (selectEl) {
+    behaviorMonthsApplyToSelect_(selectEl, list, current);
+  }
+}
+
 
 async function loadBehaviorMonths_(kind, selectEl){
   if (!selectEl) return;
@@ -22500,10 +22518,12 @@ async function discSubmitReport_() {
 const month = discMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("discipline", resp.list, month);
+ behaviorKindSetCache_("discipline", resp.list, month);
+behaviorMonthsTouchCurrent_("discipline", discViewerMonth);
 } else {
   const items = await gsDisciplineList(month);
-  behaviorKindSetCache_("discipline", items, month);
+ behaviorKindSetCache_("discipline", items, month);
+behaviorMonthsTouchCurrent_("discipline", discViewerMonth);
 }
 
 behaviorRefreshOpenUI_("discipline");
@@ -23502,10 +23522,12 @@ async function piercSubmitReport_() {
 const month = piercMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("piercing", resp.list, month);
+ behaviorKindSetCache_("piercing", resp.list, month);
+behaviorMonthsTouchCurrent_("piercing", piercViewerMonth);
 } else {
   const items = await gsPiercingList(month);
-  behaviorKindSetCache_("piercing", items, month);
+behaviorKindSetCache_("piercing", items, month);
+behaviorMonthsTouchCurrent_("piercing", piercViewerMonth);
 }
 
 behaviorRefreshOpenUI_("piercing");
@@ -24544,10 +24566,12 @@ async function uniSubmitReport_() {
 const month = uniMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("uniform", resp.list, month);
+ behaviorKindSetCache_("uniform", resp.list, month);
+behaviorMonthsTouchCurrent_("uniform", uniViewerMonth);
 } else {
   const items = await gsUniformList(month);
   behaviorKindSetCache_("uniform", items, month);
+behaviorMonthsTouchCurrent_("uniform", uniViewerMonth);
 }
 
 behaviorRefreshOpenUI_("uniform");
