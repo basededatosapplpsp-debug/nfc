@@ -22006,25 +22006,21 @@ async function initCourseComboForModal({
 /* ======= UI actions ======= */
 async function discReloadReportedList(showHint=false) {
   try {
-    const month = discMonthKey_();
+    const month = discViewerMonthKey_();
     const items = await gsDisciplineList(month);
 
-    __discCacheList = items;
+    behaviorKindSetCache_("discipline", items, month);
 
-    // ✅ SI hay seleccionado y NO estás escribiendo, refresca el box SIEMPRE
-    // (esto arregla: punto de arriba + cards 1..4 + who)
+    if (disciplineViewerModal && !disciplineViewerModal.hidden) {
+      renderBehaviorViewer_("discipline");
+      return;
+    }
+
     const isTyping = (discStudentEl && document.activeElement === discStudentEl);
-    if (__discCurrentStudent && !isTyping) {
-      discUpdateSelectedBox_(__discCurrentStudent);
-    }
+    if (__discCurrentStudent && !isTyping) discUpdateSelectedBox_(__discCurrentStudent);
 
-    // ✅ si estoy en detalle, refresco detalle
-    if (__discView === "detail" && __discCurrentStudent) {
-      discRenderDetailView_();
-    } else {
-      // ✅ en lista, repinta lista (para que cambie el punto/orden)
-      discRenderReportedList_(items);
-    }
+    if (__discView === "detail" && __discCurrentStudent) discRenderDetailView_();
+    else discRenderReportedList_(__discCacheList);
 
     if (showHint) discSetHint_("Lista sincronizada ✅");
   } catch (e) {
@@ -23123,15 +23119,21 @@ async function gsPiercingDeleteOne(payload) {
 /* ======= UI actions ======= */
 async function piercReloadReportedList(showHint=false) {
   try {
-    const month = piercMonthKey_();
+    const month = piercViewerMonthKey_();
     const items = await gsPiercingList(month);
-    __piercCacheList = items;
+
+    behaviorKindSetCache_("piercing", items, month);
+
+    if (piercingViewerModal && !piercingViewerModal.hidden) {
+      renderBehaviorViewer_("piercing");
+      return;
+    }
 
     const isTyping = (piercStudentEl && document.activeElement === piercStudentEl);
     if (__piercCurrentStudent && !isTyping) piercUpdateSelectedBox_(__piercCurrentStudent);
 
     if (__piercView === "detail" && __piercCurrentStudent) piercRenderDetailView_();
-    else piercRenderReportedList_(items);
+    else piercRenderReportedList_(__piercCacheList);
 
     if (showHint) piercSetHint_("Lista sincronizada ✅");
   } catch (e) {
@@ -24145,16 +24147,23 @@ ${item.who.map((x, idx) => `
 }
 
 /* ======= actions ======= */
-async function uniReloadReportedList(showHint=false){
+async function uniReloadReportedList(showHint=false) {
   try {
-    const items = await gsUniformList(uniMonthKey_());
-    __uniCacheList = items;
+    const month = uniViewerMonthKey_();
+    const items = await gsUniformList(month);
+
+    behaviorKindSetCache_("uniform", items, month);
+
+    if (uniformViewerModal && !uniformViewerModal.hidden) {
+      renderBehaviorViewer_("uniform");
+      return;
+    }
 
     const isTyping = (uniStudentEl && document.activeElement === uniStudentEl);
     if (__uniCurrentStudent && !isTyping) uniUpdateSelectedBox_(__uniCurrentStudent);
 
     if (__uniView === "detail" && __uniCurrentStudent) uniRenderDetailView_();
-    else uniRenderReportedList_(items);
+    else uniRenderReportedList_(__uniCacheList);
 
     if (showHint) uniSetHint_("Lista sincronizada ✅");
   } catch (e) {
