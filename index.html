@@ -10015,25 +10015,6 @@ function behaviorSetHintByKind_(kind, msg){
   if (kind === "uniform") uniSetHint_(msg);
 }
 
-
-function behaviorFindForReportForm_(kind, studentName){
-  const selectedItem = behaviorFindInCacheByKind_(kind, studentName);
-  if (selectedItem) return selectedItem;
-
-  const current = behaviorCurrentMonthKey_();
-  const saved = behaviorReadCache_(kind, current);
-  const list = Array.isArray(saved) ? saved : [];
-
-  const key = normalizeKey(studentName);
-
-  return list.find(x =>
-    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
-  ) || null;
-}
-
-
-
-
 function behaviorFindInCacheByKind_(kind, student){
   if (kind === "discipline") return discFindInCache_(student);
   if (kind === "piercing") return piercFindInCache_(student);
@@ -21144,7 +21125,10 @@ function discOnStudentChange_(studentName) {
 }
 
 function discFindInCache_(studentName) {
-  return behaviorFindForReportForm_("discipline", studentName);
+  const key = normalizeKey(studentName);
+  return (__discCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
 
 function discClearLevelUI_() {
@@ -22837,7 +22821,10 @@ function piercSetDotByLevel_(level) {
 }
 
 function piercFindInCache_(studentName) {
-  return behaviorFindForReportForm_("piercing", studentName);
+  const key = normalizeKey(studentName);
+  return (__piercCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
 
 function piercClearLevelUI_() {
@@ -23982,8 +23969,12 @@ function uniRenderWho_(whoArr){
 
 
 function uniFindInCache_(studentName) {
-  return behaviorFindForReportForm_("uniform", studentName);
+  const key = normalizeKey(studentName);
+  return (__uniCacheList || []).find(x =>
+    normalizeKey(x.student || x.student_name || x.studentName || x.name || "") === key
+  ) || null;
 }
+
 
 function uniOnStudentChange_(studentName) {
   const s = uniNormalizeStudent_(studentName);
