@@ -6694,11 +6694,11 @@ body.is-pc-mode .single-action-wrap{
     overflow: hidden !important;
   }
 
-  #notasStudentsModal .notas-grid.table-mode .notas-cell:not(.notas-student-name):not(.notas-total-cell){
-    width: 78px !important;
-    min-width: 78px !important;
-    max-width: 78px !important;
-  }
+ #notasStudentsModal .notas-grid.table-mode .notas-cell:not(.notas-student-name):not(.notas-total-cell):not(.notas-estado-cell){
+  width: 78px !important;
+  min-width: 78px !important;
+  max-width: 78px !important;
+}
 
   #notasStudentsModal .notas-grid.table-mode .notas-student-name{
     width: 220px !important;
@@ -6828,21 +6828,30 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
-/* ===== FIX ESTADO PORTÁTIL ===== */
+
+
+
+/* ===== NOTAS PC: Estado completo sin corte ===== */
 @media (min-width: 900px){
-  #notasStudentsModal .notas-grid.table-mode .notas-estado-cell{
-    width: 120px !important;
-    min-width: 120px !important;
-    max-width: 120px !important;
+  #notasStudentsModal #notasGrid.notas-grid.table-mode .notas-cell.notas-estado-cell{
+    width: 128px !important;
+    min-width: 128px !important;
+    max-width: 128px !important;
     text-align: center !important;
+    overflow: visible !important;
   }
 
-  #notasStudentsModal .notas-grid.table-mode .notas-estado-cell .badge{
+  #notasStudentsModal #notasGrid.notas-grid.table-mode .notas-cell.notas-estado-cell .badge,
+  #notasStudentsModal #notasGrid.notas-grid.table-mode .notas-cell.notas-estado-cell .notas-status-btn{
     display: inline-flex !important;
+    align-items: center !important;
     justify-content: center !important;
     white-space: nowrap !important;
+    min-width: max-content !important;
   }
 }
+
+
 
 </style>
 </head>
