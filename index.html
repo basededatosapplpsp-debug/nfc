@@ -2498,7 +2498,7 @@ body.is-admin #registerActions{
 
 @media (min-width: 760px){
   .behavior-viewer-filters{
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
@@ -8357,10 +8357,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="disciplineViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-    
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Uso inadecuado del celular</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8369,9 +8368,15 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="discViewerMonth">Mes</label>
+              <input id="discViewerMonth" class="modal-input behavior-big-select" type="month" />
+            </div>
+
+            <div>
               <label class="modal-label" for="discViewerCourse">Curso</label>
               <select id="discViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="discViewerStudent">Estudiante</label>
               <select id="discViewerStudent" class="modal-input behavior-big-select">
@@ -8386,10 +8391,10 @@ body.is-pc-mode .single-action-wrap{
         </div>
       </div>
     </div>
-  <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
 
+    <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8397,10 +8402,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-   
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Piercing y perforaciones</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8409,9 +8413,15 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="piercViewerMonth">Mes</label>
+              <input id="piercViewerMonth" class="modal-input behavior-big-select" type="month" />
+            </div>
+
+            <div>
               <label class="modal-label" for="piercViewerCourse">Curso</label>
               <select id="piercViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="piercViewerStudent">Estudiante</label>
               <select id="piercViewerStudent" class="modal-input behavior-big-select">
@@ -8427,10 +8437,9 @@ body.is-pc-mode .single-action-wrap{
       </div>
     </div>
 
-       <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-
+    <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8438,10 +8447,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="uniformViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-      
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Porte del uniforme</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8450,9 +8458,15 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="uniViewerMonth">Mes</label>
+              <input id="uniViewerMonth" class="modal-input behavior-big-select" type="month" />
+            </div>
+
+            <div>
               <label class="modal-label" for="uniViewerCourse">Curso</label>
               <select id="uniViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="uniViewerStudent">Estudiante</label>
               <select id="uniViewerStudent" class="modal-input behavior-big-select">
@@ -8469,9 +8483,8 @@ body.is-pc-mode .single-action-wrap{
     </div>
 
     <button id="btnUniViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8781,17 +8794,21 @@ const btnDiscViewerBack = $("btnDiscViewerBack");
 const btnPiercViewerBack = $("btnPiercViewerBack");
 const btnUniViewerBack = $("btnUniViewerBack");
 
+const discViewerMonth = $("discViewerMonth");
 const discViewerCourse = $("discViewerCourse");
 const discViewerStudent = $("discViewerStudent");
 const discViewerList = $("discViewerList");
 
+const piercViewerMonth = $("piercViewerMonth");
 const piercViewerCourse = $("piercViewerCourse");
 const piercViewerStudent = $("piercViewerStudent");
 const piercViewerList = $("piercViewerList");
 
+const uniViewerMonth = $("uniViewerMonth");
 const uniViewerCourse = $("uniViewerCourse");
 const uniViewerStudent = $("uniViewerStudent");
 const uniViewerList = $("uniViewerList");
+const lateMonthEl = $("lateMonth");
 
 const btnDiscReport = $("btnDiscReport");
 const btnPiercReport = $("btnPiercReport");
@@ -9283,7 +9300,7 @@ function lateRenderReportedList_(){
 }
 
 async function lateRefreshList_(){
-  __lateCacheList = await gsLateArrivalList();
+  __lateCacheList = await gsLateArrivalList(lateMonthKey_());
 
   try {
     __latePollToken = await gsLateArrivalChangesToken();
@@ -9380,6 +9397,16 @@ function behaviorMetaByKind_(kind){
     sub: "Selecciona la acción que deseas realizar."
   };
 }
+
+
+function behaviorInitMonthInputs_(){
+  const current = behaviorSelectedMonth_(null);
+
+  [discViewerMonth, piercViewerMonth, uniViewerMonth, lateMonthEl].forEach(el => {
+    if (el && !el.value) el.value = current;
+  });
+}
+
 
 function behaviorKindMonth_(kind){
   if (kind === "discipline") return discMonthKey_();
@@ -20793,8 +20820,19 @@ let __discCacheList = [];        // lista del mes actual (para render rápido)
   let __discView = "list"; // "list" | "detail"
 
 
-function discMonthKey_() {
-  return monthKeyFromDate(new Date()); // YYYY-MM
+function behaviorSelectedMonth_(inputEl){
+  const v = String(inputEl && inputEl.value || "").trim();
+  if (v) return v;
+
+  if (typeof currentMonthKey_ === "function") return currentMonthKey_();
+  if (typeof monthKeyFromDate === "function") return monthKeyFromDate(new Date());
+
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function discMonthKey_(){
+  return behaviorSelectedMonth_(discViewerMonth);
 }
 
 function normalizeStudent_(s){
@@ -22542,10 +22580,9 @@ let __piercCurrentStudent = "";
 let __piercCacheList = [];
 let __piercView = "list"; // "list" | "detail"
 
-function piercMonthKey_() {
-  return monthKeyFromDate(new Date()); // YYYY-MM
+function piercMonthKey_(){
+  return behaviorSelectedMonth_(piercViewerMonth);
 }
-
 function piercNormalizeStudent_(s){
   return String(s || "").trim().replace(/\s+/g, " ");
 }
@@ -23605,10 +23642,8 @@ async function gsUniformDeleteOne(payload) {
 }
 
 /* ======= helpers ======= */
-function uniMonthKey_() {
-  // usa la misma lógica del mes actual que ya usas en disciplina/piercing
-  // si ya tienes discMonthKey_ / piercMonthKey_, esto mantiene el mismo mes
-  return (typeof discMonthKey_ === "function") ? discMonthKey_() : (typeof piercMonthKey_ === "function" ? piercMonthKey_() : "");
+function uniMonthKey_(){
+  return behaviorSelectedMonth_(uniViewerMonth);
 }
 
 function uniNormalizeStudent_(s) {
@@ -24489,6 +24524,33 @@ if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer
 
 if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
+
+
+if (discViewerMonth) discViewerMonth.onchange = async () => {
+  if (discViewerStudent) discViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("discipline", { force: true, silent: false });
+  renderBehaviorViewer_("discipline");
+};
+
+if (piercViewerMonth) piercViewerMonth.onchange = async () => {
+  if (piercViewerStudent) piercViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("piercing", { force: true, silent: false });
+  renderBehaviorViewer_("piercing");
+};
+
+if (uniViewerMonth) uniViewerMonth.onchange = async () => {
+  if (uniViewerStudent) uniViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("uniform", { force: true, silent: false });
+  renderBehaviorViewer_("uniform");
+};
+
+if (lateMonthEl) lateMonthEl.onchange = async () => {
+  __lateCurrentStudent = "";
+  lateClearDetail_();
+  lateLoadCacheFromStorage_();
+  await lateRefreshList_();
+};
+
 
 /* ======= Poll ======= */
 function uniStartPolling_() {
@@ -26555,11 +26617,7 @@ function lateApplyTimes_(times){
 }
 
 function lateMonthKey_(){
-  if (typeof currentMonthKey_ === "function") return currentMonthKey_();
-  if (typeof monthKeyFromDate === "function") return monthKeyFromDate(new Date());
-
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return behaviorSelectedMonth_(lateMonthEl);
 }
 
 function lateDeviceId_(){
@@ -27064,6 +27122,8 @@ uniBindUI_();
 uniStartPolling_();
 
 bindObservationModal_();
+
+behaviorInitMonthInputs_();
 
 bindLateArrivalUI_();
 
