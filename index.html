@@ -18898,8 +18898,11 @@ function notasProgramarCargaPlanilla_(){
 
   clearTimeout(__notasAutoLoadTimer);
   __notasAutoLoadTimer = setTimeout(() => {
-    notasAbrirPlanillaActual_();
-  }, 250);
+    notasAbrirPlanillaActual_({
+      silent: true,
+      useCache: true
+    });
+  }, 120);
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
@@ -18929,8 +18932,11 @@ async function notasAutoLoadStudentsOnCourse_(){
   }, 250);
 }
 
-notasCursoEl?.addEventListener("change", () => {
-  notasAbrirPlanillaActual_({ silent: true, useCache: true });
+[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+  el?.addEventListener("change", () => {
+    notasSaveLastSelection_();
+    notasProgramarCargaPlanilla_();
+  });
 });
 
 [notasAsignaturaEl, notasPeriodoEl].forEach(el => {
