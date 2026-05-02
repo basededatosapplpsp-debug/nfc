@@ -9472,33 +9472,36 @@ function behaviorKindMonth_(kind){
   return behaviorCurrentMonthKey_();
 }
 
-function behaviorKindHasCache_(kind){
-  const month = behaviorKindMonth_(kind);
+function behaviorKindHasCache_(kind, monthOverride){
+  const month = monthOverride || behaviorKindMonth_(kind);
   return String(__behaviorLoadedMonth[kind] || "") === String(month || "");
 }
 
-function behaviorKindSetCache_(kind, items){
+function behaviorKindSetCache_(kind, items, monthOverride){
   const list = Array.isArray(items) ? items : [];
-  const month = behaviorKindMonth_(kind);
+  const month = monthOverride || behaviorKindMonth_(kind);
+  const currentMonth = behaviorKindMonth_(kind);
+
+  behaviorSaveCache_(kind, month, list);
+
+  // ✅ Si llegó una respuesta vieja de otro mes, NO pisa la lista visible
+  if (String(month) !== String(currentMonth)) return;
 
   if (kind === "discipline") {
     __discCacheList = list;
     __behaviorLoadedMonth.discipline = month;
-    behaviorSaveCache_("discipline", month, list);
     return;
   }
 
   if (kind === "piercing") {
     __piercCacheList = list;
     __behaviorLoadedMonth.piercing = month;
-    behaviorSaveCache_("piercing", month, list);
     return;
   }
 
   if (kind === "uniform") {
     __uniCacheList = list;
     __behaviorLoadedMonth.uniform = month;
-    behaviorSaveCache_("uniform", month, list);
   }
 }
 
@@ -9507,13 +9510,15 @@ function behaviorKindReadStorage_(kind){
   return behaviorReadCache_(kind, month);
 }
 
-async function behaviorKindFetchList_(kind){
-  if (kind === "discipline") return await gsDisciplineList(discViewerMonthKey_());
-  if (kind === "piercing") return await gsPiercingList(piercViewerMonthKey_());
-  if (kind === "uniform") return await gsUniformList(uniViewerMonthKey_());
+async function behaviorKindFetchList_(kind, monthOverride){
+  const month = monthOverride || behaviorKindMonth_(kind);
+
+  if (kind === "discipline") return await gsDisciplineList(month);
+  if (kind === "piercing") return await gsPiercingList(month);
+  if (kind === "uniform") return await gsUniformList(month);
+
   return [];
 }
-
 async function ensureBehaviorDataLoaded_(kind, options = {}){
   const force = !!options.force;
   const silent = options.silent !== false;
@@ -9521,41 +9526,44 @@ async function ensureBehaviorDataLoaded_(kind, options = {}){
   kind = String(kind || "").trim();
   if (!kind) return [];
 
-  if (!force && behaviorKindHasCache_(kind)) {
+  const month = behaviorKindMonth_(kind);
+  const promiseKey = `${kind}__${month}`;
+
+  if (!force && behaviorKindHasCache_(kind, month)) {
     if (kind === "discipline") return __discCacheList || [];
     if (kind === "piercing") return __piercCacheList || [];
     if (kind === "uniform") return __uniCacheList || [];
   }
 
   if (!force) {
-    const saved = behaviorKindReadStorage_(kind);
+    const saved = behaviorReadCache_(kind, month);
     if (Array.isArray(saved)) {
-      behaviorKindSetCache_(kind, saved);
+      behaviorKindSetCache_(kind, saved, month);
       return saved;
     }
   }
 
-  if (__behaviorLoadPromises[kind]) {
-    return await __behaviorLoadPromises[kind];
+  if (__behaviorLoadPromises[promiseKey]) {
+    return await __behaviorLoadPromises[promiseKey];
   }
 
-  __behaviorLoadPromises[kind] = (async () => {
+  __behaviorLoadPromises[promiseKey] = (async () => {
     try {
       if (!silent) {
         setLoading(true, "Cargando…", "Consultando reportes del mes.");
       }
 
-      const items = await behaviorKindFetchList_(kind);
-      behaviorKindSetCache_(kind, items);
+      const items = await behaviorKindFetchList_(kind, month);
+      behaviorKindSetCache_(kind, items, month);
 
       return items;
     } finally {
-      __behaviorLoadPromises[kind] = null;
+      __behaviorLoadPromises[promiseKey] = null;
       if (!silent) setLoading(false);
     }
   })();
 
-  return await __behaviorLoadPromises[kind];
+  return await __behaviorLoadPromises[promiseKey];
 }
 
 async function preloadBehaviorModule_(kind){
