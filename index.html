@@ -18561,7 +18561,22 @@ if (!navigator.onLine) {
     notasRenderGrid_();
     notasSetHint_("Planilla nueva. Guarda para conservar las notas.");
 } catch (e) {
-  if (__notasEstudiantes.length) {
+  const students = await gsCourseStudentsCached(curso);
+
+  if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+    __notasEstudiantes = students.map(name => ({
+      estudiante: String(name || "").trim(),
+      notas: {}
+    })).filter(x => x.estudiante);
+
+    notasRenderColumnas_();
+    notasRenderGrid_();
+
+    notasSetHint_("Sin respuesta del servidor. Planilla nueva abierta con estudiantes locales ✅");
+  } else if (__notasEstudiantes.length) {
+    notasRenderColumnas_();
+    notasRenderGrid_();
+
     notasSetHint_("Sin conexión o sin respuesta del servidor. Planilla abierta desde guardado local ✅");
   } else {
     notasSetHint_(String(e?.message || e));
