@@ -18483,7 +18483,7 @@ if (cached?.value) {
       return;
     }
 
-    const students = await gsCourseStudents(curso);
+    const students = await gsCourseStudentsCached(curso);
 
     __notasEstudiantes = (students || []).map(name => ({
       estudiante: String(name || "").trim(),
@@ -18731,6 +18731,18 @@ btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
 btnNotasStudentsBack?.addEventListener("click", () => {
   if (notasStudentsModal) notasStudentsModal.hidden = true;
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
+});
+
+
+
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    prewarmCoursesAndStudents_();
+  }, 1500);
+});
+
+window.addEventListener("online", () => {
+  prewarmCoursesAndStudents_();
 });
 
 
@@ -21269,37 +21281,66 @@ async function gsDisciplineList(month) {
 }
 
 /************ CURSOS + ESTUDIANTES (AUTOCOMPLETE) ************/
-/************ CACHE CURSOS/ESTUDIANTES ************/
+/************ CACHE CURSOS/ESTUDIANTES OFFLINE PRO ************/
 const LS_COURSES_CACHE = "courses_cache_v1";
 const LS_STUDENTS_CACHE_PREFIX = "course_students_cache_v1:"; // + course
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6 horas (ajústalo)
+const CACHE_TTL_MS = 365 * 24 * 60 * 60 * 1000; // 1 año: soporte offline real
 
 function cacheSet_(key, value) {
   try {
-    localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value }));
-  } catch {}
+    localStorage.setItem(key, JSON.stringify({
+      t: Date.now(),
+      v: value
+    }));
+  } catch (e) {
+    console.warn("No se pudo guardar cache:", key, e);
+  }
 }
 
-function cacheGet_(key) {
+function cacheGet_(key, opts = {}) {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return null;
+
     const obj = JSON.parse(raw);
     if (!obj || !obj.t) return null;
+
+    // Offline: nunca vencemos cache
+    if (!navigator.onLine || opts.ignoreTtl) {
+      return obj.v;
+    }
+
     if ((Date.now() - obj.t) > CACHE_TTL_MS) return null;
+
     return obj.v;
   } catch {
     return null;
   }
 }
 
-async function gsCoursesListCached() {
-  const cached = cacheGet_(LS_COURSES_CACHE);
-  if (Array.isArray(cached) && cached.length) return cached;
+function cacheGetAny_(key) {
+  return cacheGet_(key, { ignoreTtl: true });
+}
 
-  const fresh = await gsCoursesList();
-  if (Array.isArray(fresh)) cacheSet_(LS_COURSES_CACHE, fresh);
-  return fresh;
+async function gsCoursesListCached() {
+  const cached = cacheGetAny_(LS_COURSES_CACHE);
+
+  if (!navigator.onLine) {
+    return Array.isArray(cached) ? cached : [];
+  }
+
+  try {
+    const fresh = await gsCoursesList();
+
+    if (Array.isArray(fresh) && fresh.length) {
+      cacheSet_(LS_COURSES_CACHE, fresh);
+      return fresh;
+    }
+  } catch (e) {
+    console.warn("Cursos desde cache por fallo de red:", e);
+  }
+
+  return Array.isArray(cached) ? cached : [];
 }
 
 async function gsCourseStudentsCached(course) {
@@ -21307,36 +21348,56 @@ async function gsCourseStudentsCached(course) {
   if (!c) return [];
 
   const key = LS_STUDENTS_CACHE_PREFIX + c;
-  const cached = cacheGet_(key);
-  if (Array.isArray(cached) && cached.length) return cached;
+  const cached = cacheGetAny_(key);
 
-  const fresh = await gsCourseStudents(c);
-  if (Array.isArray(fresh)) cacheSet_(key, fresh);
-  return fresh;
+  if (!navigator.onLine) {
+    return Array.isArray(cached) ? cached : [];
+  }
+
+  try {
+    const fresh = await gsCourseStudents(c);
+
+    if (Array.isArray(fresh) && fresh.length) {
+      cacheSet_(key, fresh);
+      return fresh;
+    }
+  } catch (e) {
+    console.warn("Estudiantes desde cache por fallo de red:", c, e);
+  }
+
+  return Array.isArray(cached) ? cached : [];
 }
 
-// ✅ Precarga cursos + estudiantes del curso por defecto
+// ✅ Precarga TODOS los cursos + estudiantes para trabajar offline
 async function prewarmCoursesAndStudents_() {
   try {
-    console.log("🔥 Preload: cursos/estudiantes…");
+    if (!navigator.onLine) return;
 
-    const courses = await gsCoursesListCached();
-    console.log("✅ Preload cursos:", (courses || []).length);
+    console.log("🔥 Preload offline: cursos y estudiantes…");
 
-    // Curso por defecto: el del perfil o el del login
-    const profile = (typeof loadProfile === "function") ? loadProfile() : null;
-    const defaultCourse =
-      (profile && profile.course) ? String(profile.course).trim() :
-      (typeof loginCourseEl !== "undefined" && loginCourseEl && loginCourseEl.value) ? loginCourseEl.value.trim() :
-      "";
+    const courses = await gsCoursesList();
+    if (!Array.isArray(courses) || !courses.length) return;
 
-    if (defaultCourse) {
-      const st = await gsCourseStudentsCached(defaultCourse);
-      console.log("✅ Preload estudiantes de", defaultCourse, ":", (st || []).length);
+    cacheSet_(LS_COURSES_CACHE, courses);
+    console.log("✅ Cursos cacheados:", courses.length);
+
+    for (const course of courses) {
+      const c = String(course || "").trim();
+      if (!c) continue;
+
+      try {
+        const students = await gsCourseStudents(c);
+
+        if (Array.isArray(students) && students.length) {
+          cacheSet_(LS_STUDENTS_CACHE_PREFIX + c, students);
+          console.log("✅ Estudiantes cacheados:", c, students.length);
+        }
+      } catch (e) {
+        console.warn("No se pudo cachear estudiantes de", c, e);
+      }
     }
-
   } catch (e) {
-    console.warn("⚠️ Preload falló (se seguirá cargando normal):", e);
+    console.warn("⚠️ Preload offline falló:", e);
   }
 }
 
