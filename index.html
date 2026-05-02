@@ -2498,7 +2498,7 @@ body.is-admin #registerActions{
 
 @media (min-width: 760px){
   .behavior-viewer-filters{
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 
@@ -7717,6 +7717,13 @@ body.is-pc-mode .single-action-wrap{
       <div class="behavior-panel">
         <div class="behavior-panel-card">
 
+          <div style="margin-bottom:10px;">
+  <label class="modal-label" for="lateMonth">Mes</label>
+  <select id="lateMonth" class="modal-input behavior-big-select">
+    <option value="">Cargando meses...</option>
+  </select>
+</div>
+
         <div class="late-compact-row">
   <div class="late-course-box">
     <label class="modal-label" for="lateCourse">Curso</label>
@@ -8357,10 +8364,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="disciplineViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-    
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Uso inadecuado del celular</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8369,9 +8375,17 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="discViewerMonth">Mes</label>
+              <select id="discViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
+            </div>
+
+            <div>
               <label class="modal-label" for="discViewerCourse">Curso</label>
               <select id="discViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="discViewerStudent">Estudiante</label>
               <select id="discViewerStudent" class="modal-input behavior-big-select">
@@ -8386,10 +8400,10 @@ body.is-pc-mode .single-action-wrap{
         </div>
       </div>
     </div>
-  <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
 
+    <button id="btnDiscViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8397,10 +8411,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="piercingViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-   
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Piercing y perforaciones</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8409,9 +8422,17 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="piercViewerMonth">Mes</label>
+             <select id="piercViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
+            </div>
+
+            <div>
               <label class="modal-label" for="piercViewerCourse">Curso</label>
               <select id="piercViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="piercViewerStudent">Estudiante</label>
               <select id="piercViewerStudent" class="modal-input behavior-big-select">
@@ -8427,10 +8448,9 @@ body.is-pc-mode .single-action-wrap{
       </div>
     </div>
 
-       <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-
+    <button id="btnPiercViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8438,10 +8458,9 @@ body.is-pc-mode .single-action-wrap{
 <div id="uniformViewerModal" class="modal-backdrop behavior-full" hidden>
   <div class="modal-card">
     <div class="behavior-full-header">
-      
       <div class="behavior-full-headtext">
         <div class="behavior-full-title">Porte del uniforme</div>
-        <div class="behavior-full-sub">Ver reportes del mes actual.</div>
+        <div class="behavior-full-sub">Ver reportes por mes.</div>
       </div>
     </div>
 
@@ -8450,9 +8469,17 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-viewer-filters">
             <div>
+              <label class="modal-label" for="uniViewerMonth">Mes</label>
+              <select id="uniViewerMonth" class="modal-input behavior-big-select">
+  <option value="">Cargando meses...</option>
+</select>
+            </div>
+
+            <div>
               <label class="modal-label" for="uniViewerCourse">Curso</label>
               <select id="uniViewerCourse" class="modal-input behavior-big-select"></select>
             </div>
+
             <div>
               <label class="modal-label" for="uniViewerStudent">Estudiante</label>
               <select id="uniViewerStudent" class="modal-input behavior-big-select">
@@ -8469,9 +8496,8 @@ body.is-pc-mode .single-action-wrap{
     </div>
 
     <button id="btnUniViewerBack" type="button" class="behavior-full-back" aria-label="Atrás">
-        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
-      </button>
-
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+    </button>
   </div>
 </div>
 
@@ -8781,17 +8807,21 @@ const btnDiscViewerBack = $("btnDiscViewerBack");
 const btnPiercViewerBack = $("btnPiercViewerBack");
 const btnUniViewerBack = $("btnUniViewerBack");
 
+const discViewerMonth = $("discViewerMonth");
 const discViewerCourse = $("discViewerCourse");
 const discViewerStudent = $("discViewerStudent");
 const discViewerList = $("discViewerList");
 
+const piercViewerMonth = $("piercViewerMonth");
 const piercViewerCourse = $("piercViewerCourse");
 const piercViewerStudent = $("piercViewerStudent");
 const piercViewerList = $("piercViewerList");
 
+const uniViewerMonth = $("uniViewerMonth");
 const uniViewerCourse = $("uniViewerCourse");
 const uniViewerStudent = $("uniViewerStudent");
 const uniViewerList = $("uniViewerList");
+const lateMonthEl = $("lateMonth");
 
 const btnDiscReport = $("btnDiscReport");
 const btnPiercReport = $("btnPiercReport");
@@ -9283,7 +9313,7 @@ function lateRenderReportedList_(){
 }
 
 async function lateRefreshList_(){
-  __lateCacheList = await gsLateArrivalList();
+  __lateCacheList = await gsLateArrivalList(lateMonthKey_());
 
   try {
     __latePollToken = await gsLateArrivalChangesToken();
@@ -9381,10 +9411,65 @@ function behaviorMetaByKind_(kind){
   };
 }
 
+async function loadBehaviorMonths_(kind, selectEl){
+  if (!selectEl) return;
+
+  const previousValue = String(selectEl.value || "").trim();
+  selectEl.innerHTML = `<option value="">Cargando meses...</option>`;
+
+  try {
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "behavior_months",
+        kind,
+        key: GS_API_KEY
+      })
+    });
+
+    const r = await res.json().catch(() => null);
+    if (!r) throw new Error("Respuesta inválida del servidor.");
+    if (!r.ok) throw new Error(r.msg || r.error || "No se pudieron cargar los meses.");
+
+    const months = Array.isArray(r.months) ? r.months : [];
+    const current = behaviorCurrentMonthKey_();
+
+    if (!months.length) {
+      selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
+      selectEl.value = current;
+      return;
+    }
+
+    selectEl.innerHTML = months.map(m =>
+      `<option value="${escapeHtml(m.key)}">${escapeHtml(m.label || m.key)}</option>`
+    ).join("");
+
+    const values = months.map(m => String(m.key || ""));
+    selectEl.value = values.includes(previousValue) ? previousValue : String(months[0].key || current);
+
+  } catch (e) {
+    const current = behaviorCurrentMonthKey_();
+    selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
+    selectEl.value = current;
+    console.error("loadBehaviorMonths_ error:", e);
+  }
+}
+
+
+function behaviorInitMonthInputs_(){
+  const current = behaviorSelectedMonth_(null);
+
+  [discViewerMonth, piercViewerMonth, uniViewerMonth, lateMonthEl].forEach(el => {
+    if (el && !el.value) el.value = current;
+  });
+}
+
+
 function behaviorKindMonth_(kind){
-  if (kind === "discipline") return discMonthKey_();
-  if (kind === "piercing") return piercMonthKey_();
-  return uniMonthKey_();
+  if (kind === "discipline") return discViewerMonthKey_();
+  if (kind === "piercing") return piercViewerMonthKey_();
+  if (kind === "uniform") return uniViewerMonthKey_();
+  return behaviorCurrentMonthKey_();
 }
 
 function behaviorKindHasCache_(kind){
@@ -9423,9 +9508,9 @@ function behaviorKindReadStorage_(kind){
 }
 
 async function behaviorKindFetchList_(kind){
-  if (kind === "discipline") return await gsDisciplineList(discMonthKey_());
-  if (kind === "piercing") return await gsPiercingList(piercMonthKey_());
-  if (kind === "uniform") return await gsUniformList(uniMonthKey_());
+  if (kind === "discipline") return await gsDisciplineList(discViewerMonthKey_());
+  if (kind === "piercing") return await gsPiercingList(piercViewerMonthKey_());
+  if (kind === "uniform") return await gsUniformList(uniViewerMonthKey_());
   return [];
 }
 
@@ -9621,10 +9706,11 @@ async function openBehaviorViewer_(){
 
   if (__behaviorKind === "discipline") {
     if (disciplineViewerModal) disciplineViewerModal.hidden = false;
-    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
+    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes.</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("discipline", { silent: false });
+      await loadBehaviorMonths_("discipline", discViewerMonth);
+      await ensureBehaviorDataLoaded_("discipline", { force: true, silent: false });
       renderBehaviorViewer_("discipline");
     } catch (e) {
       if (discViewerList) {
@@ -9639,7 +9725,8 @@ async function openBehaviorViewer_(){
     if (piercViewerList) piercViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("piercing", { silent: false });
+      await loadBehaviorMonths_("piercing", piercViewerMonth);
+      await ensureBehaviorDataLoaded_("piercing", { force: true, silent: false });
       renderBehaviorViewer_("piercing");
     } catch (e) {
       if (piercViewerList) {
@@ -9654,7 +9741,8 @@ async function openBehaviorViewer_(){
     if (uniViewerList) uniViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
 
     try {
-      await ensureBehaviorDataLoaded_("uniform", { silent: false });
+      await loadBehaviorMonths_("uniform", uniViewerMonth);
+      await ensureBehaviorDataLoaded_("uniform", { force: true, silent: false });
       renderBehaviorViewer_("uniform");
     } catch (e) {
       if (uniViewerList) {
@@ -9783,10 +9871,10 @@ function behaviorKindLabel_(kind){
 }
 
 function behaviorKindMonthKey_(kind){
-  if (kind === "discipline") return discMonthKey_();
-  if (kind === "piercing") return piercMonthKey_();
-  if (kind === "uniform") return uniMonthKey_();
-  return "";
+  if (kind === "discipline") return discViewerMonthKey_();
+  if (kind === "piercing") return piercViewerMonthKey_();
+  if (kind === "uniform") return uniViewerMonthKey_();
+  return behaviorCurrentMonthKey_();
 }
 
 function behaviorNormalizeStudentByKind_(kind, student){
@@ -20792,10 +20880,41 @@ let __discCurrentStudent = "";   // nombre seleccionado desde la lista
 let __discCacheList = [];        // lista del mes actual (para render rápido)
   let __discView = "list"; // "list" | "detail"
 
+function behaviorSelectedMonth_(inputEl){
+  const v = String(inputEl && inputEl.value || "").trim();
+  if (v) return v;
 
-function discMonthKey_() {
-  return monthKeyFromDate(new Date()); // YYYY-MM
+  return behaviorCurrentMonthKey_();
 }
+
+
+function behaviorCurrentMonthKey_(){
+  if (typeof currentMonthKey_ === "function") return currentMonthKey_();
+  if (typeof monthKeyFromDate === "function") return monthKeyFromDate(new Date());
+
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/* ✅ Mes para GUARDAR reportes: siempre mes actual */
+function discMonthKey_(){
+  return behaviorCurrentMonthKey_();
+}
+
+
+/* ✅ Mes para VER reportes */
+function discViewerMonthKey_(){
+  return behaviorSelectedMonth_(discViewerMonth);
+}
+
+function piercViewerMonthKey_(){
+  return behaviorSelectedMonth_(piercViewerMonth);
+}
+
+function uniViewerMonthKey_(){
+  return behaviorSelectedMonth_(uniViewerMonth);
+}
+
 
 function normalizeStudent_(s){
   return String(s || "").trim().replace(/\s+/g, " ");
@@ -22542,10 +22661,9 @@ let __piercCurrentStudent = "";
 let __piercCacheList = [];
 let __piercView = "list"; // "list" | "detail"
 
-function piercMonthKey_() {
-  return monthKeyFromDate(new Date()); // YYYY-MM
+function piercMonthKey_(){
+  return behaviorCurrentMonthKey_();
 }
-
 function piercNormalizeStudent_(s){
   return String(s || "").trim().replace(/\s+/g, " ");
 }
@@ -23605,11 +23723,11 @@ async function gsUniformDeleteOne(payload) {
 }
 
 /* ======= helpers ======= */
-function uniMonthKey_() {
-  // usa la misma lógica del mes actual que ya usas en disciplina/piercing
-  // si ya tienes discMonthKey_ / piercMonthKey_, esto mantiene el mismo mes
-  return (typeof discMonthKey_ === "function") ? discMonthKey_() : (typeof piercMonthKey_ === "function" ? piercMonthKey_() : "");
+function uniMonthKey_(){
+  return behaviorCurrentMonthKey_();
 }
+
+
 
 function uniNormalizeStudent_(s) {
   return String(s || "").trim().replace(/\s+/g, " ");
@@ -24489,6 +24607,33 @@ if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer
 
 if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
+
+
+if (discViewerMonth) discViewerMonth.onchange = async () => {
+  if (discViewerStudent) discViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("discipline", { force: true, silent: false });
+  renderBehaviorViewer_("discipline");
+};
+
+if (piercViewerMonth) piercViewerMonth.onchange = async () => {
+  if (piercViewerStudent) piercViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("piercing", { force: true, silent: false });
+  renderBehaviorViewer_("piercing");
+};
+
+if (uniViewerMonth) uniViewerMonth.onchange = async () => {
+  if (uniViewerStudent) uniViewerStudent.value = "";
+  await ensureBehaviorDataLoaded_("uniform", { force: true, silent: false });
+  renderBehaviorViewer_("uniform");
+};
+
+if (lateMonthEl) lateMonthEl.onchange = async () => {
+  __lateCurrentStudent = "";
+  lateClearDetail_();
+  lateLoadCacheFromStorage_();
+  await lateRefreshList_();
+};
+
 
 /* ======= Poll ======= */
 function uniStartPolling_() {
@@ -26554,14 +26699,13 @@ function lateApplyTimes_(times){
   });
 }
 
+/* Llegadas tarde usa combo porque ese mismo módulo lista por mes */
 function lateMonthKey_(){
-  if (typeof currentMonthKey_ === "function") return currentMonthKey_();
-  if (typeof monthKeyFromDate === "function") return monthKeyFromDate(new Date());
+  const selected = String(lateMonthEl && lateMonthEl.value || "").trim();
+  if (selected) return selected;
 
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  return behaviorCurrentMonthKey_();
 }
-
 function lateDeviceId_(){
   if (typeof getDeviceId === "function") return getDeviceId();
   if (typeof getDeviceId_ === "function") return getDeviceId_();
@@ -26812,10 +26956,11 @@ async function lateEditOne_(student, row){
   }
 }
 
-async function openLateArrivalModal_(){ 
+async function openLateArrivalModal_(){
   if (!lateArrivalModal) return;
 
   lateArrivalModal.hidden = false;
+  await loadBehaviorMonths_("late", lateMonthEl);
   lateArrivalModal.removeAttribute("hidden");
   lateArrivalModal.style.display = "flex";
 
@@ -26826,7 +26971,13 @@ async function openLateArrivalModal_(){
   if (lateObservationEl) lateObservationEl.value = "";
   if (lateStudentEl) lateStudentEl.value = "";
 
-  /* ✅ Carga instantánea desde localStorage */
+  try {
+    await loadBehaviorMonths_("late", lateMonthEl);
+  } catch (e) {
+    lateSetHint_(String(e && e.message ? e.message : e));
+  }
+
+  /* ✅ Carga instantánea desde localStorage según el mes seleccionado */
   lateLoadCacheFromStorage_();
   lateRenderReportedList_();
   lateUpdateAutoBox_();
@@ -27064,6 +27215,8 @@ uniBindUI_();
 uniStartPolling_();
 
 bindObservationModal_();
+
+behaviorInitMonthInputs_();
 
 bindLateArrivalUI_();
 
