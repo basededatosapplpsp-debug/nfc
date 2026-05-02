@@ -18482,7 +18482,7 @@ if (cached?.value) {
 if (!navigator.onLine) {
   const students = await gsCourseStudentsCached(curso);
 
-  if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+  if (Array.isArray(students) && students.length) {
     __notasEstudiantes = students.map(name => ({
       estudiante: String(name || "").trim(),
       notas: {}
@@ -18490,12 +18490,15 @@ if (!navigator.onLine) {
 
     notasRenderColumnas_();
     notasRenderGrid_();
-  }
 
-  notasSetHint_(__notasEstudiantes.length
-    ? "Planilla abierta en modo offline ✅ Los cambios se sincronizarán cuando vuelva internet."
-    : "Sin internet y sin estudiantes guardados para este curso."
-  );
+    notasSetHint_("Planilla abierta en modo offline ✅ Estudiantes cargados desde este curso.");
+  } else {
+    __notasEstudiantes = [];
+    notasRenderColumnas_();
+    notasRenderGrid_();
+
+    notasSetHint_("Sin internet y sin estudiantes guardados para este curso.");
+  }
 
   return;
 }
@@ -18875,7 +18878,9 @@ async function notasAutoLoadStudentsOnCourse_(){
   }, 250);
 }
 
-notasCursoEl?.addEventListener("change", notasAutoLoadStudentsOnCourse_);
+notasCursoEl?.addEventListener("change", () => {
+  notasAbrirPlanillaActual_({ silent: true, useCache: true });
+});
 
 [notasAsignaturaEl, notasPeriodoEl].forEach(el => {
   el?.addEventListener("change", () => {
@@ -18891,7 +18896,7 @@ notasCursoEl?.addEventListener("change", notasAutoLoadStudentsOnCourse_);
   });
 });
 
-notasCursoEl?.addEventListener("change", notasAutoLoadStudentsOnCourse_);
+
 
 [notasAsignaturaEl, notasPeriodoEl].forEach(el => {
   el?.addEventListener("change", () => {
