@@ -22398,11 +22398,13 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const month = discMonthKey_();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("discipline", resp.list);
+  behaviorKindSetCache_("discipline", resp.list, month);
 } else {
-  const items = await gsDisciplineList(discMonthKey_());
-  behaviorKindSetCache_("discipline", items);
+  const items = await gsDisciplineList(month);
+  behaviorKindSetCache_("discipline", items, month);
 }
 
 behaviorRefreshOpenUI_("discipline");
@@ -22526,10 +22528,15 @@ function discStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    try {
-      const items = await gsDisciplineList(discMonthKey_());
+    const month =
+      disciplineViewerModal && !disciplineViewerModal.hidden
+        ? discViewerMonthKey_()
+        : discMonthKey_();
 
-      behaviorKindSetCache_("discipline", items);
+    try {
+      const items = await gsDisciplineList(month);
+
+      behaviorKindSetCache_("discipline", items, month);
       behaviorRefreshOpenUI_("discipline");
 
     } catch {
@@ -23393,11 +23400,13 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const month = piercMonthKey_();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("piercing", resp.list);
+  behaviorKindSetCache_("piercing", resp.list, month);
 } else {
-  const items = await gsPiercingList(piercMonthKey_());
-  behaviorKindSetCache_("piercing", items);
+  const items = await gsPiercingList(month);
+  behaviorKindSetCache_("piercing", items, month);
 }
 
 behaviorRefreshOpenUI_("piercing");
@@ -23443,10 +23452,15 @@ function piercStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    try {
-      const items = await gsPiercingList(piercMonthKey_());
+    const month =
+      piercingViewerModal && !piercingViewerModal.hidden
+        ? piercViewerMonthKey_()
+        : piercMonthKey_();
 
-      behaviorKindSetCache_("piercing", items);
+    try {
+      const items = await gsPiercingList(month);
+
+      behaviorKindSetCache_("piercing", items, month);
       behaviorRefreshOpenUI_("piercing");
 
     } catch {
@@ -24428,11 +24442,13 @@ async function uniSubmitReport_() {
       date: new Date().toISOString()
     });
 
+const month = uniMonthKey_();
+
 if (resp && Array.isArray(resp.list)) {
-  behaviorKindSetCache_("uniform", resp.list);
+  behaviorKindSetCache_("uniform", resp.list, month);
 } else {
-  const items = await gsUniformList(uniMonthKey_());
-  behaviorKindSetCache_("uniform", items);
+  const items = await gsUniformList(month);
+  behaviorKindSetCache_("uniform", items, month);
 }
 
 behaviorRefreshOpenUI_("uniform");
@@ -24661,10 +24677,15 @@ function uniStartPolling_() {
     const admin = isAdminMode();
     if (!p && !admin) return;
 
-    try {
-      const items = await gsUniformList(uniMonthKey_());
+    const month =
+      uniformViewerModal && !uniformViewerModal.hidden
+        ? uniViewerMonthKey_()
+        : uniMonthKey_();
 
-      behaviorKindSetCache_("uniform", items);
+    try {
+      const items = await gsUniformList(month);
+
+      behaviorKindSetCache_("uniform", items, month);
       behaviorRefreshOpenUI_("uniform");
 
     } catch {
@@ -24672,7 +24693,6 @@ function uniStartPolling_() {
     }
   }, 4000);
 }
-
 
 // ======= GEO =======
 function toRad(x){ return x * Math.PI / 180; }
