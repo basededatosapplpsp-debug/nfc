@@ -9416,23 +9416,53 @@ async function loadBehaviorMonths_(kind, selectEl){
 
   selectEl.innerHTML = `<option value="">Cargando meses...</option>`;
 
-  const r = await apiPost_({
-    action: "behavior_months",
-    kind
-  });
+  try {
+    const res = await fetch(GS_WEBAPP_URL, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "behavior_months",
+        kind,
+        key: GS_API_KEY
+      })
+    });
 
-  const months = Array.isArray(r.months) ? r.months : [];
+    const r = await res.json().catch(() => null);
 
-  if (!months.length) {
-    selectEl.innerHTML = `<option value="">Sin reportes</option>`;
-    return;
+    if (!r) {
+      throw new Error("Respuesta inválida del servidor.");
+    }
+
+    if (!r.ok) {
+      throw new Error(r.msg || r.error || "No se pudieron cargar los meses.");
+    }
+
+    const months = Array.isArray(r.months) ? r.months : [];
+
+    if (!months.length) {
+      selectEl.innerHTML = `<option value="">Sin reportes</option>`;
+      return;
+    }
+
+    const esc = (typeof escapeHtml === "function")
+      ? escapeHtml
+      : (v) => String(v ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+
+    selectEl.innerHTML = months.map(m =>
+      `<option value="${esc(m.key)}">${esc(m.label || m.key)}</option>`
+    ).join("");
+
+    selectEl.value = months[0].key;
+
+  } catch (e) {
+    selectEl.innerHTML = `<option value="">Error cargando meses</option>`;
+    console.error("loadBehaviorMonths_ error:", e);
+    throw e;
   }
-
-  selectEl.innerHTML = months.map(m =>
-    `<option value="${escapeHtml_(m.key)}">${escapeHtml_(m.label || m.key)}</option>`
-  ).join("");
-
-  selectEl.value = months[0].key;
 }
 
 
