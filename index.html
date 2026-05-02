@@ -9453,11 +9453,29 @@ function behaviorMonthsReadCache_(kind){
 
 function behaviorMonthsSaveCache_(kind, months){
   try {
+    const current = behaviorCurrentMonthKey_();
+    let list = Array.isArray(months) ? months.slice() : [];
+
+    const hasCurrent = list.some(m => String(m && m.key || "") === String(current));
+
+    if (!hasCurrent) {
+      const d = new Date(current + "-01T12:00:00");
+      const label = d.toLocaleDateString("es-ES", {
+        month: "long",
+        year: "numeric"
+      });
+
+      list.unshift({
+        key: current,
+        label: label.charAt(0).toUpperCase() + label.slice(1)
+      });
+    }
+
     localStorage.setItem(
       behaviorMonthsCacheKey_(kind),
       JSON.stringify({
         ts: Date.now(),
-        months: Array.isArray(months) ? months : []
+        months: list
       })
     );
   } catch {}
@@ -9467,7 +9485,22 @@ function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
   if (!selectEl) return;
 
   const current = behaviorCurrentMonthKey_();
-  const list = Array.isArray(months) ? months : [];
+  let list = Array.isArray(months) ? months.slice() : [];
+
+  const hasCurrent = list.some(m => String(m && m.key || "") === String(current));
+
+  if (!hasCurrent) {
+    const d = new Date(current + "-01T12:00:00");
+    const label = d.toLocaleDateString("es-ES", {
+      month: "long",
+      year: "numeric"
+    });
+
+    list.unshift({
+      key: current,
+      label: label.charAt(0).toUpperCase() + label.slice(1)
+    });
+  }
 
   if (!list.length) {
     selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
@@ -9480,6 +9513,7 @@ function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
   ).join("");
 
   const values = list.map(m => String(m.key || ""));
+
   selectEl.value =
     values.includes(previousValue) ? previousValue :
     values.includes(current) ? current :
