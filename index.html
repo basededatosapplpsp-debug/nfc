@@ -9762,27 +9762,24 @@ async function ensureBehaviorDataLoaded_(kind, options = {}){
 function ensureCurrentMonthShown_(selectEl) {
   if (!selectEl) return;
 
-  const now = new Date();
-  const currentMonth = now.toLocaleString('es-ES', { month: 'long' });
+  const currentKey = behaviorCurrentMonthKey_();
 
-  // Verifica si el valor actual no coincide con el mes actual
-  const currentValue = (selectEl.value || "").toLowerCase();
+  const d = new Date(currentKey + "-01T12:00:00");
+  const label = d.toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric"
+  });
 
-  if (currentValue !== currentMonth.toLowerCase()) {
-    // Solo cambia el texto visual SIN afectar lógica interna
-    const optionExists = Array.from(selectEl.options).some(
-      opt => opt.value.toLowerCase() === currentMonth.toLowerCase()
-    );
+  let opt = Array.from(selectEl.options).find(o => String(o.value) === currentKey);
 
-    if (!optionExists) {
-      const opt = document.createElement("option");
-      opt.value = currentMonth;
-      opt.textContent = currentMonth;
-      selectEl.prepend(opt);
-    }
-
-    selectEl.value = currentMonth;
+  if (!opt) {
+    opt = document.createElement("option");
+    opt.value = currentKey;
+    opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+    selectEl.prepend(opt);
   }
+
+  selectEl.value = currentKey;
 }
 
 async function preloadBehaviorModule_(kind){
@@ -9895,8 +9892,8 @@ async function openBehaviorReport_(){
     if (monthEl) monthEl.value = current;
 
     try {
-      await loadBehaviorMonths_(kind, monthEl);
-      if (monthEl) monthEl.value = current;
+     await loadBehaviorMonths_(kind, monthEl);
+ensureCurrentMonthShown_(monthEl);
 
       openFn();
 
@@ -9933,6 +9930,7 @@ async function openBehaviorViewer_(){
     // 1) Cargar combo de meses, pero sin bloquear la vista
     try {
       await loadBehaviorMonths_(kind, monthSelectEl);
+      ensureCurrentMonthShown_(monthSelectEl);
     } catch (e) {
       console.warn("No se pudieron cargar meses:", kind, e);
     }
