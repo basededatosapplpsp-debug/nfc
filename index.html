@@ -9476,9 +9476,10 @@ function behaviorInitMonthInputs_(){
 
 
 function behaviorKindMonth_(kind){
-  if (kind === "discipline") return discMonthKey_();
-  if (kind === "piercing") return piercMonthKey_();
-  return uniMonthKey_();
+  if (kind === "discipline") return discViewerMonthKey_();
+  if (kind === "piercing") return piercViewerMonthKey_();
+  if (kind === "uniform") return uniViewerMonthKey_();
+  return behaviorCurrentMonthKey_();
 }
 
 function behaviorKindHasCache_(kind){
@@ -9517,9 +9518,9 @@ function behaviorKindReadStorage_(kind){
 }
 
 async function behaviorKindFetchList_(kind){
-  if (kind === "discipline") return await gsDisciplineList(discMonthKey_());
-  if (kind === "piercing") return await gsPiercingList(piercMonthKey_());
-  if (kind === "uniform") return await gsUniformList(uniMonthKey_());
+  if (kind === "discipline") return await gsDisciplineList(discViewerMonthKey_());
+  if (kind === "piercing") return await gsPiercingList(piercViewerMonthKey_());
+  if (kind === "uniform") return await gsUniformList(uniViewerMonthKey_());
   return [];
 }
 
@@ -9880,10 +9881,10 @@ function behaviorKindLabel_(kind){
 }
 
 function behaviorKindMonthKey_(kind){
-  if (kind === "discipline") return discMonthKey_();
-  if (kind === "piercing") return piercMonthKey_();
-  if (kind === "uniform") return uniMonthKey_();
-  return "";
+  if (kind === "discipline") return discViewerMonthKey_();
+  if (kind === "piercing") return piercViewerMonthKey_();
+  if (kind === "uniform") return uniViewerMonthKey_();
+  return behaviorCurrentMonthKey_();
 }
 
 function behaviorNormalizeStudentByKind_(kind, student){
@@ -20890,10 +20891,7 @@ let __discCacheList = [];        // lista del mes actual (para render rápido)
   let __discView = "list"; // "list" | "detail"
 
 
-function behaviorSelectedMonth_(inputEl){
-  const v = String(inputEl && inputEl.value || "").trim();
-  if (v) return v;
-
+function behaviorCurrentMonthKey_(){
   if (typeof currentMonthKey_ === "function") return currentMonthKey_();
   if (typeof monthKeyFromDate === "function") return monthKeyFromDate(new Date());
 
@@ -20901,9 +20899,25 @@ function behaviorSelectedMonth_(inputEl){
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+/* ✅ Mes para GUARDAR reportes: siempre mes actual */
 function discMonthKey_(){
+  return behaviorCurrentMonthKey_();
+}
+
+
+/* ✅ Mes para VER reportes */
+function discViewerMonthKey_(){
   return behaviorSelectedMonth_(discViewerMonth);
 }
+
+function piercViewerMonthKey_(){
+  return behaviorSelectedMonth_(piercViewerMonth);
+}
+
+function uniViewerMonthKey_(){
+  return behaviorSelectedMonth_(uniViewerMonth);
+}
+
 
 function normalizeStudent_(s){
   return String(s || "").trim().replace(/\s+/g, " ");
@@ -22651,7 +22665,7 @@ let __piercCacheList = [];
 let __piercView = "list"; // "list" | "detail"
 
 function piercMonthKey_(){
-  return behaviorSelectedMonth_(piercViewerMonth);
+  return behaviorCurrentMonthKey_();
 }
 function piercNormalizeStudent_(s){
   return String(s || "").trim().replace(/\s+/g, " ");
@@ -23713,8 +23727,10 @@ async function gsUniformDeleteOne(payload) {
 
 /* ======= helpers ======= */
 function uniMonthKey_(){
-  return behaviorSelectedMonth_(uniViewerMonth);
+  return behaviorCurrentMonthKey_();
 }
+
+
 
 function uniNormalizeStudent_(s) {
   return String(s || "").trim().replace(/\s+/g, " ");
@@ -26686,10 +26702,10 @@ function lateApplyTimes_(times){
   });
 }
 
+/* Llegadas tarde usa combo porque ese mismo módulo lista por mes */
 function lateMonthKey_(){
   return behaviorSelectedMonth_(lateMonthEl);
 }
-
 function lateDeviceId_(){
   if (typeof getDeviceId === "function") return getDeviceId();
   if (typeof getDeviceId_ === "function") return getDeviceId_();
