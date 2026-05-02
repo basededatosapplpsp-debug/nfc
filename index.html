@@ -7488,6 +7488,10 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-form-grid two">
             <div>
+  <label class="modal-label" for="discReportMonth">Mes</label>
+  <select id="discReportMonth" class="modal-input behavior-big-select"></select>
+</div>
+            <div>
               <label class="modal-label" for="discCourse">Curso</label>
               <select id="discCourse" class="modal-input behavior-big-select"></select>
             </div>
@@ -7565,6 +7569,10 @@ body.is-pc-mode .single-action-wrap{
         <div class="behavior-panel-card">
           <div class="behavior-form-grid two">
             <div>
+  <label class="modal-label" for="piercReportMonth">Mes</label>
+  <select id="piercReportMonth" class="modal-input behavior-big-select"></select>
+</div>
+            <div>
               <label class="modal-label" for="piercCourse">Curso</label>
               <select id="piercCourse" class="modal-input behavior-big-select"></select>
             </div>
@@ -7641,6 +7649,10 @@ body.is-pc-mode .single-action-wrap{
       <div class="behavior-panel">
         <div class="behavior-panel-card">
           <div class="behavior-form-grid two">
+            <div>
+  <label class="modal-label" for="uniReportMonth">Mes</label>
+  <select id="uniReportMonth" class="modal-input behavior-big-select"></select>
+</div>
             <div>
               <label class="modal-label" for="uniCourse">Curso</label>
               <select id="uniCourse" class="modal-input behavior-big-select"></select>
@@ -8808,16 +8820,19 @@ const btnPiercViewerBack = $("btnPiercViewerBack");
 const btnUniViewerBack = $("btnUniViewerBack");
 
 const discViewerMonth = $("discViewerMonth");
+const discReportMonth = $("discReportMonth");
 const discViewerCourse = $("discViewerCourse");
 const discViewerStudent = $("discViewerStudent");
 const discViewerList = $("discViewerList");
 
 const piercViewerMonth = $("piercViewerMonth");
+const piercReportMonth = $("piercReportMonth");
 const piercViewerCourse = $("piercViewerCourse");
 const piercViewerStudent = $("piercViewerStudent");
 const piercViewerList = $("piercViewerList");
 
 const uniViewerMonth = $("uniViewerMonth");
+const uniReportMonth = $("uniReportMonth");
 const uniViewerCourse = $("uniViewerCourse");
 const uniViewerStudent = $("uniViewerStudent");
 const uniViewerList = $("uniViewerList");
@@ -9556,19 +9571,58 @@ async function behaviorMonthsFetch_(kind){
 function behaviorInitMonthInputs_(){
   const current = behaviorSelectedMonth_(null);
 
-  [discViewerMonth, piercViewerMonth, uniViewerMonth, lateMonthEl].forEach(el => {
+  [
+    discViewerMonth,
+    piercViewerMonth,
+    uniViewerMonth,
+    discReportMonth,
+    piercReportMonth,
+    uniReportMonth,
+    lateMonthEl
+  ].forEach(el => {
     if (el && !el.value) el.value = current;
   });
 }
 
 
-function behaviorKindMonth_(kind){
-  if (kind === "discipline") return discViewerMonthKey_();
-  if (kind === "piercing") return piercViewerMonthKey_();
-  if (kind === "uniform") return uniViewerMonthKey_();
+function discReportMonthKey_(){
+  return behaviorSelectedMonth_(discReportMonth);
+}
+
+function piercReportMonthKey_(){
+  return behaviorSelectedMonth_(piercReportMonth);
+}
+
+function uniReportMonthKey_(){
+  return behaviorSelectedMonth_(uniReportMonth);
+}
+
+function behaviorKindReportMonth_(kind){
+  if (kind === "discipline") return discReportMonthKey_();
+  if (kind === "piercing") return piercReportMonthKey_();
+  if (kind === "uniform") return uniReportMonthKey_();
   return behaviorCurrentMonthKey_();
 }
 
+
+function behaviorKindMonth_(kind){
+  if (kind === "discipline") {
+    if (disciplineModal && !disciplineModal.hidden) return discReportMonthKey_();
+    return discViewerMonthKey_();
+  }
+
+  if (kind === "piercing") {
+    if (piercingModal && !piercingModal.hidden) return piercReportMonthKey_();
+    return piercViewerMonthKey_();
+  }
+
+  if (kind === "uniform") {
+    if (uniformModal && !uniformModal.hidden) return uniReportMonthKey_();
+    return uniViewerMonthKey_();
+  }
+
+  return behaviorCurrentMonthKey_();
+}
 function behaviorKindHasCache_(kind, monthOverride){
   const month = monthOverride || behaviorKindMonth_(kind);
   return String(__behaviorLoadedMonth[kind] || "") === String(month || "");
@@ -9767,42 +9821,38 @@ function behaviorHasLocalCache_(items, kind, month) {
 async function openBehaviorReport_(){
   closeBehaviorHub_();
 
-  try {
-    await ensureBehaviorDataLoaded_(__behaviorKind, { silent: false });
+  const current = behaviorCurrentMonthKey_();
 
-    if (__behaviorKind === "discipline") {
-      openDisciplineModal();
-      return;
-    }
+  async function openOne_(kind, modal, monthEl, openFn, setHintFn){
+    if (monthEl) monthEl.value = current;
 
-    if (__behaviorKind === "piercing") {
-      openPiercingModal();
-      return;
-    }
+    try {
+      await loadBehaviorMonths_(kind, monthEl);
+      if (monthEl) monthEl.value = current;
 
-    if (__behaviorKind === "uniform") {
-      openUniformModal();
-      return;
-    }
-  } catch (e) {
-    const msg = String(e && e.message ? e.message : e);
+      openFn();
 
-    if (__behaviorKind === "discipline") {
-      openDisciplineModal();
-      discSetHint_(msg);
-      return;
+      await ensureBehaviorDataLoaded_(kind, { force: false, silent: false });
+      behaviorRefreshOpenUI_(kind);
+    } catch (e) {
+      const msg = String(e && e.message ? e.message : e);
+      openFn();
+      if (typeof setHintFn === "function") setHintFn(msg);
     }
+  }
 
-    if (__behaviorKind === "piercing") {
-      openPiercingModal();
-      piercSetHint_(msg);
-      return;
-    }
+  if (__behaviorKind === "discipline") {
+    await openOne_("discipline", disciplineModal, discReportMonth, openDisciplineModal, discSetHint_);
+    return;
+  }
 
-    if (__behaviorKind === "uniform") {
-      openUniformModal();
-      uniSetHint_(msg);
-    }
+  if (__behaviorKind === "piercing") {
+    await openOne_("piercing", piercingModal, piercReportMonth, openPiercingModal, piercSetHint_);
+    return;
+  }
+
+  if (__behaviorKind === "uniform") {
+    await openOne_("uniform", uniformModal, uniReportMonth, openUniformModal, uniSetHint_);
   }
 }
 
@@ -22166,7 +22216,7 @@ async function discDeleteStudent_(studentName){
     setLoading(true, "Eliminando…", "Borrando reportes del estudiante.");
 
     const resp = await gsDisciplineDeleteStudent({
-      month: discMonthKey_(),
+      month: discReportMonthKey_(),
       student,
       teacher: profile.name,
       email: profile.email,
@@ -22515,7 +22565,7 @@ async function discSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const month = discMonthKey_();
+const month = discReportMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
  behaviorKindSetCache_("discipline", resp.list, month);
@@ -23286,7 +23336,7 @@ async function piercDeleteStudent_(studentName){
   try {
     setLoading(true, "Eliminando…", "Borrando reportes del estudiante.");
     const resp = await gsPiercingDeleteStudent({
-      month: piercMonthKey_(),
+     month: piercReportMonthKey_(),
       student,
       teacher: profile.name,
       email: profile.email,
@@ -23519,7 +23569,7 @@ async function piercSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const month = piercMonthKey_();
+const month = piercReportMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
  behaviorKindSetCache_("piercing", resp.list, month);
@@ -24326,7 +24376,7 @@ async function uniDeleteStudent_(studentName){
     setLoading(true, "Eliminando…", "Borrando reportes del estudiante.");
 
     const resp = await gsUniformDeleteStudent({
-      month: uniMonthKey_(),
+      month: uniReportMonthKey_(),
       student,
       teacher: profile.name,
       email: profile.email,
@@ -24563,7 +24613,7 @@ async function uniSubmitReport_() {
       date: new Date().toISOString()
     });
 
-const month = uniMonthKey_();
+const month = uniReportMonthKey_();
 
 if (resp && Array.isArray(resp.list)) {
  behaviorKindSetCache_("uniform", resp.list, month);
@@ -24763,6 +24813,39 @@ if (piercViewerStudent) piercViewerStudent.onchange = () => renderBehaviorViewer
 
 if (uniViewerCourse) uniViewerCourse.onchange = () => renderBehaviorViewer_("uniform");
 if (uniViewerStudent) uniViewerStudent.onchange = () => renderBehaviorViewer_("uniform");
+
+if (discReportMonth) discReportMonth.onchange = async () => {
+  __discPendingLevel = 0;
+  await ensureBehaviorDataLoaded_("discipline", { force: false, silent: false });
+
+  if (__discCurrentStudent) {
+    discUpdateSelectedBox_(__discCurrentStudent);
+    const item = discFindInCache_(__discCurrentStudent);
+    discApplyLevelUI_(behaviorLevelFromItem_(item));
+  }
+};
+
+if (piercReportMonth) piercReportMonth.onchange = async () => {
+  __piercPendingLevel = 0;
+  await ensureBehaviorDataLoaded_("piercing", { force: false, silent: false });
+
+  if (__piercCurrentStudent) {
+    piercUpdateSelectedBox_(__piercCurrentStudent);
+    const item = piercFindInCache_(__piercCurrentStudent);
+    piercApplyLevelUI_(behaviorLevelFromItem_(item));
+  }
+};
+
+if (uniReportMonth) uniReportMonth.onchange = async () => {
+  __uniPendingLevel = 0;
+  await ensureBehaviorDataLoaded_("uniform", { force: false, silent: false });
+
+  if (__uniCurrentStudent) {
+    uniUpdateSelectedBox_(__uniCurrentStudent);
+    const item = uniFindInCache_(__uniCurrentStudent);
+    uniApplyLevelUI_(behaviorLevelFromItem_(item));
+  }
+};
 
 
 if (discViewerMonth) discViewerMonth.onchange = async () => {
