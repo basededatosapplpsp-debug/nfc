@@ -9453,11 +9453,29 @@ function behaviorMonthsReadCache_(kind){
 
 function behaviorMonthsSaveCache_(kind, months){
   try {
+    const current = behaviorCurrentMonthKey_();
+    let list = Array.isArray(months) ? months.slice() : [];
+
+    const hasCurrent = list.some(m => String(m && m.key || "") === String(current));
+
+    if (!hasCurrent) {
+      const d = new Date(current + "-01T12:00:00");
+      const label = d.toLocaleDateString("es-ES", {
+        month: "long",
+        year: "numeric"
+      });
+
+      list.unshift({
+        key: current,
+        label: label.charAt(0).toUpperCase() + label.slice(1)
+      });
+    }
+
     localStorage.setItem(
       behaviorMonthsCacheKey_(kind),
       JSON.stringify({
         ts: Date.now(),
-        months: Array.isArray(months) ? months : []
+        months: list
       })
     );
   } catch {}
@@ -9467,7 +9485,22 @@ function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
   if (!selectEl) return;
 
   const current = behaviorCurrentMonthKey_();
-  const list = Array.isArray(months) ? months : [];
+  let list = Array.isArray(months) ? months.slice() : [];
+
+  const hasCurrent = list.some(m => String(m && m.key || "") === String(current));
+
+  if (!hasCurrent) {
+    const d = new Date(current + "-01T12:00:00");
+    const label = d.toLocaleDateString("es-ES", {
+      month: "long",
+      year: "numeric"
+    });
+
+    list.unshift({
+      key: current,
+      label: label.charAt(0).toUpperCase() + label.slice(1)
+    });
+  }
 
   if (!list.length) {
     selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
@@ -9480,6 +9513,7 @@ function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
   ).join("");
 
   const values = list.map(m => String(m.key || ""));
+
   selectEl.value =
     values.includes(previousValue) ? previousValue :
     values.includes(current) ? current :
@@ -9665,6 +9699,8 @@ function behaviorKindReadStorage_(kind){
 async function behaviorReloadReportMonthStudent_(kind){
   await ensureBehaviorDataLoaded_(kind, { force: true, silent: false });
 
+
+
   if (kind === "discipline" && __discCurrentStudent) {
     const student = normalizeStudent_(__discCurrentStudent);
     discUpdateSelectedBox_(student);
@@ -9753,6 +9789,29 @@ async function ensureBehaviorDataLoaded_(kind, options = {}){
   })();
 
   return await __behaviorLoadPromises[promiseKey];
+}
+
+function ensureCurrentMonthShown_(selectEl) {
+  if (!selectEl) return;
+
+  const currentKey = behaviorCurrentMonthKey_();
+
+  const d = new Date(currentKey + "-01T12:00:00");
+  const label = d.toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric"
+  });
+
+  let opt = Array.from(selectEl.options).find(o => String(o.value) === currentKey);
+
+  if (!opt) {
+    opt = document.createElement("option");
+    opt.value = currentKey;
+    opt.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+    selectEl.prepend(opt);
+  }
+
+  selectEl.value = currentKey;
 }
 
 async function preloadBehaviorModule_(kind){
@@ -9865,8 +9924,8 @@ async function openBehaviorReport_(){
     if (monthEl) monthEl.value = current;
 
     try {
-      await loadBehaviorMonths_(kind, monthEl);
-      if (monthEl) monthEl.value = current;
+     await loadBehaviorMonths_(kind, monthEl);
+ensureCurrentMonthShown_(monthEl);
 
       openFn();
 
@@ -9903,6 +9962,7 @@ async function openBehaviorViewer_(){
     // 1) Cargar combo de meses, pero sin bloquear la vista
     try {
       await loadBehaviorMonths_(kind, monthSelectEl);
+      ensureCurrentMonthShown_(monthSelectEl);
     } catch (e) {
       console.warn("No se pudieron cargar meses:", kind, e);
     }
