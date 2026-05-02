@@ -9624,7 +9624,7 @@ function closeBehaviorHub_(){
 }
 
 
-const BEHAVIOR_CACHE_TTL_MS = 5 * 60 * 1000;
+const BEHAVIOR_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
 
 function behaviorStorageKey_(kind, month) {
   return `behavior_cache_${kind}_${month}`;
@@ -9712,51 +9712,71 @@ async function openBehaviorReport_(){
 async function openBehaviorViewer_(){
   closeBehaviorHub_();
 
-  if (__behaviorKind === "discipline") {
-    if (disciplineViewerModal) disciplineViewerModal.hidden = false;
-    if (discViewerList) discViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes.</div>`;
+  async function openOne_(kind, modal, listEl, monthSelectEl, emptyText){
+    if (modal) modal.hidden = false;
+
+    // 1) Cargar combo de meses, pero sin bloquear la vista
+    try {
+      await loadBehaviorMonths_(kind, monthSelectEl);
+    } catch (e) {
+      console.warn("No se pudieron cargar meses:", kind, e);
+    }
+
+    // 2) Intentar pintar INMEDIATO desde caché
+    const month = behaviorKindMonth_(kind);
+    const saved = behaviorReadCache_(kind, month);
+
+    if (Array.isArray(saved)) {
+      behaviorKindSetCache_(kind, saved, month);
+      renderBehaviorViewer_(kind);
+      return;
+    }
+
+    // 3) Si no hay caché, ahí sí mostrar cargando y llamar servidor
+    if (listEl) {
+      listEl.innerHTML = `<div class="behavior-empty">${emptyText}</div>`;
+    }
 
     try {
-      await loadBehaviorMonths_("discipline", discViewerMonth);
-      await ensureBehaviorDataLoaded_("discipline", { force: true, silent: false });
-      renderBehaviorViewer_("discipline");
+      await ensureBehaviorDataLoaded_(kind, { force: false, silent: false });
+      renderBehaviorViewer_(kind);
     } catch (e) {
-      if (discViewerList) {
-        discViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
+      if (listEl) {
+        listEl.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
       }
     }
+  }
+
+  if (__behaviorKind === "discipline") {
+    await openOne_(
+      "discipline",
+      disciplineViewerModal,
+      discViewerList,
+      discViewerMonth,
+      "Cargando reportes."
+    );
     return;
   }
 
   if (__behaviorKind === "piercing") {
-    if (piercingViewerModal) piercingViewerModal.hidden = false;
-    if (piercViewerList) piercViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
-
-    try {
-      await loadBehaviorMonths_("piercing", piercViewerMonth);
-      await ensureBehaviorDataLoaded_("piercing", { force: true, silent: false });
-      renderBehaviorViewer_("piercing");
-    } catch (e) {
-      if (piercViewerList) {
-        piercViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
-      }
-    }
+    await openOne_(
+      "piercing",
+      piercingViewerModal,
+      piercViewerList,
+      piercViewerMonth,
+      "Cargando reportes..."
+    );
     return;
   }
 
   if (__behaviorKind === "uniform") {
-    if (uniformViewerModal) uniformViewerModal.hidden = false;
-    if (uniViewerList) uniViewerList.innerHTML = `<div class="behavior-empty">Cargando reportes...</div>`;
-
-    try {
-      await loadBehaviorMonths_("uniform", uniViewerMonth);
-      await ensureBehaviorDataLoaded_("uniform", { force: true, silent: false });
-      renderBehaviorViewer_("uniform");
-    } catch (e) {
-      if (uniViewerList) {
-        uniViewerList.innerHTML = `<div class="behavior-empty">${escapeHtml(String(e && e.message ? e.message : e))}</div>`;
-      }
-    }
+    await openOne_(
+      "uniform",
+      uniformViewerModal,
+      uniViewerList,
+      uniViewerMonth,
+      "Cargando reportes..."
+    );
   }
 }
 
