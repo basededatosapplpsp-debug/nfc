@@ -26048,6 +26048,20 @@ btnToggleRecords.addEventListener("click", () => setRecordsOpen(recordsPanel.hid
 
 const APP_BUILD = "2026-04-10-63";
 
+
+function shouldSkipAutoRefreshForPcMode_(){
+  try {
+    if (typeof isPcMode === "function" && isPcMode()) return true;
+
+    const profile = typeof loadProfile === "function" ? loadProfile() : null;
+    return String(profile?.mode || "").trim().toLowerCase() === "pc";
+  } catch {
+    return false;
+  }
+}
+
+
+
 // ======= Reset / Refresh Service Worker + Cache =======
 let __hardRefreshRunning = false;
 
@@ -26099,8 +26113,11 @@ btnRefreshSW.addEventListener("click", async () => {
 });
 
 // ✅ Al abrir la app: hace hard refresh UNA sola vez por sesión
+// ✅ EXCEPTO en modo PC, para permitir abrir offline y conservar caché
 window.addEventListener("load", async () => {
   try {
+    if (shouldSkipAutoRefreshForPcMode_()) return;
+
     const alreadyAutoRefreshed = sessionStorage.getItem("didAutoRefreshOnOpen");
 
     if (alreadyAutoRefreshed === "1") return;
@@ -26140,13 +26157,15 @@ if ("serviceWorker" in navigator) {
         return;
       }
 
-      if (savedBuild !== APP_BUILD) {
-        if (__autoBuildRefreshRunning) return;
-        __autoBuildRefreshRunning = true;
+    if (savedBuild !== APP_BUILD) {
+  if (shouldSkipAutoRefreshForPcMode_()) return;
 
-        localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
-        await hardRefreshPWA();
-      }
+  if (__autoBuildRefreshRunning) return;
+  __autoBuildRefreshRunning = true;
+
+  localStorage.setItem("APP_BUILD_INSTALLED", APP_BUILD);
+  await hardRefreshPWA();
+}
     } catch {}
   }
 
