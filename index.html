@@ -18631,8 +18631,13 @@ async function notasOpenPlanilla_(){
       setLoading(true, "Cargando…", "Preparando planilla de notas.");
     }
 
-    await notasLoadCourses_();
-    await notasLoadAsignaturas_();
+   await notasLoadCourses_();
+await notasLoadAsignaturas_();
+
+/* ✅ Al abrir plantillas con internet, prepara TODOS los cursos para offline */
+if (navigator.onLine) {
+  prewarmCoursesAndStudents_();
+}
 
     const last = notasReadLastSelection_();
 
@@ -18784,6 +18789,12 @@ btnNotasGuardar?.addEventListener("click", notasGuardarPlanilla_);
 window.addEventListener("online", () => {
   notasSyncPendientes_({ silent: false });
 });
+
+window.addEventListener("online", () => {
+  prewarmCoursesAndStudents_();
+});
+
+
 
 window.addEventListener("load", () => {
   setTimeout(() => {
@@ -21446,11 +21457,16 @@ async function gsCourseStudentsCached(course) {
 }
 
 // ✅ Precarga TODOS los cursos + estudiantes para trabajar offline
-async function prewarmCoursesAndStudents_() {
-  try {
-    if (!navigator.onLine) return;
+let __prewarmCoursesRunning = false;
 
-    console.log("🔥 Preload offline: cursos y estudiantes…");
+async function prewarmCoursesAndStudents_() {
+  if (__prewarmCoursesRunning) return;
+  if (!navigator.onLine) return;
+
+  __prewarmCoursesRunning = true;
+
+  try {
+    console.log("🔥 Preload offline completo: cursos + todos los estudiantes…");
 
     const courses = await gsCoursesList();
     if (!Array.isArray(courses) || !courses.length) return;
@@ -21468,16 +21484,21 @@ async function prewarmCoursesAndStudents_() {
         if (Array.isArray(students) && students.length) {
           cacheSet_(LS_STUDENTS_CACHE_PREFIX + c, students);
           console.log("✅ Estudiantes cacheados:", c, students.length);
+        } else {
+          console.warn("⚠️ Curso sin estudiantes:", c);
         }
       } catch (e) {
-        console.warn("No se pudo cachear estudiantes de", c, e);
+        console.warn("⚠️ No se pudo cachear estudiantes de:", c, e);
       }
     }
+
+    console.log("✅ Preload offline completo terminado.");
   } catch (e) {
-    console.warn("⚠️ Preload offline falló:", e);
+    console.warn("⚠️ Preload offline completo falló:", e);
+  } finally {
+    __prewarmCoursesRunning = false;
   }
 }
-
 
 
 async function gsCoursesList() {
