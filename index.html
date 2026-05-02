@@ -9663,14 +9663,15 @@ function behaviorKindReadStorage_(kind){
 
 
 async function behaviorReloadReportMonthStudent_(kind){
-  await ensureBehaviorDataLoaded_(kind, { force: false, silent: false });
+  await ensureBehaviorDataLoaded_(kind, { force: true, silent: false });
 
   if (kind === "discipline" && __discCurrentStudent) {
     const student = normalizeStudent_(__discCurrentStudent);
     discUpdateSelectedBox_(student);
+
     const item = discFindInCache_(student);
     discApplyLevelUI_(behaviorLevelFromItem_(item));
-    behaviorReloadReportMonthStudent_("discipline");
+
     __discPendingLevel = 0;
     return;
   }
@@ -9678,9 +9679,10 @@ async function behaviorReloadReportMonthStudent_(kind){
   if (kind === "piercing" && __piercCurrentStudent) {
     const student = piercNormalizeStudent_(__piercCurrentStudent);
     piercUpdateSelectedBox_(student);
+
     const item = piercFindInCache_(student);
     piercApplyLevelUI_(behaviorLevelFromItem_(item));
-    behaviorReloadReportMonthStudent_("discipline");
+
     __piercPendingLevel = 0;
     return;
   }
@@ -9688,9 +9690,10 @@ async function behaviorReloadReportMonthStudent_(kind){
   if (kind === "uniform" && __uniCurrentStudent) {
     const student = uniNormalizeStudent_(__uniCurrentStudent);
     uniUpdateSelectedBox_(student);
+
     const item = uniFindInCache_(student);
     uniApplyLevelUI_(behaviorLevelFromItem_(item));
-    behaviorReloadReportMonthStudent_("uniform");
+
     __uniPendingLevel = 0;
   }
 }
