@@ -17510,8 +17510,9 @@ async function notasCrearColumna_(componente){
     componente: comp
   });
 
-  notasRenderColumnas_();
-  notasRenderGrid_();
+ notasRenderColumnas_();
+notasRenderGrid_();
+notasProgramarAutoGuardado_();
 }
 
 async function notasEditarColumna_(idx){
@@ -17543,19 +17544,21 @@ async function notasEditarColumna_(idx){
       }
     });
 
-    notasRenderColumnas_();
-    notasRenderGrid_();
-    return;
+  notasRenderColumnas_();
+notasRenderGrid_();
+notasProgramarAutoGuardado_();
+return;
   }
 
   if (result.action === "save") {
     const clean = String(result.value || "").trim();
     if (!clean) return;
 
-    col.nombre = clean;
+  col.nombre = clean;
 
-    notasRenderColumnas_();
-    notasRenderGrid_();
+notasRenderColumnas_();
+notasRenderGrid_();
+notasProgramarAutoGuardado_();
   }
 }
 
@@ -18842,7 +18845,32 @@ window.addEventListener("resize", () => {
 
 btnNotasCargarPlanilla?.addEventListener("click", notasCargarPlanillaGuardada_);
 
-btnNotasStudentsBack?.addEventListener("click", () => {
+btnNotasStudentsBack?.addEventListener("click", async () => {
+  try {
+    // 1. Cancelar autoguardado pendiente
+    clearTimeout(__notasAutoSaveTimer);
+
+    // 2. Forzar sincronización del estado actual (por si hay inputs activos)
+    // (esto asegura que lo que está en pantalla pase al modelo)
+    notasRefrescarDesdeUI_?.(); // <- si tienes una función así, si no, omítela
+
+    // 3. Construir payload actualizado
+    const payload = notasBuildSavePayload_();
+
+    if (payload) {
+      // 4. Guardar SIEMPRE local primero
+      await notasGuardarLocalSeguro_(payload, { pending: true });
+
+      // 5. Intentar sync si hay internet (sin bloquear salida)
+      if (navigator.onLine) {
+        notasSyncPendientes_({ silent: true });
+      }
+    }
+  } catch (e) {
+    console.warn("No se pudo guardar al salir de notas:", e);
+  }
+
+  // 6. Cerrar vistas
   if (notasStudentsModal) notasStudentsModal.hidden = true;
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
 });
