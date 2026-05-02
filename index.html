@@ -9411,48 +9411,127 @@ function behaviorMetaByKind_(kind){
   };
 }
 
+
+const BEHAVIOR_MONTHS_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
+const __behaviorMonthsPromises = {};
+
+function behaviorMonthsCacheKey_(kind){
+  return `behavior_months_cache_${String(kind || "").trim()}`;
+}
+
+function behaviorMonthsReadCache_(kind){
+  try {
+    const raw = localStorage.getItem(behaviorMonthsCacheKey_(kind));
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+    if (!data || !Array.isArray(data.months)) return null;
+
+    const ts = Number(data.ts || 0);
+    if (!ts || Date.now() - ts > BEHAVIOR_MONTHS_CACHE_TTL_MS) return null;
+
+    return data.months;
+  } catch {
+    return null;
+  }
+}
+
+function behaviorMonthsSaveCache_(kind, months){
+  try {
+    localStorage.setItem(
+      behaviorMonthsCacheKey_(kind),
+      JSON.stringify({
+        ts: Date.now(),
+        months: Array.isArray(months) ? months : []
+      })
+    );
+  } catch {}
+}
+
+function behaviorMonthsApplyToSelect_(selectEl, months, previousValue){
+  if (!selectEl) return;
+
+  const current = behaviorCurrentMonthKey_();
+  const list = Array.isArray(months) ? months : [];
+
+  if (!list.length) {
+    selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
+    selectEl.value = current;
+    return;
+  }
+
+  selectEl.innerHTML = list.map(m =>
+    `<option value="${escapeHtml(m.key)}">${escapeHtml(m.label || m.key)}</option>`
+  ).join("");
+
+  const values = list.map(m => String(m.key || ""));
+  selectEl.value =
+    values.includes(previousValue) ? previousValue :
+    values.includes(current) ? current :
+    String(list[0].key || current);
+}
+
+
+
 async function loadBehaviorMonths_(kind, selectEl){
   if (!selectEl) return;
 
+  kind = String(kind || "").trim();
   const previousValue = String(selectEl.value || "").trim();
+
+  // ✅ 1) Pintar inmediato desde caché si existe
+  const cached = behaviorMonthsReadCache_(kind);
+  if (cached && cached.length) {
+    behaviorMonthsApplyToSelect_(selectEl, cached, previousValue);
+
+    // Actualiza meses en segundo plano, sin mostrar "Cargando meses..."
+    if (!__behaviorMonthsPromises[kind]) {
+      __behaviorMonthsPromises[kind] = (async () => {
+        try {
+          const fresh = await behaviorMonthsFetch_(kind);
+          behaviorMonthsSaveCache_(kind, fresh);
+          behaviorMonthsApplyToSelect_(selectEl, fresh, String(selectEl.value || "").trim());
+        } catch (e) {
+          console.warn("No se pudieron actualizar meses:", kind, e);
+        } finally {
+          __behaviorMonthsPromises[kind] = null;
+        }
+      })();
+    }
+
+    return;
+  }
+
+  // ✅ 2) Solo si NO hay caché, muestra cargando
   selectEl.innerHTML = `<option value="">Cargando meses...</option>`;
 
   try {
-    const res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "behavior_months",
-        kind,
-        key: GS_API_KEY
-      })
-    });
-
-    const r = await res.json().catch(() => null);
-    if (!r) throw new Error("Respuesta inválida del servidor.");
-    if (!r.ok) throw new Error(r.msg || r.error || "No se pudieron cargar los meses.");
-
-    const months = Array.isArray(r.months) ? r.months : [];
-    const current = behaviorCurrentMonthKey_();
-
-    if (!months.length) {
-      selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
-      selectEl.value = current;
-      return;
-    }
-
-    selectEl.innerHTML = months.map(m =>
-      `<option value="${escapeHtml(m.key)}">${escapeHtml(m.label || m.key)}</option>`
-    ).join("");
-
-    const values = months.map(m => String(m.key || ""));
-    selectEl.value = values.includes(previousValue) ? previousValue : String(months[0].key || current);
-
+    const months = await behaviorMonthsFetch_(kind);
+    behaviorMonthsSaveCache_(kind, months);
+    behaviorMonthsApplyToSelect_(selectEl, months, previousValue);
   } catch (e) {
     const current = behaviorCurrentMonthKey_();
     selectEl.innerHTML = `<option value="${escapeHtml(current)}">Mes actual</option>`;
     selectEl.value = current;
     console.error("loadBehaviorMonths_ error:", e);
   }
+}
+
+async function behaviorMonthsFetch_(kind){
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "behavior_months",
+      kind,
+      key: GS_API_KEY
+    })
+  });
+
+  const r = await res.json().catch(() => null);
+  if (!r) throw new Error("Respuesta inválida del servidor.");
+  if (!r.ok) throw new Error(r.msg || r.error || "No se pudieron cargar los meses.");
+
+  return Array.isArray(r.months) ? r.months : [];
 }
 
 
