@@ -17886,7 +17886,7 @@ function notasOpenDetallePc_(sIdx){
 
 
 async function notasLoadCourses_(){
-  const courses = await gsCoursesList();
+  const courses = await gsCoursesListCached();
   fillSelect_(notasCursoEl, courses, "Selecciona curso");
 }
 
@@ -17894,31 +17894,69 @@ async function notasLoadStudents_(){
   await notasAbrirPlanillaActual_();
 }
 
+
+
+const LS_NOTAS_ASIGNATURAS_CACHE_PREFIX = "notas_asignaturas_cache_v1:";
+
+function notasAsignaturasCacheKey_(){
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
+    ? asignaturasCurrentDeviceId_()
+    : (typeof getDeviceId === "function" ? getDeviceId() : "");
+
+  return `${LS_NOTAS_ASIGNATURAS_CACHE_PREFIX}${email || "sin-email"}::${deviceId || "sin-device"}`;
+}
+
+function notasAsignaturasCacheSet_(items){
+  try {
+    localStorage.setItem(notasAsignaturasCacheKey_(), JSON.stringify({
+      ts: Date.now(),
+      items: Array.isArray(items) ? items : []
+    }));
+  } catch {}
+}
+
+function notasAsignaturasCacheGet_(){
+  try {
+    const raw = localStorage.getItem(notasAsignaturasCacheKey_());
+    if (!raw) return [];
+    const obj = JSON.parse(raw);
+    return Array.isArray(obj?.items) ? obj.items : [];
+  } catch {
+    return [];
+  }
+}
+
+
+
 async function notasLoadAsignaturas_(){
   if (!notasAsignaturaEl) return;
 
   notasAsignaturaEl.innerHTML = `<option value="">Selecciona asignatura</option>`;
 
-  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
-    ? asignaturasCurrentDeviceId_()
-    : (typeof getDeviceId === "function" ? getDeviceId() : "");
+  let items = notasAsignaturasCacheGet_();
 
-  if (!deviceId) {
-    notasSetHint_("No pude identificar el dispositivo para cargar asignaturas.");
-    return;
-  }
+  if (navigator.onLine) {
+    try {
+      if (typeof asignaturasLoadForCurrentUser_ === "function") {
+        items = await asignaturasLoadForCurrentUser_({ force: false });
+      } else {
+        const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
+          ? asignaturasCurrentDeviceId_()
+          : (typeof getDeviceId === "function" ? getDeviceId() : "");
 
-  let items = [];
+        if (typeof gsAsignaturasGet === "function" && deviceId) {
+          items = await gsAsignaturasGet(deviceId);
+        }
+      }
 
-  try {
-    if (typeof asignaturasLoadForCurrentUser_ === "function") {
-      items = await asignaturasLoadForCurrentUser_({ force: false });
-    } else if (typeof gsAsignaturasGet === "function") {
-      items = await gsAsignaturasGet(deviceId);
+      if (Array.isArray(items) && items.length) {
+        notasAsignaturasCacheSet_(items);
+      }
+    } catch (e) {
+      items = notasAsignaturasCacheGet_();
     }
-  } catch (e) {
-    notasSetHint_("No pude cargar asignaturas guardadas. Puedes revisarlas en Menú > Asignaturas.");
-    items = [];
   }
 
   const clean = [...new Set(
@@ -17935,7 +17973,10 @@ async function notasLoadAsignaturas_(){
   });
 
   if (!clean.length) {
-    notasSetHint_("No tienes asignaturas guardadas. Ve a Menú > Asignaturas y guarda al menos una.");
+    notasSetHint_(navigator.onLine
+      ? "No tienes asignaturas guardadas. Ve a Menú > Asignaturas y guarda al menos una."
+      : "Sin internet y sin asignaturas guardadas localmente. Abre una vez con internet para preparar el modo offline."
+    );
   }
 }
 
@@ -18436,6 +18477,27 @@ if (cached?.value) {
   if (idbCached?.value) {
     notasAplicarPlanillaCache_(idbCached.value);
   }
+}
+
+if (!navigator.onLine) {
+  const students = await gsCourseStudentsCached(curso);
+
+  if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+    __notasEstudiantes = students.map(name => ({
+      estudiante: String(name || "").trim(),
+      notas: {}
+    })).filter(x => x.estudiante);
+
+    notasRenderColumnas_();
+    notasRenderGrid_();
+  }
+
+  notasSetHint_(__notasEstudiantes.length
+    ? "Planilla abierta en modo offline ✅ Los cambios se sincronizarán cuando vuelva internet."
+    : "Sin internet y sin estudiantes guardados para este curso."
+  );
+
+  return;
 }
 
   try {
