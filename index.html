@@ -17581,8 +17581,8 @@ function notasCalcStudent_(student){
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-    if (nota === null) detalles.push(`Procedimental - ${col.nombre}: vacía`);
-    else if (nota < 3.5) detalles.push(`Procedimental - ${col.nombre}: ${nota}`);
+if (nota === null) detalles.push(`Procedimental - ${col.nombre}: vacía`);
+else if (nota === 1) detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
 
     return nota;
   });
@@ -17591,15 +17591,16 @@ function notasCalcStudent_(student){
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-    if (nota === null) detalles.push(`Cognitivo - ${col.nombre}: vacía`);
+   if (nota === null) detalles.push(`Cognitivo - ${col.nombre}: vacía`);
+else if (nota === 1) detalles.push(`Cognitivo - ${col.nombre}: igual a 1`);
 
     return nota;
   });
 
   const actitudinal = notasParseNota_(student.notas?.actitudinal);
 
-  if (actitudinal === null) detalles.push("Actitudinal: vacía");
-  else if (actitudinal < 3.5) detalles.push(`Actitudinal: ${actitudinal}`);
+if (actitudinal === null) detalles.push("Actitudinal: vacía");
+else if (actitudinal === 1) detalles.push("Actitudinal: igual a 1");
 
   const procTotal = notasAvg_(procNotas);
   const cogTotal = notasAvg_(cogNotas);
@@ -17609,14 +17610,45 @@ function notasCalcStudent_(student){
       ? Math.round(((procTotal * 0.4) + (cogTotal * 0.4) + (actitudinal * 0.2)) * 10) / 10
       : "—";
 
-  let estado = "OK";
+let estado = "OK";
 
-  if (detalles.some(d => d.includes("vacía"))) estado = "DEBE_NOTAS";
-  else if (definitiva !== "—" && definitiva < 3.5) estado = "BAJO";
-  else if (
-    procNotas.some(n => n !== null && n < 3.5) ||
-    actitudinal !== null && actitudinal < 3.5
-  ) estado = "RIESGO";
+const hayDebeNotas = detalles.some(d =>
+  d.includes("vacía") ||
+  d.includes("igual a 1")
+);
+
+const tieneDefinitiva =
+  definitiva !== "—" &&
+  definitiva !== null &&
+  definitiva !== "" &&
+  Number.isFinite(Number(definitiva));
+
+const procNotasBajas = procedimentales
+  .map(col => {
+    const key = String(col.orden);
+    const nota = notasParseNota_(student.notas?.[key]);
+    return {
+      nombre: String(col.nombre || `Actividad ${col.orden}`),
+      nota
+    };
+  })
+  .filter(x => x.nota !== null && x.nota > 1 && x.nota < 3.5);
+
+procNotasBajas.forEach(x => {
+  detalles.push(`Procedimental - ${x.nombre}: nota baja ${x.nota}`);
+});
+
+if (hayDebeNotas) {
+  estado = "DEBE_NOTAS";
+} else if (procNotasBajas.length) {
+  estado = "RIESGO";
+} else if (tieneDefinitiva) {
+  estado = Number(definitiva) < 3.5 ? "BAJO" : "OK";
+} else if (procTotal !== null && procTotal < 3.5) {
+  estado = "BAJO";
+} else {
+  estado = "OK";
+}
 
   return {
     procTotal: procTotal ?? "—",
