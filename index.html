@@ -20890,6 +20890,13 @@ let __discCurrentStudent = "";   // nombre seleccionado desde la lista
 let __discCacheList = [];        // lista del mes actual (para render rápido)
   let __discView = "list"; // "list" | "detail"
 
+function behaviorSelectedMonth_(inputEl){
+  const v = String(inputEl && inputEl.value || "").trim();
+  if (v) return v;
+
+  return behaviorCurrentMonthKey_();
+}
+
 
 function behaviorCurrentMonthKey_(){
   if (typeof currentMonthKey_ === "function") return currentMonthKey_();
