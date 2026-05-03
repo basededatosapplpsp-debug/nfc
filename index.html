@@ -6853,6 +6853,69 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== NOTAS: badge doble criterio + estado ===== */
+.notas-estado-combo{
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+
+  min-width: 92px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+
+  line-height: 1.05;
+  white-space: nowrap;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.notas-estado-main{
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.notas-estado-sub{
+  font-size: 9px;
+  font-weight: 900;
+  opacity: .78;
+}
+
+/* Criterio principal */
+.notas-badge-excelente{
+  color: #dcfce7;
+  background: rgba(34,197,94,.20);
+  border-color: rgba(34,197,94,.42);
+}
+
+.notas-badge-bueno{
+  color: #dbeafe;
+  background: rgba(59,130,246,.20);
+  border-color: rgba(96,165,250,.42);
+}
+
+.notas-badge-aceptable{
+  color: #fef3c7;
+  background: rgba(245,158,11,.20);
+  border-color: rgba(245,158,11,.42);
+}
+
+.notas-badge-insuficiente{
+  color: #fee2e2;
+  background: rgba(239,68,68,.20);
+  border-color: rgba(239,68,68,.42);
+}
+
+.notas-badge-sin-nota{
+  color: #e5e7eb;
+  background: rgba(148,163,184,.16);
+  border-color: rgba(148,163,184,.30);
+}
+
+
+
 </style>
 </head>
 
@@ -17650,22 +17713,61 @@ if (hayDebeNotas) {
   estado = "OK";
 }
 
-  return {
-    procTotal: procTotal ?? "—",
-    cogTotal: cogTotal ?? "—",
-    actitudinal: actitudinal ?? "—",
-    definitiva,
-    estado,
-    detalles: detalles.join("; ")
-  };
-}
-function notasEstadoBadge_(estado){
-  if (estado === "BAJO") return `<span class="badge badge-late">Bajo</span>`;
-  if (estado === "DEBE_NOTAS") return `<span class="badge badge-soft">Debe notas</span>`;
-  if (estado === "RIESGO") return `<span class="badge badge-soft">Riesgo</span>`;
-  return `<span class="badge badge-ontime">OK</span>`;
+const notaBase =
+  tieneDefinitiva ? Number(definitiva) :
+  procTotal !== null ? Number(procTotal) :
+  null;
+
+let criterio = "SIN_NOTA";
+
+if (notaBase !== null) {
+  if (notaBase < 3.5) criterio = "INSUFICIENTE";
+  else if (notaBase < 4.0) criterio = "ACEPTABLE";
+  else if (notaBase < 4.6) criterio = "BUENO";
+  else criterio = "EXCELENTE";
 }
 
+return {
+  procTotal: procTotal ?? "—",
+  cogTotal: cogTotal ?? "—",
+  actitudinal: actitudinal ?? "—",
+  definitiva,
+  estado,
+  criterio,
+  detalles: detalles.join("; ")
+};
+}
+function notasEstadoBadge_(estado, criterio = ""){
+  const est = String(estado || "").trim().toUpperCase();
+  const crit = String(criterio || "").trim().toUpperCase();
+
+  const criterioLabel =
+    crit === "EXCELENTE" ? "Excelente" :
+    crit === "BUENO" ? "Bueno" :
+    crit === "ACEPTABLE" ? "Aceptable" :
+    crit === "INSUFICIENTE" ? "Insuficiente" :
+    "Sin nota";
+
+  const criterioClass =
+    crit === "EXCELENTE" ? "notas-badge-excelente" :
+    crit === "BUENO" ? "notas-badge-bueno" :
+    crit === "ACEPTABLE" ? "notas-badge-aceptable" :
+    crit === "INSUFICIENTE" ? "notas-badge-insuficiente" :
+    "notas-badge-sin-nota";
+
+  const estadoLabel =
+    est === "DEBE_NOTAS" ? "Debe notas" :
+    est === "RIESGO" ? "Notas bajas" :
+    est === "BAJO" ? "Bajo" :
+    "OK";
+
+  return `
+    <span class="notas-estado-combo ${criterioClass}">
+      <span class="notas-estado-main">${criterioLabel}</span>
+      <span class="notas-estado-sub">${estadoLabel}</span>
+    </span>
+  `;
+}
 function notasRenderColumnas_(){
   if (!notasColumnasListEl) return;
 
@@ -18065,9 +18167,9 @@ Total Cog.<br>
         <div class="notas-cell notas-estado-cell">
   ${calc.detalles ? `
     <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
-      ${notasEstadoBadge_(calc.estado)}
+      ${notasEstadoBadge_(calc.estado, calc.criterio)}
     </button>
-  ` : notasEstadoBadge_(calc.estado)}
+  ` : notasEstadoBadge_(calc.estado, calc.criterio)}
 </div>
           </div>
         </div>
@@ -18081,7 +18183,7 @@ Total Cog.<br>
         <button class="notas-student-toggle" type="button" data-nota-student-toggle="${sIdx}">
           <div class="notas-student-name">${escapeHtml(student.estudiante)}</div>
           <div class="notas-student-toggle-right">
-            ${notasEstadoBadge_(calc.estado)}
+            ${notasEstadoBadge_(calc.estado, calc.criterio)}
             <span class="notas-toggle-icon">${isOpen ? "−" : "+"}</span>
           </div>
         </button>
@@ -18269,7 +18371,7 @@ function notasOpenDetallePc_(sIdx){
 
       <div class="notas-detail-modal-summary">
         <span class="badge badge-neutral">Definitiva: ${escapeHtml(String(calc.definitiva ?? "—"))}</span>
-        ${notasEstadoBadge_(calc.estado)}
+        ${notasEstadoBadge_(calc.estado, calc.criterio)}
       </div>
 
       <div class="notas-detail-mini notas-detail-modal-text">
@@ -19566,7 +19668,7 @@ __notasAlertaMsg = "";
 
         <div class="right">
           <span class="badge badge-neutral">Def: ${escapeHtml(String(x.definitiva ?? "—"))}</span>
-          ${notasEstadoBadge_(estado)}
+          ${notasEstadoBadge_(estado, x.criterio)}
         </div>
       </button>
     `;
