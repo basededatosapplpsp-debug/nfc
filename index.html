@@ -18243,9 +18243,9 @@ Total Cog.<br>
           </div>
 
           ${calc.detalles ? `
-            <div class="notas-detail-mini">
-              ${escapeHtml(calc.detalles)}
-            </div>
+        <div class="notas-detail-mini">
+  ${notasFormatoDetallesAgrupadosHtml_(calc.detalles)}
+</div>
 
             <button class="btn btn-secondary" type="button" data-nota-share="${sIdx}" style="margin-top:8px;width:100%;">
               Compartir reporte
@@ -18315,15 +18315,17 @@ input.addEventListener("change", () => {
       const asignatura = String(notasAsignaturaEl?.value || "").trim();
       const periodo = String(notasPeriodoEl?.value || "1").trim();
 
-      const msg =
-        `Reporte académico\n\n` +
-        `Estudiante: ${student.estudiante}\n` +
-        `Curso: ${curso}\n` +
-        `Asignatura: ${asignatura}\n` +
-        `Periodo: ${periodo}\n` +
-        `Definitiva: ${calc.definitiva}\n` +
-        `Estado: ${calc.estado}\n\n` +
-        `Detalles:\n${calc.detalles || "Sin detalles."}`;
+    const detallesAgrupados = notasFormatoDetallesAgrupados_(calc.detalles);
+
+const msg =
+  `Reporte académico\n\n` +
+  `Estudiante: ${student.estudiante}\n` +
+  `Curso: ${curso}\n` +
+  `Asignatura: ${asignatura}\n` +
+  `Periodo: ${periodo}\n` +
+  `Definitiva: ${calc.definitiva}\n` +
+  `Estado: ${calc.estado}\n\n` +
+  `Detalles:\n${detallesAgrupados}`;
 
       if (navigator.share) {
         await navigator.share({
@@ -18348,6 +18350,8 @@ function notasOpenDetallePc_(sIdx){
   const asignatura = String(notasAsignaturaEl?.value || "").trim();
   const periodo = String(notasPeriodoEl?.value || "1").trim();
 
+  const detallesAgrupados = notasFormatoDetallesAgrupados_(calc.detalles);
+
   let modal = document.getElementById("notasPcDetalleModal");
 
   if (!modal) {
@@ -18370,7 +18374,7 @@ function notasOpenDetallePc_(sIdx){
     `Periodo: ${periodo}\n` +
     `Definitiva: ${calc.definitiva}\n` +
     `Estado: ${calc.estado}\n\n` +
-    `Detalles:\n${calc.detalles || "Sin detalles."}`;
+    `Detalles:\n${detallesAgrupados}`;
 
   modal.innerHTML = `
     <div class="modal-card notas-pc-detail-card">
@@ -18389,7 +18393,7 @@ function notasOpenDetallePc_(sIdx){
       </div>
 
       <div class="notas-detail-mini notas-detail-modal-text">
-        ${escapeHtml(calc.detalles || "Sin detalles.")}
+        ${escapeHtml(detallesAgrupados)}
       </div>
 
       <div class="modal-actions">
@@ -18418,7 +18422,6 @@ function notasOpenDetallePc_(sIdx){
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
   });
 }
-
 
 async function notasLoadCourses_(){
   const courses = await gsCoursesListCached();
@@ -19787,6 +19790,68 @@ function notasAlertasEsMobile_(){
 
 
 
+function notasFormatoDetallesAgrupados_(detalles){
+  const raw = String(detalles || "").trim();
+  if (!raw) return "Sin detalles.";
+
+  const grupos = {
+    procedimental: [],
+    cognitivo: [],
+    actitudinal: [],
+    otros: []
+  };
+
+  raw.split(";").map(x => x.trim()).filter(Boolean).forEach(item => {
+    let m;
+
+    m = item.match(/^Procedimental\s*-\s*(.+?)\s*:\s*(.+)$/i);
+    if (m) {
+      grupos.procedimental.push(`${m[1].trim()} ${m[2].trim()}`);
+      return;
+    }
+
+    m = item.match(/^Cognitivo\s*-\s*(.+?)\s*:\s*(.+)$/i);
+    if (m) {
+      grupos.cognitivo.push(`${m[1].trim()} ${m[2].trim()}`);
+      return;
+    }
+
+    m = item.match(/^Actitudinal\s*:\s*(.+)$/i);
+    if (m) {
+      grupos.actitudinal.push(m[1].trim());
+      return;
+    }
+
+    grupos.otros.push(item);
+  });
+
+  const partes = [];
+
+  if (grupos.procedimental.length) {
+    partes.push(`Procedimental: ${grupos.procedimental.join(", ")}`);
+  }
+
+  if (grupos.cognitivo.length) {
+    partes.push(`Cognitivo: ${grupos.cognitivo.join(", ")}`);
+  }
+
+  if (grupos.actitudinal.length) {
+    partes.push(`Actitudinal: ${grupos.actitudinal.join(", ")}`);
+  }
+
+  if (grupos.otros.length) {
+    partes.push(grupos.otros.join("; "));
+  }
+
+  return partes.join("; ");
+}
+
+function notasFormatoDetallesAgrupadosHtml_(detalles){
+  return escapeHtml(notasFormatoDetallesAgrupados_(detalles));
+}
+
+
+
 async function notasAlertasDetalle_(item){
   if (!item || !notasAlertasDetalleEl) return;
 
@@ -19823,9 +19888,9 @@ async function notasAlertasDetalle_(item){
               ${a.docente_nombre ? ` · Docente: ${escapeHtml(a.docente_nombre)}` : ""}
             </div>
 
-            <div class="notas-alerta-subject-details">
-              ${escapeHtml(a.detalles || "Sin detalles.")}
-            </div>
+        <div class="notas-alerta-subject-details">
+  ${notasFormatoDetallesAgrupadosHtml_(a.detalles)}
+</div>
           </div>
         `).join("")}
       </div>
@@ -19842,7 +19907,7 @@ async function notasAlertasDetalle_(item){
       `- ${a.asignatura || "Asignatura"}\n` +
       `  Estado: ${a.estado || "—"}\n` +
       `  Definitiva: ${a.definitiva ?? "—"}\n` +
-      `  Detalles: ${a.detalles || "Sin detalles."}`
+      `  Detalles: ${notasFormatoDetallesAgrupados_(a.detalles)}`
     ).join("\n\n");
 
   if (notasAlertasEsMobile_() && notasAlertasDetalleMobileModal && notasAlertasDetalleMobileBody) {
