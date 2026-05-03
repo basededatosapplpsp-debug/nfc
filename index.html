@@ -18350,7 +18350,7 @@ const msg =
   `Periodo: ${periodo}\n` +
   `Definitiva: ${calc.definitiva}\n` +
   `Estado: ${calc.estado}\n\n` +
-  `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
+  `Detalles:\n${detallesAgrupados}`;
 
       if (navigator.share) {
         await navigator.share({
@@ -18364,27 +18364,6 @@ const msg =
     });
   });
 }
-
-function notasFormatoDetallesAgrupadosTexto_(detalles) {
-  if (!detalles) return '';
-
-  let out = [];
-
-  if (detalles.procedimental) {
-    out.push(`*Procedimental:* ${detalles.procedimental}`);
-  }
-
-  if (detalles.cognitivo) {
-    out.push(`*Cognitivo:* ${detalles.cognitivo}`);
-  }
-
-  if (detalles.actitudinal) {
-    out.push(`*Actitudinal:* ${detalles.actitudinal}`);
-  }
-
-  return out.join('\n');
-}
-
 
 
 function notasOpenDetallePc_(sIdx){
@@ -18420,7 +18399,7 @@ function notasOpenDetallePc_(sIdx){
     `Periodo: ${periodo}\n` +
     `Definitiva: ${calc.definitiva}\n` +
     `Estado: ${calc.estado}\n\n` +
-    `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
+    `Detalles:\n${detallesAgrupados}`;
 
   modal.innerHTML = `
     <div class="modal-card notas-pc-detail-card">
