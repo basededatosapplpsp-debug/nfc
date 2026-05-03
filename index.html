@@ -18417,9 +18417,9 @@ function notasOpenDetallePc_(sIdx){
         ${notasEstadoBadge_(calc.estado, calc.criterio)}
       </div>
 
-      <div class="notas-detail-mini notas-detail-modal-text">
-        ${escapeHtml(detallesAgrupados)}
-      </div>
+     <div class="notas-detail-mini notas-detail-modal-text">
+  ${notasFormatoDetallesAgrupadosHtml_(calc.detalles)}
+</div>
 
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" id="btnNotasPcDetalleCompartir">
