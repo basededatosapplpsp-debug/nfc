@@ -6930,6 +6930,31 @@ body.is-pc-mode .single-action-wrap{
 }
 
 
+
+/* ===== NOTAS: detalles agrupados pro ===== */
+.notas-detalle-linea{
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+.notas-detalle-linea:last-child{
+  margin-bottom: 0;
+}
+
+.notas-detalle-grupo{
+  color: var(--text);
+  font-weight: 950;
+}
+
+.notas-detalle-alerta{
+  color: #fbbf24;
+  font-weight: 950;
+}
+
+
+
+
 </style>
 </head>
 
@@ -19239,7 +19264,7 @@ async function notasCompartirDebeTodos_(){
     pendientes.map((x, idx) =>
       `${idx + 1}. ${x.student.estudiante}\n` +
       `Definitiva: ${x.calc.definitiva ?? "—"}\n` +
-      `Detalles: ${x.calc.detalles || "Sin detalles."}`
+      `Detalles:\n${notasFormatoDetallesAgrupados_(x.calc.detalles)}`
     ).join("\n\n");
 
   if (navigator.share) {
@@ -19806,13 +19831,13 @@ function notasFormatoDetallesAgrupados_(detalles){
 
     m = item.match(/^Procedimental\s*-\s*(.+?)\s*:\s*(.+)$/i);
     if (m) {
-      grupos.procedimental.push(`${m[1].trim()} ${m[2].trim()}`);
+      grupos.procedimental.push(`${m[1].trim()}: ${m[2].trim()}`);
       return;
     }
 
     m = item.match(/^Cognitivo\s*-\s*(.+?)\s*:\s*(.+)$/i);
     if (m) {
-      grupos.cognitivo.push(`${m[1].trim()} ${m[2].trim()}`);
+      grupos.cognitivo.push(`${m[1].trim()}: ${m[2].trim()}`);
       return;
     }
 
@@ -19825,31 +19850,49 @@ function notasFormatoDetallesAgrupados_(detalles){
     grupos.otros.push(item);
   });
 
-  const partes = [];
+  const lineas = [];
 
   if (grupos.procedimental.length) {
-    partes.push(`Procedimental: ${grupos.procedimental.join(", ")}`);
+    lineas.push(`Procedimental: ${grupos.procedimental.join(", ")}`);
   }
 
   if (grupos.cognitivo.length) {
-    partes.push(`Cognitivo: ${grupos.cognitivo.join(", ")}`);
+    lineas.push(`Cognitivo: ${grupos.cognitivo.join(", ")}`);
   }
 
   if (grupos.actitudinal.length) {
-    partes.push(`Actitudinal: ${grupos.actitudinal.join(", ")}`);
+    lineas.push(`Actitudinal: ${grupos.actitudinal.join(", ")}`);
   }
 
   if (grupos.otros.length) {
-    partes.push(grupos.otros.join("; "));
+    lineas.push(...grupos.otros);
   }
 
-  return partes.join("; ");
+  return lineas.join("\n");
 }
 
 function notasFormatoDetallesAgrupadosHtml_(detalles){
-  return escapeHtml(notasFormatoDetallesAgrupados_(detalles));
-}
+  const txt = notasFormatoDetallesAgrupados_(detalles);
 
+  return txt
+    .split("\n")
+    .map(line => {
+      let html = escapeHtml(line);
+
+      html = html.replace(
+        /^(Procedimental:|Cognitivo:|Actitudinal:)/,
+        `<strong class="notas-detalle-grupo">$1</strong>`
+      );
+
+      html = html.replace(
+        /\b(vacía|vacia|igual a 1|nota baja|baja|Sin detalles\.)\b/gi,
+        `<strong class="notas-detalle-alerta">$1</strong>`
+      );
+
+      return `<div class="notas-detalle-linea">${html}</div>`;
+    })
+    .join("");
+}
 
 
 async function notasAlertasDetalle_(item){
