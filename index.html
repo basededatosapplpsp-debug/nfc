@@ -6853,67 +6853,69 @@ body.is-pc-mode .single-action-wrap{
 
 
 
-/* ===== NOTAS: badge doble criterio + estado ===== */
+/* ===== NOTAS: badge doble criterio + estado - plano legible ===== */
 .notas-estado-combo{
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 2px;
 
-  min-width: 92px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.14);
+  min-width: 104px;
+  padding: 7px 12px;
+  border-radius: 14px;
+  border: 1px solid transparent;
 
   line-height: 1.05;
   white-space: nowrap;
   text-align: center;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
+
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
 
 .notas-estado-main{
   font-size: 12px;
   font-weight: 950;
+  letter-spacing: .1px;
 }
 
 .notas-estado-sub{
-  font-size: 9px;
-  font-weight: 900;
-  opacity: .78;
+  font-size: 10px;
+  font-weight: 850;
+  opacity: .95;
 }
 
-/* Criterio principal */
+/* Criterio principal: colores planos y claros */
 .notas-badge-excelente{
-  color: #dcfce7;
-  background: rgba(34,197,94,.20);
-  border-color: rgba(34,197,94,.42);
+  color: #bbf7d0;
+  background: rgba(22,163,74,.20);
+  border-color: rgba(34,197,94,.38);
 }
 
 .notas-badge-bueno{
-  color: #dbeafe;
-  background: rgba(59,130,246,.20);
-  border-color: rgba(96,165,250,.42);
+  color: #bfdbfe;
+  background: rgba(37,99,235,.20);
+  border-color: rgba(96,165,250,.38);
 }
 
 .notas-badge-aceptable{
-  color: #fef3c7;
-  background: rgba(245,158,11,.20);
+  color: #fde68a;
+  background: rgba(217,119,6,.22);
   border-color: rgba(245,158,11,.42);
 }
 
 .notas-badge-insuficiente{
-  color: #fee2e2;
-  background: rgba(239,68,68,.20);
-  border-color: rgba(239,68,68,.42);
+  color: #fecaca;
+  background: rgba(220,38,38,.22);
+  border-color: rgba(248,113,113,.42);
 }
 
 .notas-badge-sin-nota{
-  color: #e5e7eb;
-  background: rgba(148,163,184,.16);
-  border-color: rgba(148,163,184,.30);
+  color: #cbd5e1;
+  background: rgba(100,116,139,.20);
+  border-color: rgba(148,163,184,.35);
 }
-
 
 
 </style>
