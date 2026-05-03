@@ -19518,7 +19518,8 @@ function notasAlertasCacheKey_(){
 function notasAlertasAplicarItems_(rawItems){
   const asignaturaSeleccionada = String(notasAlertasAsignaturaEl?.value || "").trim();
 
-  const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(rawItems || []);
+  const normalizados = (rawItems || []).map(notasAlertasDerivarMeta_);
+const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(normalizados);
 
   notasAlertasLlenarAsignaturas_(tipoFiltradoItems, asignaturaSeleccionada);
 
@@ -19560,18 +19561,65 @@ async function notasAlertasLoadCourses_(){
   notasCacheWrite_(NOTAS_ALERTAS_COURSES_CACHE, courses);
 }
 
+
+function notasAlertasDerivarMeta_(item){
+  const detalles = String(item.detalles || "").toLowerCase();
+
+  const definitiva = notasAlertasNum_(item.definitiva);
+  const procTotal = notasAlertasNum_(item.proc_total);
+
+  const tieneDefinitiva = definitiva !== null;
+  const notaBase = tieneDefinitiva ? definitiva : procTotal;
+
+  let criterio = String(item.criterio || "").trim().toUpperCase();
+
+  if (!criterio && notaBase !== null) {
+    if (notaBase < 3.5) criterio = "INSUFICIENTE";
+    else if (notaBase < 4.0) criterio = "ACEPTABLE";
+    else if (notaBase < 4.6) criterio = "BUENO";
+    else criterio = "EXCELENTE";
+  }
+
+  const debeNotas =
+    detalles.includes("vacía") ||
+    detalles.includes("vacia") ||
+    detalles.includes("igual a 1");
+
+  const notasBajas =
+    detalles.includes("nota baja");
+
+  let estado = String(item.estado || "").trim().toUpperCase();
+
+  if (debeNotas) estado = "DEBE_NOTAS";
+  else if (notasBajas) estado = "RIESGO";
+  else if (tieneDefinitiva && definitiva < 3.5) estado = "BAJO";
+  else if (!tieneDefinitiva && procTotal !== null && procTotal < 3.5) estado = "BAJO";
+  else estado = "OK";
+
+  return {
+    ...item,
+    estado,
+    criterio: criterio || "SIN_NOTA"
+  };
+}
+
+
+
 function notasAlertasNum_(v){
   const n = Number(String(v ?? "").replace(",", "."));
   return Number.isFinite(n) ? n : null;
 }
 
 function notasAlertasFiltrarPorTipo_(items){
-  const tipo = String(notasAlertasTipoEl?.value || "").trim();
+  const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
 
-  if (!tipo) return items || [];
+  const normalized = (items || []).map(notasAlertasDerivarMeta_);
 
-  return (items || []).filter(item => {
+  if (!tipo) return normalized;
+
+  return normalized.filter(item => {
     const estado = String(item.estado || "").trim().toUpperCase();
+    const criterio = String(item.criterio || "").trim().toUpperCase();
     const detalles = String(item.detalles || "").toLowerCase();
 
     const definitiva = notasAlertasNum_(item.definitiva);
@@ -19583,16 +19631,45 @@ function notasAlertasFiltrarPorTipo_(items){
     }
 
     if (tipo === "debe") {
-      return estado === "DEBE_NOTAS" || detalles.includes("vacía") || detalles.includes("vacia");
+      return estado === "DEBE_NOTAS" ||
+        detalles.includes("vacía") ||
+        detalles.includes("vacia") ||
+        detalles.includes("igual a 1");
+    }
+
+    if (tipo === "riesgo" || tipo === "notas_bajas") {
+      return estado === "RIESGO" || detalles.includes("nota baja");
+    }
+
+    if (tipo === "bajo") {
+      return estado === "BAJO";
     }
 
     if (tipo === "procedimental") {
-      return procTotal !== null && procTotal < 3.5;
+      return detalles.includes("procedimental") &&
+        (
+          detalles.includes("nota baja") ||
+          detalles.includes("vacía") ||
+          detalles.includes("vacia") ||
+          detalles.includes("igual a 1") ||
+          (procTotal !== null && procTotal < 3.5)
+        );
     }
 
     if (tipo === "cognitivo") {
-      return cogTotal !== null && cogTotal < 3.5;
+      return detalles.includes("cognitivo") &&
+        (
+          detalles.includes("vacía") ||
+          detalles.includes("vacia") ||
+          detalles.includes("igual a 1") ||
+          (cogTotal !== null && cogTotal < 3.5)
+        );
     }
+
+    if (tipo === "insuficiente") return criterio === "INSUFICIENTE";
+    if (tipo === "aceptable") return criterio === "ACEPTABLE";
+    if (tipo === "bueno") return criterio === "BUENO";
+    if (tipo === "excelente") return criterio === "EXCELENTE";
 
     return true;
   });
@@ -19613,11 +19690,12 @@ function notasAlertasKey_(item){
 }
 
 function notasAlertasEstadoPrioridad_(estado){
-  estado = String(estado || "").trim();
+  estado = String(estado || "").trim().toUpperCase();
 
-  if (estado === "BAJO") return 4;
-  if (estado === "DEBE_NOTAS") return 3;
-  if (estado === "RIESGO") return 2;
+  if (estado === "DEBE_NOTAS") return 5;
+  if (estado === "RIESGO") return 4;
+  if (estado === "BAJO") return 3;
+  if (estado === "OK") return 2;
   return 1;
 }
 
@@ -19726,7 +19804,7 @@ async function notasAlertasDetalle_(item){
           ${escapeHtml(item.curso || "—")} • Periodo ${escapeHtml(String(item.periodo || "—"))}
         </div>
       </div>
-      ${notasEstadoBadge_(item.estado)}
+      ${notasEstadoBadge_(item.estado, item.criterio)}
     </div>
 
     <div class="notas-alerta-detail-box">
@@ -19737,7 +19815,7 @@ async function notasAlertasDetalle_(item){
           <div class="notas-alerta-subject-card">
             <div class="notas-alerta-subject-top">
               <strong>${escapeHtml(a.asignatura || "Asignatura")}</strong>
-              ${notasEstadoBadge_(a.estado)}
+              ${notasEstadoBadge_(a.estado, a.criterio)}
             </div>
 
             <div class="muted small">
