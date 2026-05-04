@@ -7044,20 +7044,22 @@ body[data-theme="light"] #notasStudentsModal .badge-neutral{
 }
 
 
-/* ===== OVERRIDE: badges de alertas SIEMPRE en blanco ===== */
-body[data-theme="light"] .badge,
-body[data-theme="light"] .badge *,
-body[data-theme="light"] [class*="badge"]{
+/* ===== ALERTAS DE NOTAS: estado rojo/verde/naranja con texto blanco ===== */
+body[data-theme="light"] #notasAlertasModal .notas-estado-combo,
+body[data-theme="light"] #notasAlertasModal .notas-estado-combo *,
+body[data-theme="light"] #notasAlertasDetalleMobileModal .notas-estado-combo,
+body[data-theme="light"] #notasAlertasDetalleMobileModal .notas-estado-combo *{
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
 }
 
-/* ===== BADGES CLAROS (Def_) → texto negro ===== */
-body[data-theme="light"] .badge-def,
-body[data-theme="light"] [class*="def_"],
-body[data-theme="light"] [class*="def-"]{
-  color: #000 !important;
-  -webkit-text-fill-color: #000 !important;
+/* ===== ALERTAS DE NOTAS: badge "Def:" claro con texto negro ===== */
+body[data-theme="light"] #notasAlertasModal .badge-neutral,
+body[data-theme="light"] #notasAlertasModal .badge-neutral *,
+body[data-theme="light"] #notasAlertasDetalleMobileModal .badge-neutral,
+body[data-theme="light"] #notasAlertasDetalleMobileModal .badge-neutral *{
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
 
