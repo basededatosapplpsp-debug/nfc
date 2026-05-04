@@ -6954,18 +6954,17 @@ body.is-pc-mode .single-action-wrap{
 
 
 
-/* ===== NOTAS: diseño sólido tipo Excel ===== */
+/* ===== NOTAS: diseño sólido tipo Excel adaptable a temas ===== */
 #notasStudentsModal,
 #notasStudentsModal .notas-full-card{
-  background: #0b1220 !important;
+  background: var(--bg) !important;
+  color: var(--text) !important;
 }
 
-#notasStudentsModal .notas-grid-scroll{
-  background: #0f172a !important;
-}
-
+#notasStudentsModal .notas-grid-scroll,
 #notasStudentsModal #notasGrid{
-  background: #0f172a !important;
+  background: color-mix(in srgb, var(--card2) 92%, var(--bg)) !important;
+  color: var(--text) !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode{
@@ -6974,51 +6973,55 @@ body.is-pc-mode .single-action-wrap{
 }
 
 #notasStudentsModal .notas-header-row .notas-cell{
-  background: #1e293b !important;
-  color: #e5e7eb !important;
-  border-bottom: 1px solid #334155 !important;
+  background: color-mix(in srgb, var(--primary) 14%, var(--card)) !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--line) !important;
 }
 
 #notasStudentsModal .notas-student-card{
-  background: #111827 !important;
-  border-color: #334155 !important;
+  background: color-mix(in srgb, var(--card) 96%, transparent) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
   box-shadow: none !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(even) .notas-cell{
-  background: #0f172a !important;
+  background: color-mix(in srgb, var(--card2) 82%, var(--bg)) !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(odd) .notas-cell{
-  background: #111827 !important;
+  background: color-mix(in srgb, var(--card) 94%, var(--bg)) !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode .notas-cell{
-  border-bottom: 1px solid #334155 !important;
-  border-right: 1px solid #1f2937 !important;
+  color: var(--text) !important;
+  border-bottom: 1px solid var(--line) !important;
+  border-right: 1px solid color-mix(in srgb, var(--line) 70%, transparent) !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode .notas-student-name{
-  background: #111827 !important;
-  color: #f8fafc !important;
+  background: color-mix(in srgb, var(--card) 96%, var(--bg)) !important;
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
 }
 
 #notasStudentsModal [data-nota-input]{
-  background: #020617 !important;
-  color: #f8fafc !important;
-  border: 1px solid #334155 !important;
+  background: color-mix(in srgb, var(--card2) 94%, var(--bg)) !important;
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  border: 1px solid var(--line) !important;
   border-radius: 8px !important;
   box-shadow: none !important;
   text-align: center !important;
 }
 
 #notasStudentsModal [data-nota-input]:focus{
-  background: #ffffff !important;
-  color: #111827 !important;
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37,99,235,.35) !important;
+  background: color-mix(in srgb, var(--card) 98%, white 8%) !important;
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  border-color: color-mix(in srgb, var(--primary) 70%, transparent) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 28%, transparent) !important;
 }
-
 
 
 </style>
