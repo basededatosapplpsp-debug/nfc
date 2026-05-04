@@ -4364,85 +4364,49 @@ h1,h2,
 
 @media (min-width: 900px){
   .notas-grid.table-mode{
-    min-width: 960px;
-    display: table;
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-    color: #0f172a;
-    font-size: 12px;
+    min-width:760px;
+    display:table;
+    width:100%;
+    border-collapse:collapse;
   }
 
   .notas-grid.table-mode .notas-student-card{
-    display: table-row;
-    padding: 0;
-    border: 0;
-    background: transparent;
+    display:table-row;
+    padding:0;
+    border:0;
+    background:transparent;
   }
 
   .notas-grid.table-mode .notas-student-top,
   .notas-grid.table-mode .notas-inputs,
   .notas-grid.table-mode .notas-summary{
-    display: contents;
+    display:contents;
   }
 
   .notas-grid.table-mode .notas-cell{
-    display: table-cell;
-    border: 1px solid #e2e8f0;
-    padding: 6px 8px;
-    vertical-align: middle;
-    white-space: nowrap;
-    background: #ffffff;
-    color: #0f172a;
-  }
-
-  .notas-grid.table-mode .notas-student-card:nth-child(even) .notas-cell{
-    background: #f8fafc;
-  }
-
-  .notas-grid.table-mode .notas-student-card:hover .notas-cell{
-    background: #eef6ff;
+    display:table-cell;
+    border-bottom:1px solid var(--line);
+    padding:8px;
+    vertical-align:middle;
+    white-space:nowrap;
   }
 
   .notas-grid.table-mode .notas-student-name{
-    min-width: 240px;
-    max-width: 300px;
-    position: sticky;
-    left: 0;
-    z-index: 4;
-    font-weight: 700;
-    background: inherit;
+    min-width:220px;
   }
 
   .notas-grid.table-mode input{
-    width: 64px;
-    height: 30px;
-    border-radius: 4px;
-    border: 1px solid #cbd5e1;
-    background: #ffffff;
-    color: #0f172a;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    box-shadow: none;
-  }
-
-  .notas-grid.table-mode input:focus{
-    border-color: #2563eb;
-    box-shadow: inset 0 0 0 1px #2563eb;
-    outline: none;
+    width:78px;
   }
 }
 
 .notas-header-row .notas-cell{
-  font-weight: 800;
-  color: #334155;
-  background: #edf2f7 !important;
-  border: 1px solid #d9e2ec !important;
+  font-weight: 950;
+  color: var(--muted);
+  background: rgba(255,255,255,.06);
   position: sticky;
   top: 0;
-  z-index: 5;
-  text-align: center;
+  z-index: 2;
 }
 
 
@@ -4854,13 +4818,168 @@ h1,h2,
 
 
 
+/* ===== NOTAS PC: Ribbon tipo Office ===== */
+@media (min-width: 900px){
+  #notasStudentsModal .notas-screen-header{
+    align-items: stretch !important;
+    padding: 10px 18px !important;
+    gap: 14px !important;
+  }
 
+  #notasStudentsModal .notas-students-head-main{
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-pc-toolbar{
+    margin-top: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.025));
+    overflow: hidden;
+  }
+
+  #notasStudentsModal .notas-pc-ribbon-row{
+    display: flex !important;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Grupo izquierdo: Curso / Asignatura / Periodo */
+  #notasStudentsModal .notas-pc-field{
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(1){
+    width: 150px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(2){
+    width: 210px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(3){
+    width: 120px;
+  }
+
+  #notasStudentsModal .notas-pc-field > span{
+    display: block;
+    font-size: 10px;
+    font-weight: 900;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+
+  #notasStudentsModal .notas-pc-field select,
+  #notasStudentsModal .notas-pc-field input,
+  #notasStudentsModal .notas-pc-field .modal-input{
+    width: 100% !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Grupo derecho: botones tipo Office */
+  #notasStudentsModal .notas-pc-actions{
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: end;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-left: 10px;
+    border-left: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  #notasStudentsModal .notas-pc-actions .btn{
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 7px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+
+  #notasStudentsModal .notas-pc-hint{
+    display: none !important;
+  }
+
+  #notasStudentsModal .notas-bottom-actions{
+    display: none !important;
+  }
+
+  /* FIX botón Atrás */
+#notasStudentsModal #btnNotasStudentsBack{
+  align-self: center !important;
+  height: auto !important;
+  min-height: 38px !important;
+  padding: 8px 14px !important;
+  border-radius: 14px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+}
 
 /* Pantalla muy ancha: mantenerlo discreto, no estirado */
+@media (min-width: 1281px){
+  #notasStudentsModal .notas-pc-ribbon-row{
+    justify-content: flex-start;
+  }
 
+  #notasStudentsModal .notas-pc-actions{
+    max-width: 620px;
+  }
+}
 
 /* Portátil: todo en una sola línea, más compacto */
+@media (min-width: 900px) and (max-width: 1280px){
+  #notasStudentsModal .notas-screen-header{
+    padding: 8px 12px !important;
+  }
 
+  #notasStudentsModal .notas-pc-toolbar{
+    padding: 7px 8px;
+  }
+
+  #notasStudentsModal .notas-pc-ribbon-row{
+    gap: 6px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(1){
+    width: 120px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(2){
+    width: 180px;
+  }
+
+  #notasStudentsModal .notas-pc-field:nth-child(3){
+    width: 105px;
+  }
+
+  #notasStudentsModal .notas-pc-actions{
+    gap: 5px;
+    padding-left: 6px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  #notasStudentsModal .notas-pc-actions .btn{
+    font-size: 10.5px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+}
 
 /* Portátiles bajos */
 @media (min-width: 900px) and (max-height: 720px){
@@ -6900,78 +7019,6 @@ body.is-pc-mode .single-action-wrap{
   box-shadow: 0 0 0 2px rgba(37,99,235,.35) !important;
 }
 
-
-/* =========================================================
-   NOTAS: acabado final tipo Excel limpio
-   No toca lógica ni otros módulos
-========================================================= */
-
-#notasStudentsModal .notas-full-card{
-  background: #f8fafc !important;
-  color: #0f172a !important;
-}
-
-#notasStudentsModal .notas-screen-header{
-  background: #ffffff !important;
-  border-bottom: 1px solid #d9e2ec !important;
-  padding: 10px 14px !important;
-}
-
-#notasStudentsModal .modal-title{
-  color: #0f172a !important;
-  font-size: 16px !important;
-}
-
-#notasStudentsModal .modal-sub{
-  color: #64748b !important;
-  font-size: 12px !important;
-}
-
-#notasStudentsModal .notas-grid-scroll{
-  background: #f8fafc !important;
-}
-
-#notasStudentsModal .notas-total-cell{
-  background: #f1f5f9 !important;
-  font-weight: 800 !important;
-}
-
-#notasStudentsModal .badge{
-  border-radius: 4px !important;
-  font-size: 11px !important;
-  padding: 3px 6px !important;
-}
-
-#notasStudentsModal .notas-bottom-actions{
-  background: #ffffff !important;
-  border-top: 1px solid #d9e2ec !important;
-  padding: 8px 14px !important;
-}
-
-@media (max-width: 899px){
-  #notasStudentsModal .notas-student-card{
-    background: #ffffff !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 14px !important;
-    box-shadow: none !important;
-  }
-
-  #notasStudentsModal .notas-student-name{
-    color: #0f172a !important;
-    font-weight: 800 !important;
-  }
-
-  #notasStudentsModal .notas-input-row label{
-    color: #64748b !important;
-  }
-
-  #notasStudentsModal .notas-input-row input{
-    background: #f8fafc !important;
-    color: #0f172a !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-  }
-}
 
 
 </style>
