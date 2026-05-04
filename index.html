@@ -6954,71 +6954,150 @@ body.is-pc-mode .single-action-wrap{
 
 
 
-/* ===== NOTAS: diseño sólido tipo Excel ===== */
-#notasStudentsModal,
+/* =========================================================
+   NOTAS: diseño serio tipo Excel / baja fatiga visual
+   Solo afecta el modal de registrar notas
+========================================================= */
+
+#notasStudentsModal{
+  background: #0b1020 !important;
+}
+
 #notasStudentsModal .notas-full-card{
-  background: #0b1220 !important;
+  background: #0b1020 !important;
+  color: #e5e7eb !important;
+}
+
+#notasStudentsModal .notas-screen-header{
+  background: #0f172a !important;
+  border-bottom: 1px solid #263244 !important;
+  box-shadow: none !important;
+}
+
+#notasStudentsModal .modal-title{
+  color: #f8fafc !important;
+  font-weight: 850 !important;
+}
+
+#notasStudentsModal .modal-sub{
+  color: #94a3b8 !important;
+}
+
+#notasStudentsModal .notas-pc-toolbar{
+  background: #111827 !important;
+  border: 1px solid #273449 !important;
+  box-shadow: none !important;
 }
 
 #notasStudentsModal .notas-grid-scroll{
-  background: #0f172a !important;
+  background: #0b1020 !important;
+  padding: 10px 0 0 0 !important;
 }
 
 #notasStudentsModal #notasGrid{
-  background: #0f172a !important;
+  background: #0b1020 !important;
 }
 
+/* Tabla más limpia */
 #notasStudentsModal .notas-grid.table-mode{
   border-collapse: collapse !important;
-  gap: 0 !important;
+  border-spacing: 0 !important;
 }
 
 #notasStudentsModal .notas-header-row .notas-cell{
   background: #1e293b !important;
-  color: #e5e7eb !important;
+  color: #cbd5e1 !important;
   border-bottom: 1px solid #334155 !important;
+  border-right: 1px solid #273449 !important;
+  font-weight: 850 !important;
+  font-size: 13px !important;
 }
 
-#notasStudentsModal .notas-student-card{
-  background: #111827 !important;
-  border-color: #334155 !important;
-  box-shadow: none !important;
-}
-
-#notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(even) .notas-cell{
+/* Celdas */
+#notasStudentsModal .notas-grid.table-mode .notas-cell{
   background: #0f172a !important;
+  border-bottom: 1px solid #263244 !important;
+  border-right: 1px solid #1e293b !important;
+  padding: 9px 8px !important;
+}
+
+/* Filas alternadas suaves */
+#notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(even) .notas-cell{
+  background: #111827 !important;
 }
 
 #notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(odd) .notas-cell{
-  background: #111827 !important;
+  background: #0f172a !important;
 }
 
-#notasStudentsModal .notas-grid.table-mode .notas-cell{
-  border-bottom: 1px solid #334155 !important;
-  border-right: 1px solid #1f2937 !important;
+/* Nombre estudiante más claro, sin tanto brillo */
+#notasStudentsModal .notas-student-name{
+  color: #f1f5f9 !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
 }
 
-#notasStudentsModal .notas-grid.table-mode .notas-student-name{
-  background: #111827 !important;
-  color: #f8fafc !important;
-}
-
-#notasStudentsModal [data-nota-input]{
+/* Inputs más tipo hoja de cálculo */
+#notasStudentsModal input[data-nota-input]{
   background: #020617 !important;
-  color: #f8fafc !important;
+  color: #e5e7eb !important;
   border: 1px solid #334155 !important;
-  border-radius: 8px !important;
+  border-radius: 7px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
   box-shadow: none !important;
-  text-align: center !important;
 }
 
-#notasStudentsModal [data-nota-input]:focus{
-  background: #ffffff !important;
-  color: #111827 !important;
+#notasStudentsModal input[data-nota-input]::placeholder{
+  color: #64748b !important;
+}
+
+#notasStudentsModal input[data-nota-input]:focus{
+  background: #f8fafc !important;
+  color: #0f172a !important;
   border-color: #2563eb !important;
-  box-shadow: 0 0 0 2px rgba(37,99,235,.35) !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,.28) !important;
 }
 
+/* Totales más sobrios */
+#notasStudentsModal .notas-total-cell{
+  background: #111827 !important;
+  color: #e2e8f0 !important;
+  font-weight: 850 !important;
+}
+
+/* Definitiva menos brillante */
+#notasStudentsModal .notas-cell .badge,
+#notasStudentsModal .notas-status-btn .badge{
+  box-shadow: none !important;
+  font-weight: 850 !important;
+}
+
+/* Menos fatiga: quitar hover exagerado */
+#notasStudentsModal .notas-status-btn:hover{
+  transform: none !important;
+  filter: brightness(1.04) !important;
+}
+
+/* Tarjetas en celular: más sobrias */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-student-card{
+    background: #0f172a !important;
+    border: 1px solid #263244 !important;
+    box-shadow: none !important;
+  }
+
+  #notasStudentsModal .notas-input-row{
+    border-bottom: 1px solid #1e293b !important;
+    padding-bottom: 7px !important;
+  }
+
+  #notasStudentsModal .notas-input-row label{
+    color: #94a3b8 !important;
+  }
+}
 
 
 </style>
@@ -18166,41 +18245,6 @@ notasProgramarAutoGuardado_();
   }
 }
 
-function notasActualizarFilaVisual_(sIdx){
-  const student = __notasEstudiantes[sIdx];
-  if (!student || !notasGridEl) return;
-
-  const calc = notasCalcStudent_(student);
-  const row = notasGridEl.querySelector(`[data-student-idx="${sIdx}"], [data-nota-row="${sIdx}"]`);
-  if (!row) return;
-
-  const procEl = row.querySelector("[data-nota-proc-total]");
-  const cogEl = row.querySelector("[data-nota-cog-total]");
-  const defEl = row.querySelector("[data-nota-definitiva]");
-  const estadoEl = row.querySelector("[data-nota-estado]");
-  const detailEl = row.querySelector("[data-nota-detail-mini]");
-
-  if (procEl) procEl.textContent = String(calc.procTotal ?? "—");
-  if (cogEl) cogEl.textContent = String(calc.cogTotal ?? "—");
-  if (defEl) defEl.textContent = String(calc.definitiva ?? "—");
-  if (estadoEl) estadoEl.innerHTML = notasEstadoBadge_(calc.estado, calc.criterio);
-
-  row.classList.remove("notas-row-bajo", "notas-row-debe", "notas-row-riesgo");
-
-  if (calc.estado === "BAJO") row.classList.add("notas-row-bajo");
-  if (calc.estado === "DEBE_NOTAS") row.classList.add("notas-row-debe");
-  if (calc.estado === "RIESGO") row.classList.add("notas-row-riesgo");
-
-  if (detailEl) {
-    if (calc.detalles) {
-      detailEl.innerHTML = notasFormatoDetallesAgrupadosHtml_(calc.detalles);
-      detailEl.hidden = false;
-    } else {
-      detailEl.innerHTML = "";
-      detailEl.hidden = true;
-    }
-  }
-}
 
 
 function notasRenderGrid_(){
@@ -18267,7 +18311,7 @@ Total Cog.<br>
 
     if (isDesktop) {
       return `
-        <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}" data-nota-row="${sIdx}">
+        <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
           <div class="notas-student-top">
             <div class="notas-cell notas-student-name">${escapeHtml(student.estudiante)}</div>
           </div>
@@ -18397,8 +18441,8 @@ Total Cog.<br>
 notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
 
   input.addEventListener("pointerdown", (e) => {
-    e.stopPropagation();
-  });
+  e.stopPropagation();
+});
 
   input.addEventListener("focus", () => {
     setTimeout(() => input.select(), 0);
@@ -18408,24 +18452,34 @@ notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
     input.select();
   });
 
-  input.addEventListener("input", () => {
-    const sIdx = Number(input.dataset.notaInput);
-    const key = String(input.dataset.notaKey || "");
+input.addEventListener("input", () => {
+  const sIdx = Number(input.dataset.notaInput);
+  const key = String(input.dataset.notaKey || "");
 
-    if (!__notasEstudiantes[sIdx]) return;
-    if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+  if (!__notasEstudiantes[sIdx]) return;
+  if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
 
-    __notasEstudiantes[sIdx].notas[key] = input.value;
+  __notasEstudiantes[sIdx].notas[key] = input.value;
 
-    notasActualizarFilaVisual_(sIdx);
-    notasProgramarAutoGuardado_();
-  });
+  // Autoguardado tipo Excel
+  notasProgramarAutoGuardado_();
+});
 
-  input.addEventListener("change", () => {
-    const sIdx = Number(input.dataset.notaInput);
-    notasActualizarFilaVisual_(sIdx);
-    notasProgramarAutoGuardado_();
-  });
+input.addEventListener("change", () => {
+  notasProgramarAutoGuardado_();
+});
+
+input.addEventListener("blur", () => {
+  setTimeout(() => {
+    const active = document.activeElement;
+
+    if (active && active.matches("#notasStudentsModal [data-nota-input]")) {
+      return;
+    }
+
+    notasRenderGrid_();
+  }, 180);
+});
 });
 
   notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
