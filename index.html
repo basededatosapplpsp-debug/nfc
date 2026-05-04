@@ -6954,6 +6954,72 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== NOTAS: diseño sólido tipo Excel ===== */
+#notasStudentsModal,
+#notasStudentsModal .notas-full-card{
+  background: #0b1220 !important;
+}
+
+#notasStudentsModal .notas-grid-scroll{
+  background: #0f172a !important;
+}
+
+#notasStudentsModal #notasGrid{
+  background: #0f172a !important;
+}
+
+#notasStudentsModal .notas-grid.table-mode{
+  border-collapse: collapse !important;
+  gap: 0 !important;
+}
+
+#notasStudentsModal .notas-header-row .notas-cell{
+  background: #1e293b !important;
+  color: #e5e7eb !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+#notasStudentsModal .notas-student-card{
+  background: #111827 !important;
+  border-color: #334155 !important;
+  box-shadow: none !important;
+}
+
+#notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(even) .notas-cell{
+  background: #0f172a !important;
+}
+
+#notasStudentsModal .notas-grid.table-mode .notas-student-card:nth-child(odd) .notas-cell{
+  background: #111827 !important;
+}
+
+#notasStudentsModal .notas-grid.table-mode .notas-cell{
+  border-bottom: 1px solid #334155 !important;
+  border-right: 1px solid #1f2937 !important;
+}
+
+#notasStudentsModal .notas-grid.table-mode .notas-student-name{
+  background: #111827 !important;
+  color: #f8fafc !important;
+}
+
+#notasStudentsModal [data-nota-input]{
+  background: #020617 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+#notasStudentsModal [data-nota-input]:focus{
+  background: #ffffff !important;
+  color: #111827 !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,.35) !important;
+}
+
+
 
 </style>
 </head>
@@ -18294,6 +18360,11 @@ Total Cog.<br>
   });
 
 notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+
+  input.addEventListener("pointerdown", (e) => {
+  e.stopPropagation();
+});
+
   input.addEventListener("focus", () => {
     setTimeout(() => input.select(), 0);
   });
@@ -18317,7 +18388,18 @@ input.addEventListener("input", () => {
 
 input.addEventListener("change", () => {
   notasProgramarAutoGuardado_();
-  notasRenderGrid_();
+});
+
+input.addEventListener("blur", () => {
+  setTimeout(() => {
+    const active = document.activeElement;
+
+    if (active && active.matches("#notasStudentsModal [data-nota-input]")) {
+      return;
+    }
+
+    notasRenderGrid_();
+  }, 180);
 });
 });
 
