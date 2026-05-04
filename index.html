@@ -7044,7 +7044,13 @@ body[data-theme="light"] #notasStudentsModal .badge-neutral{
 }
 
 
-
+/* ===== OVERRIDE: badges de alertas SIEMPRE en blanco ===== */
+body[data-theme="light"] .badge,
+body[data-theme="light"] .badge *,
+body[data-theme="light"] [class*="badge"]{
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
 </style>
 </head>
 
