@@ -7023,6 +7023,27 @@ body.is-pc-mode .single-action-wrap{
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 28%, transparent) !important;
 }
 
+/* ===== FIX TEXTO NOTAS EN TEMA CLARO ===== */
+body[data-theme="light"] #notasStudentsModal .badge,
+body[data-theme="light"] #notasStudentsModal .notas-total-cell,
+body[data-theme="light"] #notasStudentsModal .notas-cell,
+body[data-theme="light"] #notasStudentsModal .notas-student-name{
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+
+/* ===== FIX BADGES EN MODO CLARO ===== */
+body[data-theme="light"] #notasStudentsModal .badge-ontime,
+body[data-theme="light"] #notasStudentsModal .badge-late,
+body[data-theme="light"] #notasStudentsModal .badge-soft,
+body[data-theme="light"] #notasStudentsModal .badge-extra,
+body[data-theme="light"] #notasStudentsModal .badge-neutral{
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+
 
 </style>
 </head>
