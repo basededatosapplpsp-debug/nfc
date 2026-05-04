@@ -11021,14 +11021,18 @@ const btnNotasStudentsBack = $("btnNotasStudentsBack");
 const btnNotasStudentsGuardar = $("btnNotasStudentsGuardar");
 const notasPcToolbar = $("notasPcToolbar");
 
-let __notasColumnas = [
-  { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
-  { orden: 2, nombre: "Taller 1", porcentaje: 0, componente: "procedimental" },
-  { orden: 3, nombre: "Evaluación", porcentaje: 0, componente: "cognitivo" },
-  { orden: 4, nombre: "Quiz 1", porcentaje: 0, componente: "cognitivo" }
-];
+let __notasColumnas = notasColumnasDefault_();
 
 let __notasEstudiantes = [];
+
+function notasColumnasDefault_(){
+  return [
+    { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
+    { orden: 2, nombre: "Taller 1", porcentaje: 0, componente: "procedimental" },
+    { orden: 3, nombre: "Evaluación", porcentaje: 0, componente: "cognitivo" },
+    { orden: 4, nombre: "Quiz 1", porcentaje: 0, componente: "cognitivo" }
+  ];
+}
 
 let __notasOpenStudentIdx = null;
 
@@ -19048,11 +19052,14 @@ if (cached?.value) {
 if (!navigator.onLine) {
   const students = await gsCourseStudentsCached(curso);
 
-  if (Array.isArray(students) && students.length) {
-    __notasEstudiantes = students.map(name => ({
-      estudiante: String(name || "").trim(),
-      notas: {}
-    })).filter(x => x.estudiante);
+ if (Array.isArray(students) && students.length) {
+
+  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
+
+  __notasEstudiantes = students.map(name => ({
+    estudiante: String(name || "").trim(),
+    notas: {}
+  })).filter(x => x.estudiante);
 
     notasRenderColumnas_();
     notasRenderGrid_();
@@ -19116,6 +19123,7 @@ if (!navigator.onLine) {
 
     const students = await gsCourseStudentsCached(curso);
 
+    __notasColumnas = notasColumnasDefault_();
     __notasEstudiantes = (students || []).map(name => ({
       estudiante: String(name || "").trim(),
       notas: {}
@@ -19132,11 +19140,14 @@ if (!navigator.onLine) {
 } catch (e) {
   const students = await gsCourseStudentsCached(curso);
 
-  if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
-    __notasEstudiantes = students.map(name => ({
-      estudiante: String(name || "").trim(),
-      notas: {}
-    })).filter(x => x.estudiante);
+if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+
+  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
+
+  __notasEstudiantes = students.map(name => ({
+    estudiante: String(name || "").trim(),
+    notas: {}
+  })).filter(x => x.estudiante);
 
     notasRenderColumnas_();
     notasRenderGrid_();
