@@ -6954,71 +6954,113 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+
+
 /* =========================================================
-   NOTAS: diseño serio tipo Excel / baja fatiga visual
-   Solo afecta el modal de registrar notas
+   NOTAS STUDENTS: Excel Pro / baja fatiga visual
+   Scope: SOLO registrar notas
 ========================================================= */
 
 #notasStudentsModal{
-  background: #0b1020 !important;
+  background: #0a0f1d !important;
 }
 
 #notasStudentsModal .notas-full-card{
-  background: #0b1020 !important;
+  background: #0a0f1d !important;
   color: #e5e7eb !important;
+  box-shadow: none !important;
 }
 
+/* Header superior más sobrio */
 #notasStudentsModal .notas-screen-header{
   background: #0f172a !important;
-  border-bottom: 1px solid #263244 !important;
+  border-bottom: 1px solid #273449 !important;
   box-shadow: none !important;
 }
 
 #notasStudentsModal .modal-title{
   color: #f8fafc !important;
   font-weight: 850 !important;
+  letter-spacing: -0.2px !important;
 }
 
 #notasStudentsModal .modal-sub{
   color: #94a3b8 !important;
 }
 
+/* Barra de controles tipo Excel */
 #notasStudentsModal .notas-pc-toolbar{
   background: #111827 !important;
   border: 1px solid #273449 !important;
+  border-radius: 14px !important;
   box-shadow: none !important;
 }
 
+/* Selects y botones superiores */
+#notasStudentsModal .notas-pc-field > span{
+  color: #9ca3af !important;
+  font-weight: 800 !important;
+}
+
+#notasStudentsModal .notas-pc-field select,
+#notasStudentsModal .notas-pc-field input,
+#notasStudentsModal .notas-pc-field .modal-input{
+  background: #0b1220 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  box-shadow: none !important;
+}
+
+#notasStudentsModal .notas-pc-actions .btn,
+#notasStudentsModal #btnNotasStudentsBack{
+  background: #0f172a !important;
+  color: #e5e7eb !important;
+  border: 1px solid #334155 !important;
+  box-shadow: none !important;
+}
+
+#notasStudentsModal .notas-pc-actions .btn:hover,
+#notasStudentsModal #btnNotasStudentsBack:hover{
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  transform: none !important;
+}
+
+/* Fondo general de la tabla */
 #notasStudentsModal .notas-grid-scroll{
-  background: #0b1020 !important;
+  background: #0a0f1d !important;
   padding: 10px 0 0 0 !important;
 }
 
 #notasStudentsModal #notasGrid{
-  background: #0b1020 !important;
+  background: #0a0f1d !important;
 }
 
-/* Tabla más limpia */
+/* Modo tabla limpio */
 #notasStudentsModal .notas-grid.table-mode{
   border-collapse: collapse !important;
   border-spacing: 0 !important;
+  gap: 0 !important;
 }
 
+/* Encabezados tipo Excel */
 #notasStudentsModal .notas-header-row .notas-cell{
   background: #1e293b !important;
-  color: #cbd5e1 !important;
-  border-bottom: 1px solid #334155 !important;
-  border-right: 1px solid #273449 !important;
-  font-weight: 850 !important;
+  color: #dbeafe !important;
+  border-bottom: 1px solid #475569 !important;
+  border-right: 1px solid #334155 !important;
   font-size: 13px !important;
+  font-weight: 850 !important;
+  text-shadow: none !important;
 }
 
-/* Celdas */
+/* Celdas normales */
 #notasStudentsModal .notas-grid.table-mode .notas-cell{
   background: #0f172a !important;
+  color: #e5e7eb !important;
   border-bottom: 1px solid #263244 !important;
   border-right: 1px solid #1e293b !important;
-  padding: 9px 8px !important;
+  padding: 8px 7px !important;
 }
 
 /* Filas alternadas suaves */
@@ -7030,28 +7072,40 @@ body.is-pc-mode .single-action-wrap{
   background: #0f172a !important;
 }
 
-/* Nombre estudiante más claro, sin tanto brillo */
-#notasStudentsModal .notas-student-name{
-  color: #f1f5f9 !important;
-  font-weight: 850 !important;
-  letter-spacing: 0 !important;
+/* Hover de fila muy sutil */
+#notasStudentsModal .notas-grid.table-mode .notas-student-card:hover .notas-cell{
+  background: #162033 !important;
 }
 
-/* Inputs más tipo hoja de cálculo */
+/* Nombre estudiante más legible */
+#notasStudentsModal .notas-student-name{
+  color: #f8fafc !important;
+  font-weight: 850 !important;
+  letter-spacing: -0.15px !important;
+}
+
+/* Inputs de notas tipo celda Excel */
 #notasStudentsModal input[data-nota-input]{
   background: #020617 !important;
-  color: #e5e7eb !important;
+  color: #f8fafc !important;
   border: 1px solid #334155 !important;
-  border-radius: 7px !important;
-  height: 34px !important;
-  min-height: 34px !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
+  border-radius: 6px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  width: 70px !important;
+  font-size: 13px !important;
+  font-weight: 750 !important;
+  text-align: center !important;
   box-shadow: none !important;
 }
 
 #notasStudentsModal input[data-nota-input]::placeholder{
   color: #64748b !important;
+}
+
+#notasStudentsModal input[data-nota-input]:hover{
+  border-color: #475569 !important;
+  background: #07111f !important;
 }
 
 #notasStudentsModal input[data-nota-input]:focus{
@@ -7068,36 +7122,78 @@ body.is-pc-mode .single-action-wrap{
   font-weight: 850 !important;
 }
 
-/* Definitiva menos brillante */
-#notasStudentsModal .notas-cell .badge,
-#notasStudentsModal .notas-status-btn .badge{
+/* Definitiva: menos brillo, más profesional */
+#notasStudentsModal .notas-status-btn{
+  background: transparent !important;
   box-shadow: none !important;
-  font-weight: 850 !important;
 }
 
-/* Menos fatiga: quitar hover exagerado */
 #notasStudentsModal .notas-status-btn:hover{
   transform: none !important;
-  filter: brightness(1.04) !important;
+  filter: brightness(1.03) !important;
 }
 
-/* Tarjetas en celular: más sobrias */
+#notasStudentsModal .badge{
+  box-shadow: none !important;
+  font-weight: 850 !important;
+  text-shadow: none !important;
+}
+
+/* Scrollbar más fina */
+#notasStudentsModal .notas-grid-scroll::-webkit-scrollbar{
+  width: 10px;
+  height: 10px;
+}
+
+#notasStudentsModal .notas-grid-scroll::-webkit-scrollbar-track{
+  background: #0a0f1d;
+}
+
+#notasStudentsModal .notas-grid-scroll::-webkit-scrollbar-thumb{
+  background: #334155;
+  border-radius: 999px;
+  border: 2px solid #0a0f1d;
+}
+
+#notasStudentsModal .notas-grid-scroll::-webkit-scrollbar-thumb:hover{
+  background: #475569;
+}
+
+/* Móvil: tarjetas limpias, no cansan */
 @media (max-width: 899px){
+  #notasStudentsModal .notas-grid-scroll{
+    background: #0a0f1d !important;
+    padding: 12px !important;
+  }
+
   #notasStudentsModal .notas-student-card{
     background: #0f172a !important;
-    border: 1px solid #263244 !important;
+    border: 1px solid #273449 !important;
+    border-radius: 14px !important;
     box-shadow: none !important;
   }
 
   #notasStudentsModal .notas-input-row{
     border-bottom: 1px solid #1e293b !important;
-    padding-bottom: 7px !important;
+    padding-bottom: 8px !important;
   }
 
   #notasStudentsModal .notas-input-row label{
     color: #94a3b8 !important;
+    font-weight: 750 !important;
+  }
+
+  #notasStudentsModal input[data-nota-input]{
+    width: 86px !important;
+    height: 36px !important;
+  }
+
+  #notasStudentsModal .notas-summary{
+    border-top: 1px solid #1e293b !important;
+    padding-top: 8px !important;
   }
 }
+
 
 
 </style>
