@@ -18460,13 +18460,18 @@ notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
 
     if (!wasOpen && window.matchMedia("(max-width: 899px)").matches) {
       requestAnimationFrame(() => {
+        const card = notasGridEl.querySelector(`[data-student-idx="${idx}"]`);
         const scroller = document.querySelector("#notasStudentsModal .notas-grid-scroll");
-        if (scroller) {
-          scroller.scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });
-        }
+
+        if (!card || !scroller) return;
+
+        const topExtra = 8;
+        const targetTop = card.offsetTop - topExtra;
+
+        scroller.scrollTo({
+          top: Math.max(0, targetTop),
+          behavior: "smooth"
+        });
       });
     }
   });
