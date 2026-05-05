@@ -18450,13 +18450,27 @@ Total Cog.<br>
     `;
   }).join("");
 
-  notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const idx = Number(btn.dataset.notaStudentToggle);
-      __notasOpenStudentIdx = (__notasOpenStudentIdx === idx) ? null : idx;
-      notasRenderGrid_();
-    });
+notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const idx = Number(btn.dataset.notaStudentToggle);
+    const wasOpen = (__notasOpenStudentIdx === idx);
+
+    __notasOpenStudentIdx = wasOpen ? null : idx;
+    notasRenderGrid_();
+
+    if (!wasOpen && window.matchMedia("(max-width: 899px)").matches) {
+      requestAnimationFrame(() => {
+        const scroller = document.querySelector("#notasStudentsModal .notas-grid-scroll");
+        if (scroller) {
+          scroller.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+        }
+      });
+    }
   });
+});
 
 notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
 
