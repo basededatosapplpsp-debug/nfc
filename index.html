@@ -18465,8 +18465,13 @@ notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
 
         if (!card || !scroller) return;
 
-        const topExtra = 8;
-        const targetTop = card.offsetTop - topExtra;
+       const modal = document.querySelector("#notasStudentsModal");
+const header = modal?.querySelector(".notas-screen-header");
+
+const headerH = header ? header.offsetHeight : 0;
+const topExtra = headerH + 12;
+
+const targetTop = card.offsetTop - topExtra;
 
         scroller.scrollTo({
           top: Math.max(0, targetTop),
