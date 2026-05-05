@@ -8545,10 +8545,7 @@ body[data-theme="light"] .notas-detail-mini{
   title="Siguiente"
   aria-label="Siguiente"
 >
-  <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-</button>
-
-<button
+<i class="fa-solid fa-chevron-right" aria-hidden="true"></i><button
   id="btnUbicateAll"
   type="button"
   class="btn btn-primary icon-only"
@@ -15709,10 +15706,6 @@ async function ubicateLoadTeachers_(forceRefresh = false) {
 }
 
 async function ubicateOpen_() {
-    if (isPcMode()) {
-    setPcModeHomeStatus_();
-    return;
-  }
   __ubicateSelectedDayKey = "";
   __ubicateScheduleCache = [];
   __ubicateNextIndex = -1;
