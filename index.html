@@ -7120,10 +7120,12 @@ body[data-theme="light"] .notas-detail-mini{
 
 
 
-/* ===== FIX: badge porcentajes en modo claro ===== */
-body[data-theme="light"] .badge{
-  color: #0f172a !important;                 /* negro elegante */
-  -webkit-text-fill-color: #0f172a !important;
+/* ===== FIX MÓVIL MODO CLARO: texto de porcentajes en notas ===== */
+@media (max-width: 899px){
+  body[data-theme="light"] #notasStudentsModal .notas-mobile-pill{
+    color: #0f172a !important;
+    -webkit-text-fill-color: #0f172a !important;
+  }
 }
 
 
