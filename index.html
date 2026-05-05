@@ -18275,6 +18275,37 @@ notasProgramarAutoGuardado_();
 }
 
 
+function notasNombreApellidoPrimero_(nombre){
+  const parts = String(nombre || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .split(" ")
+    .filter(Boolean);
+
+  if (parts.length < 3) return parts.join(" ");
+
+  const apellidos = parts.slice(-2).join(" ");
+  const nombres = parts.slice(0, -2).join(" ");
+
+  return `${apellidos} ${nombres}`.trim();
+}
+
+
+function notasNombreVista_(nombre){
+  const clean = String(nombre || "").trim().replace(/\s+/g, " ");
+  if (!clean) return "";
+
+  const parts = clean.split(" ");
+  if (parts.length < 3) return clean;
+
+  const apellidos = parts.slice(-2).join(" ");
+  const nombres = parts.slice(0, -2).join(" ");
+
+  return `${apellidos} ${nombres}`.trim();
+}
+
+
+
 
 function notasRenderGrid_(){
   if (!notasGridEl) return;
@@ -18331,6 +18362,8 @@ Total Cog.<br>
     if (!student.notas) student.notas = {};
 
     const calc = notasCalcStudent_(student);
+
+    const estudianteVista = notasNombreVista_(student.estudiante);
 
     const rowClass =
       calc.estado === "BAJO" ? "notas-row-bajo" :
@@ -18560,9 +18593,11 @@ input.addEventListener("blur", () => {
 
     const detallesAgrupados = notasFormatoDetallesAgrupados_(calc.detalles);
 
+const estudianteVista = notasNombreVista_(student.estudiante);
+
 const msg =
   `Reporte académico\n\n` +
-  `Estudiante: ${student.estudiante}\n` +
+  `Estudiante: ${estudianteVista}\n` +
   `Curso: ${curso}\n` +
   `Asignatura: ${asignatura}\n` +
   `Periodo: ${periodo}\n` +
@@ -18598,6 +18633,8 @@ function notasOpenDetallePc_(sIdx){
 
   const detallesAgrupados = notasFormatoDetallesAgrupados_(calc.detalles);
 
+  const estudianteVista = notasNombreVista_(student.estudiante);
+
   let modal = document.getElementById("notasPcDetalleModal");
 
   if (!modal) {
@@ -18614,7 +18651,7 @@ function notasOpenDetallePc_(sIdx){
 
   const msg =
     `Reporte académico\n\n` +
-    `Estudiante: ${student.estudiante}\n` +
+    `Estudiante: ${estudianteVista}\n` +
     `Curso: ${curso}\n` +
     `Asignatura: ${asignatura}\n` +
     `Periodo: ${periodo}\n` +
@@ -18626,7 +18663,7 @@ function notasOpenDetallePc_(sIdx){
     <div class="modal-card notas-pc-detail-card">
       <div class="notas-detail-modal-head">
         <div>
-          <h2 style="margin:0;">${escapeHtml(student.estudiante || "Estudiante")}</h2>
+          <h2 style="margin:0;">${escapeHtml(estudianteVista || "Estudiante")}</h2>
           <div class="muted small">${escapeHtml(curso)} • ${escapeHtml(asignatura)} • Periodo ${escapeHtml(periodo)}</div>
         </div>
 
@@ -19977,7 +20014,7 @@ function notasAlertasAgruparPorEstudiante_(items){
   });
 
   return Array.from(map.values()).sort((a, b) =>
-    String(a.estudiante || "").localeCompare(String(b.estudiante || ""), "es")
+    notasNombreVista_(a.estudiante).localeCompare(notasNombreVista_(b.estudiante), "es")
   );
 }
 
@@ -20007,7 +20044,7 @@ __notasAlertaMsg = "";
         <div class="left">
           <span class="lvl-dot ${dotClass}"></span>
           <div>
-            <div class="name">${escapeHtml(x.estudiante || "Sin nombre")}</div>
+            <div class="name">${escapeHtml(notasNombreVista_(x.estudiante) || "Sin nombre")}</div>
             <div class="muted small">
               ${escapeHtml(x.curso || "")} • ${escapeHtml(x.asignatura || "")} • Periodo ${escapeHtml(String(x.periodo || "—"))}
             </div>
