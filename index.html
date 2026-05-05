@@ -7063,57 +7063,30 @@ body[data-theme="light"] #notasAlertasDetalleMobileModal .badge-neutral *{
 }
 
 
-
-/* ===== FIX MOBILE BOTÓN COMPARTIR ===== */
-@media (max-width: 768px){
-  .modal-actions{
-    padding: 0 16px 16px 16px;
-  }
-
-  .modal-actions .btn-main{
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    border-radius: 12px; /* estilo app */
-  }
-}
-
-
-
-/* ===== FIX REAL BOTÓN COMPARTIR (MOBILE) ===== */
+/* ===== FIX REAL: evitar desbordamiento en registro de notas (mobile) ===== */
 @media (max-width: 768px){
 
-  .modal-actions,
-  .reporte-actions,
-  .acciones-reporte{
-    width: 100%;
-    padding: 16px;
-    box-sizing: border-box;
+  body{
+    overflow-x: hidden !important;
   }
 
-  .modal-actions button,
-  .reporte-actions button,
-  .acciones-reporte button{
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    box-sizing: border-box;
-    margin: 0;
-    border-radius: 14px;
+  .notas-container,
+  .notas-card,
+  .modal-content{
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-}
+  .notas-card{
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
 
-
-@media (max-width: 768px){
-
-  .modal,
-  .modal-content,
-  .card,
-  .reporte-card{
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+  .notas-card button{
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
 }
