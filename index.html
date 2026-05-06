@@ -18867,9 +18867,29 @@ if (actions) {
     btnNotasCompartirDebe.addEventListener("click", notasCompartirDebeTodos_);
   }
 
+   let btnNotasGestionarEstudiantes = document.getElementById("btnNotasGestionarEstudiantes");
+
+  if (!btnNotasGestionarEstudiantes) {
+    btnNotasGestionarEstudiantes = document.createElement("button");
+    btnNotasGestionarEstudiantes.type = "button";
+    btnNotasGestionarEstudiantes.id = "btnNotasGestionarEstudiantes";
+    btnNotasGestionarEstudiantes.className = "btn";
+    btnNotasGestionarEstudiantes.textContent = "Estudiantes";
+    btnNotasGestionarEstudiantes.title = "Agregar, editar o eliminar estudiantes del curso";
+
+    btnNotasGestionarEstudiantes.addEventListener("click", () => {
+      openAdminStudentsManager_({
+        course: String(notasCursoEl?.value || "").trim()
+      });
+    });
+  }
+
+  btnNotasGestionarEstudiantes.hidden = !isAdminMode();
+
   actions.appendChild(btnNotasAgregarColumna);
   actions.appendChild(btnNotasAgregarCognitivo);
   actions.appendChild(btnNotasCompartirDebe);
+  actions.appendChild(btnNotasGestionarEstudiantes);
   actions.appendChild(btnNotasCargarPlanilla);
   actions.appendChild(btnNotasGuardar);
 }
@@ -22617,10 +22637,15 @@ function clearStudentsCache_(course) {
   } catch {}
 }
 
-async function openAdminStudentsManager_() {
-  if (!isAdminMode()) return;
+async function openAdminStudentsManager_(opts = {}) {
+  if (!isAdminMode()) {
+    alert("Solo disponible en modo administrador.");
+    return;
+  }
 
-  const course = prompt("Curso exacto. Ej: OCTAVO, DECIMO, 8A, 10B");
+  const course = String(opts.course || notasCursoEl?.value || "").trim() ||
+    prompt("Curso exacto. Ej: OCTAVO, DECIMO, 8A, 10B");
+
   if (!course) return;
 
   const mode = prompt("Escribe: agregar, editar o eliminar");
@@ -22640,6 +22665,16 @@ async function openAdminStudentsManager_() {
         course,
         new_name: newName
       });
+
+      const cleanName = String(newName || "").trim();
+      if (cleanName && !__notasEstudiantes.some(x =>
+        normalizeText(String(x.estudiante || "")) === normalizeText(cleanName)
+      )) {
+        __notasEstudiantes.push({
+          estudiante: cleanName,
+          notas: {}
+        });
+      }
     }
 
     else if (m === "editar") {
@@ -22655,6 +22690,12 @@ async function openAdminStudentsManager_() {
         old_name: oldName,
         new_name: newName
       });
+
+      const found = __notasEstudiantes.find(x =>
+        normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
+      );
+
+      if (found) found.estudiante = String(newName || "").trim();
     }
 
     else if (m === "eliminar") {
@@ -22669,6 +22710,10 @@ async function openAdminStudentsManager_() {
         course,
         old_name: oldName
       });
+
+      __notasEstudiantes = __notasEstudiantes.filter(x =>
+        normalizeText(String(x.estudiante || "")) !== normalizeText(oldName)
+      );
     }
 
     else {
@@ -22677,7 +22722,8 @@ async function openAdminStudentsManager_() {
     }
 
     clearStudentsCache_(course);
-    alert("Listo ✅ Cierra y vuelve a abrir la planilla para ver la lista actualizada.");
+    notasRenderGrid_();
+    notasSetHint_("Lista de estudiantes actualizada ✅");
   } catch (e) {
     alert(String(e?.message || e));
   } finally {
