@@ -8876,26 +8876,6 @@ body[data-theme="light"] #parqueResult .parque-badge{
   </div>
 </div>
 
-
-<div id="notasStudentModal" class="modal-backdrop" hidden>
-  <div class="modal-card">
-    <h2 id="notasStudentModalTitle" class="modal-title">Gestionar estudiante</h2>
-    <p id="notasStudentModalSub" class="modal-sub">Curso actual</p>
-
-    <label class="modal-label" for="notasStudentNameInput">Nombre completo</label>
-    <input id="notasStudentNameInput" class="modal-input" type="text" autocomplete="off" />
-
-    <div class="modal-actions">
-      <button id="btnNotasStudentAdd" class="btn btn-primary" type="button">Agregar</button>
-      <button id="btnNotasStudentEdit" class="btn btn-secondary" type="button">Editar</button>
-      <button id="btnNotasStudentDelete" class="btn btn-danger" type="button">Eliminar</button>
-      <button id="btnNotasStudentCancel" class="btn" type="button">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-
-
 <!-- ======= MODAL PLANILLA DE NOTAS: ESTUDIANTES ======= -->
 <div id="notasStudentsModal" class="modal-backdrop notas-full" hidden>
   <div class="modal-card notas-full-card">
@@ -11140,8 +11120,6 @@ const btnActualizarViewerReportes = document.getElementById('btnActualizarViewer
 const reportesViewerCourseFilterEl = document.getElementById("reportesViewerCourseFilter");
 const reportesViewerSubjectFilterEl = document.getElementById("reportesViewerSubjectFilter");
 const btnCompartirViewerReportes = document.getElementById("btnCompartirViewerReportes");
-
-
 let __reportesLastItems = [];
 
 
@@ -22641,93 +22619,49 @@ function clearStudentsCache_(course) {
   } catch {}
 }
 
-let __notasStudentModalState = {
-  index: -1,
-  oldName: ""
-};
+async function openAdminStudentsManager_(opts = {}) {
+  // Disponible para docente/usuario normal desde la planilla
 
-function openNotasStudentModal_(studentName = "", sIdx = -1) {
-  __notasStudentModalState = {
-    index: Number(sIdx),
-    oldName: String(studentName || "").trim()
-  };
+  const course = String(opts.course || notasCursoEl?.value || "").trim() ||
+    prompt("Curso exacto. Ej: OCTAVO, DECIMO, 8A, 10B");
 
-  if (notasStudentNameInput) {
-    notasStudentNameInput.value = String(studentName || "").trim();
-  }
+  if (!course) return;
 
-  if (notasStudentModalTitle) {
-    notasStudentModalTitle.textContent = studentName
-      ? "Gestionar estudiante"
-      : "Agregar estudiante";
-  }
+  const mode = prompt("Escribe: agregar, editar o eliminar");
+  if (!mode) return;
 
-  if (notasStudentModalSub) {
-    notasStudentModalSub.textContent = String(notasCursoEl?.value || "").trim() || "Curso actual";
-  }
-
-  if (btnNotasStudentEdit) btnNotasStudentEdit.hidden = !studentName;
-  if (btnNotasStudentDelete) btnNotasStudentDelete.hidden = !studentName;
-
-  if (notasStudentModal) notasStudentModal.hidden = false;
-
-  setTimeout(() => {
-    try {
-      notasStudentNameInput?.focus();
-      notasStudentNameInput?.select();
-    } catch {}
-  }, 50);
-}
-
-function closeNotasStudentModal_() {
-  if (notasStudentModal) notasStudentModal.hidden = true;
-
-  __notasStudentModalState = {
-    index: -1,
-    oldName: ""
-  };
-}
-
-async function notasStudentSaveAction_(mode) {
-  const course = String(notasCursoEl?.value || "").trim();
-  const oldName = String(__notasStudentModalState.oldName || "").trim();
-  const newName = String(notasStudentNameInput?.value || "").trim();
-
-  if (!course) {
-    alert("Falta seleccionar curso.");
-    return;
-  }
-
-  if (mode !== "delete" && !newName) {
-    alert("Escribe el nombre del estudiante.");
-    return;
-  }
+  const m = String(mode).trim().toLowerCase();
 
   try {
     setLoading(true, "Guardando…", "Actualizando estudiante.");
 
-    if (mode === "add") {
+    if (m === "agregar") {
+      const newName = prompt("Nombre completo del estudiante:");
+      if (!newName) return;
+
       await gsAdminStudentSave({
         mode: "add",
         course,
         new_name: newName
       });
 
-      if (!__notasEstudiantes.some(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(newName)
+      const cleanName = String(newName || "").trim();
+      if (cleanName && !__notasEstudiantes.some(x =>
+        normalizeText(String(x.estudiante || "")) === normalizeText(cleanName)
       )) {
         __notasEstudiantes.push({
-          estudiante: newName,
+          estudiante: cleanName,
           notas: {}
         });
       }
     }
 
-    if (mode === "edit") {
-      if (!oldName) {
-        alert("No hay estudiante seleccionado para editar.");
-        return;
-      }
+    else if (m === "editar") {
+      const oldName = prompt("Nombre actual del estudiante:");
+      if (!oldName) return;
+
+      const newName = prompt("Nuevo nombre completo:");
+      if (!newName) return;
 
       await gsAdminStudentSave({
         mode: "edit",
@@ -22740,14 +22674,12 @@ async function notasStudentSaveAction_(mode) {
         normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
       );
 
-      if (found) found.estudiante = newName;
+      if (found) found.estudiante = String(newName || "").trim();
     }
 
-    if (mode === "delete") {
-      if (!oldName) {
-        alert("No hay estudiante seleccionado para eliminar.");
-        return;
-      }
+    else if (m === "eliminar") {
+      const oldName = prompt("Nombre exacto del estudiante a eliminar del curso:");
+      if (!oldName) return;
 
       const ok = confirm(`¿Eliminar del curso a "${oldName}"? No se borran notas históricas.`);
       if (!ok) return;
@@ -22763,9 +22695,13 @@ async function notasStudentSaveAction_(mode) {
       );
     }
 
+    else {
+      alert("Opción inválida. Usa: agregar, editar o eliminar.");
+      return;
+    }
+
     clearStudentsCache_(course);
     notasRenderGrid_();
-    closeNotasStudentModal_();
     notasSetHint_("Lista de estudiantes actualizada ✅");
   } catch (e) {
     alert(String(e?.message || e));
