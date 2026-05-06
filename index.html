@@ -22765,9 +22765,15 @@ function normalizeText(v) {
 
 
 async function notasStudentSaveAction_(mode) {
-  const course = String(notasCursoEl?.value || "").trim();
-  const oldName = String(__notasStudentModalState.oldName || "").trim();
-  const newName = String(notasStudentNameInput?.value || "").trim();
+const course = String(notasCursoEl?.value || "").trim();
+const oldName = String(__notasStudentModalState.oldName || "").trim();
+const newName = String(notasStudentNameInput?.value || "").trim();
+
+const studentPlanillaCtx_ = {
+  asignatura: String(notasAsignaturaEl?.value || "").trim(),
+  periodo: String(notasPeriodoEl?.value || "1").trim(),
+  year: new Date().getFullYear()
+};
 
   if (!course) {
     alert("Falta seleccionar curso.");
@@ -22783,11 +22789,12 @@ async function notasStudentSaveAction_(mode) {
     setLoading(true, "Guardando…", "Actualizando estudiante.");
 
     if (mode === "add") {
-      await gsAdminStudentSave({
-        mode: "add",
-        course,
-        new_name: newName
-      });
+   await gsAdminStudentSave({
+  mode: "add",
+  course,
+  new_name: newName,
+  ...studentPlanillaCtx_
+});
 
       if (!__notasEstudiantes.some(x =>
         normalizeText(String(x.estudiante || "")) === normalizeText(newName)
@@ -22805,12 +22812,13 @@ async function notasStudentSaveAction_(mode) {
         return;
       }
 
-      await gsAdminStudentSave({
-        mode: "edit",
-        course,
-        old_name: oldName,
-        new_name: newName
-      });
+ await gsAdminStudentSave({
+  mode: "edit",
+  course,
+  old_name: oldName,
+  new_name: newName,
+  ...studentPlanillaCtx_
+});
 
       const found = __notasEstudiantes.find(x =>
         normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
@@ -22828,12 +22836,12 @@ async function notasStudentSaveAction_(mode) {
       const ok = confirm(`¿Eliminar del curso a "${oldName}"? No se borran notas históricas.`);
       if (!ok) return;
 
-      await gsAdminStudentSave({
-        mode: "delete",
-        course,
-        old_name: oldName
-      });
-
+     await gsAdminStudentSave({
+  mode: "delete",
+  course,
+  old_name: oldName,
+  ...studentPlanillaCtx_
+});
       __notasEstudiantes = __notasEstudiantes.filter(x =>
         normalizeText(String(x.estudiante || "")) !== normalizeText(oldName)
       );
