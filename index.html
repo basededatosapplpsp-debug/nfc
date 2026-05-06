@@ -7165,8 +7165,6 @@ body[data-theme="light"] #parqueResult .parque-badge{
 
   <button id="btnAdminApproveDevices" class="menu-item" type="button" role="menuitem" hidden>Aprobar dispositivos</button>
 
-  <button id="btnAdminStudents" class="menu-item" type="button" role="menuitem" hidden>Gestionar estudiantes</button>
-
   <!-- ✅ NUEVO: Botón que abre el submenú -->
   <button id="btnFaltasMenu" class="menu-item" type="button" role="menuitem" aria-haspopup="true" aria-expanded="false">
     Llamados de atención <span class="muted small" aria-hidden="true">›</span>
@@ -8875,26 +8873,6 @@ body[data-theme="light"] #parqueResult .parque-badge{
     </div>
   </div>
 </div>
-
-
-<div id="notasStudentModal" class="modal-backdrop" hidden>
-  <div class="modal-card">
-    <h2 id="notasStudentModalTitle" class="modal-title">Gestionar estudiante</h2>
-    <p id="notasStudentModalSub" class="modal-sub">Curso actual</p>
-
-    <label class="modal-label" for="notasStudentNameInput">Nombre completo</label>
-    <input id="notasStudentNameInput" class="modal-input" type="text" autocomplete="off" />
-
-    <div class="modal-actions">
-      <button id="btnNotasStudentAdd" class="btn btn-primary" type="button">Agregar</button>
-      <button id="btnNotasStudentEdit" class="btn btn-secondary" type="button">Editar</button>
-      <button id="btnNotasStudentDelete" class="btn btn-danger" type="button">Eliminar</button>
-      <button id="btnNotasStudentCancel" class="btn" type="button">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-
 
 <!-- ======= MODAL PLANILLA DE NOTAS: ESTUDIANTES ======= -->
 <div id="notasStudentsModal" class="modal-backdrop notas-full" hidden>
@@ -11140,17 +11118,6 @@ const btnActualizarViewerReportes = document.getElementById('btnActualizarViewer
 const reportesViewerCourseFilterEl = document.getElementById("reportesViewerCourseFilter");
 const reportesViewerSubjectFilterEl = document.getElementById("reportesViewerSubjectFilter");
 const btnCompartirViewerReportes = document.getElementById("btnCompartirViewerReportes");
-
-const notasStudentModal = document.getElementById("notasStudentModal");
-const notasStudentModalTitle = document.getElementById("notasStudentModalTitle");
-const notasStudentModalSub = document.getElementById("notasStudentModalSub");
-const notasStudentNameInput = document.getElementById("notasStudentNameInput");
-const btnNotasStudentAdd = document.getElementById("btnNotasStudentAdd");
-const btnNotasStudentEdit = document.getElementById("btnNotasStudentEdit");
-const btnNotasStudentDelete = document.getElementById("btnNotasStudentDelete");
-const btnNotasStudentCancel = document.getElementById("btnNotasStudentCancel");
-
-
 let __reportesLastItems = [];
 
 
@@ -17804,12 +17771,8 @@ if (btnAdminConfig) btnAdminConfig.hidden = !isAdminMode();
 if (btnAdminChangePin) btnAdminChangePin.hidden = !isAdminMode();
 if (btnAdminManual) btnAdminManual.hidden = !isAdminMode();
 
-if (btnAdminStudents) btnAdminStudents.hidden = !isAdminMode();
 
 
-if (btnAdminStudents) {
-  btnAdminStudents.addEventListener("click", openAdminStudentsManager_);
-}
 
 if (btnComprasMenu) {
   btnComprasMenu.addEventListener("click", async () => {
@@ -18424,9 +18387,7 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
       return `
         <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
           <div class="notas-student-top">
-           <div class="notas-cell notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+            <div class="notas-cell notas-student-name">${escapeHtml(estudianteVista || "Estudiante")}</div>
           </div>
 
           <div class="notas-inputs">
@@ -18482,9 +18443,7 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
     return `
       <div class="notas-student-card ${rowClass} ${isOpen ? "is-open" : ""}" data-student-idx="${sIdx}">
         <button class="notas-student-toggle" type="button" data-nota-student-toggle="${sIdx}">
-          <div class="notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+          <div class="notas-student-name">${escapeHtml(estudianteVista || "Estudiante")}</div>
           <div class="notas-student-toggle-right">
             ${notasEstadoBadge_(calc.estado, calc.criterio)}
             <span class="notas-toggle-icon">${isOpen ? "−" : "+"}</span>
@@ -18626,22 +18585,6 @@ input.addEventListener("blur", () => {
       notasEditarColumna_(Number(el.dataset.notaColEdit));
     });
   });
-
-
-  notasGridEl.querySelectorAll("[data-nota-student-manager]").forEach(el => {
-  el.addEventListener("dblclick", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const sIdx = Number(el.dataset.notaStudentManager);
-    const student = __notasEstudiantes[sIdx];
-    if (!student) return;
-
-    openNotasStudentModal_(student.estudiante, sIdx);
-  });
-});
-
-
 
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -18917,8 +18860,6 @@ if (actions) {
     btnNotasCompartirDebe.innerHTML = `<i class="fa-solid fa-share-nodes"></i>`;
     btnNotasCompartirDebe.addEventListener("click", notasCompartirDebeTodos_);
   }
-
- 
 
   actions.appendChild(btnNotasAgregarColumna);
   actions.appendChild(btnNotasAgregarCognitivo);
@@ -22648,161 +22589,6 @@ async function gsCourseStudents(course) {
   return data.students || [];
 }
 
-
-async function gsAdminStudentSave(payload = {}) {
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      action: "admin_student_save",
-      ...payload,
-      key: GS_API_KEY
-    })
-  });
-
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.msg || data.error || "admin_student_save_failed");
-  return data;
-}
-
-function clearStudentsCache_(course) {
-  try {
-    localStorage.removeItem(LS_STUDENTS_CACHE_PREFIX + String(course || "").trim());
-  } catch {}
-}
-
-let __notasStudentModalState = {
-  index: -1,
-  oldName: ""
-};
-
-function openNotasStudentModal_(studentName = "", sIdx = -1) {
-  __notasStudentModalState = {
-    index: Number(sIdx),
-    oldName: String(studentName || "").trim()
-  };
-
-  if (notasStudentNameInput) {
-    notasStudentNameInput.value = String(studentName || "").trim();
-  }
-
-  if (notasStudentModalTitle) {
-    notasStudentModalTitle.textContent = studentName
-      ? "Gestionar estudiante"
-      : "Agregar estudiante";
-  }
-
-  if (notasStudentModalSub) {
-    notasStudentModalSub.textContent = String(notasCursoEl?.value || "").trim() || "Curso actual";
-  }
-
-  if (btnNotasStudentEdit) btnNotasStudentEdit.hidden = !studentName;
-  if (btnNotasStudentDelete) btnNotasStudentDelete.hidden = !studentName;
-
-  if (notasStudentModal) notasStudentModal.hidden = false;
-
-  setTimeout(() => {
-    try {
-      notasStudentNameInput?.focus();
-      notasStudentNameInput?.select();
-    } catch {}
-  }, 50);
-}
-
-function closeNotasStudentModal_() {
-  if (notasStudentModal) notasStudentModal.hidden = true;
-
-  __notasStudentModalState = {
-    index: -1,
-    oldName: ""
-  };
-}
-
-async function notasStudentSaveAction_(mode) {
-  const course = String(notasCursoEl?.value || "").trim();
-  const oldName = String(__notasStudentModalState.oldName || "").trim();
-  const newName = String(notasStudentNameInput?.value || "").trim();
-
-  if (!course) {
-    alert("Falta seleccionar curso.");
-    return;
-  }
-
-  if (mode !== "delete" && !newName) {
-    alert("Escribe el nombre del estudiante.");
-    return;
-  }
-
-  try {
-    setLoading(true, "Guardando…", "Actualizando estudiante.");
-
-    if (mode === "add") {
-      await gsAdminStudentSave({
-        mode: "add",
-        course,
-        new_name: newName
-      });
-
-      if (!__notasEstudiantes.some(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(newName)
-      )) {
-        __notasEstudiantes.push({
-          estudiante: newName,
-          notas: {}
-        });
-      }
-    }
-
-    if (mode === "edit") {
-      if (!oldName) {
-        alert("No hay estudiante seleccionado para editar.");
-        return;
-      }
-
-      await gsAdminStudentSave({
-        mode: "edit",
-        course,
-        old_name: oldName,
-        new_name: newName
-      });
-
-      const found = __notasEstudiantes.find(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
-      );
-
-      if (found) found.estudiante = newName;
-    }
-
-    if (mode === "delete") {
-      if (!oldName) {
-        alert("No hay estudiante seleccionado para eliminar.");
-        return;
-      }
-
-      const ok = confirm(`¿Eliminar del curso a "${oldName}"? No se borran notas históricas.`);
-      if (!ok) return;
-
-      await gsAdminStudentSave({
-        mode: "delete",
-        course,
-        old_name: oldName
-      });
-
-      __notasEstudiantes = __notasEstudiantes.filter(x =>
-        normalizeText(String(x.estudiante || "")) !== normalizeText(oldName)
-      );
-    }
-
-    clearStudentsCache_(course);
-    notasRenderGrid_();
-    closeNotasStudentModal_();
-    notasSetHint_("Lista de estudiantes actualizada ✅");
-  } catch (e) {
-    alert(String(e?.message || e));
-  } finally {
-    setLoading(false);
-  }
-}
-
 function fillSelect_(selectEl, items, placeholderText) {
   if (!selectEl) return;
   const prev = selectEl.value;
@@ -25776,11 +25562,6 @@ if (lateMonthEl) lateMonthEl.onchange = async () => {
   await lateRefreshList_();
 };
 
-
-if (btnNotasStudentAdd) btnNotasStudentAdd.addEventListener("click", () => notasStudentSaveAction_("add"));
-if (btnNotasStudentEdit) btnNotasStudentEdit.addEventListener("click", () => notasStudentSaveAction_("edit"));
-if (btnNotasStudentDelete) btnNotasStudentDelete.addEventListener("click", () => notasStudentSaveAction_("delete"));
-if (btnNotasStudentCancel) btnNotasStudentCancel.addEventListener("click", closeNotasStudentModal_);
 
 /* ======= Poll ======= */
 function uniStartPolling_() {
