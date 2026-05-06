@@ -11141,15 +11141,6 @@ const reportesViewerCourseFilterEl = document.getElementById("reportesViewerCour
 const reportesViewerSubjectFilterEl = document.getElementById("reportesViewerSubjectFilter");
 const btnCompartirViewerReportes = document.getElementById("btnCompartirViewerReportes");
 
-const notasStudentModal = document.getElementById("notasStudentModal");
-const notasStudentModalTitle = document.getElementById("notasStudentModalTitle");
-const notasStudentModalSub = document.getElementById("notasStudentModalSub");
-const notasStudentNameInput = document.getElementById("notasStudentNameInput");
-const btnNotasStudentAdd = document.getElementById("btnNotasStudentAdd");
-const btnNotasStudentEdit = document.getElementById("btnNotasStudentEdit");
-const btnNotasStudentDelete = document.getElementById("btnNotasStudentDelete");
-const btnNotasStudentCancel = document.getElementById("btnNotasStudentCancel");
-
 
 let __reportesLastItems = [];
 
@@ -25755,8 +25746,6 @@ if (lateMonthEl) lateMonthEl.onchange = async () => {
   lateLoadCacheFromStorage_();
   await lateRefreshList_();
 };
-
-
 
 
 /* ======= Poll ======= */
