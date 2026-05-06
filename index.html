@@ -13391,8 +13391,7 @@ async function initAdminRecordsPanelUI() {
 
   const on = isAdminMode();
 
-  if (btnExportXlsx) btnExportXlsx.hidden = !on;
-  if (btnExport) btnExport.hidden = !!on;
+if (btnExport) btnExport.hidden = false;
 
   // ✅ SOLO ADMIN ve filtros
   adminRecordsFilters.hidden = !on;
@@ -27268,7 +27267,9 @@ async function downloadAdminExcel() {
     url.searchParams.set("action", "export_xlsx_link");
     url.searchParams.set("key", GS_API_KEY);
     if (month) url.searchParams.set("month", month);
-    if (teacher) url.searchParams.set("teacher", teacher);
+    if (teacher && teacher !== "__ALL__") {
+  url.searchParams.set("teacher", teacher);
+}
 
     const res = await fetch(url.toString(), { method: "GET" });
 
@@ -27308,7 +27309,7 @@ async function downloadAdminExcel() {
 }
 
 
-if (btnExportXlsx) btnExportXlsx.addEventListener("click", downloadAdminExcel);
+
 
 
 // ======= INSTALL (A2HS) =======
@@ -28115,7 +28116,15 @@ lateSuccessToast_(Number(resp.times || 0));
 btnEntrada.addEventListener("click", () => register("ENTRADA"));
 btnSalida.addEventListener("click",  () => register("SALIDA"));
 
-btnExport.addEventListener("click", downloadUserExcel);
+if (btnExport) {
+  btnExport.addEventListener("click", () => {
+    if (isAdminMode()) {
+      downloadAdminExcel();
+    } else {
+      downloadUserExcel();
+    }
+  });
+}
 
 
 
