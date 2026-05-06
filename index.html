@@ -7165,6 +7165,8 @@ body[data-theme="light"] #parqueResult .parque-badge{
 
   <button id="btnAdminApproveDevices" class="menu-item" type="button" role="menuitem" hidden>Aprobar dispositivos</button>
 
+  <button id="btnAdminStudents" class="menu-item" type="button" role="menuitem" hidden>Gestionar estudiantes</button>
+
   <!-- ✅ NUEVO: Botón que abre el submenú -->
   <button id="btnFaltasMenu" class="menu-item" type="button" role="menuitem" aria-haspopup="true" aria-expanded="false">
     Llamados de atención <span class="muted small" aria-hidden="true">›</span>
@@ -17771,8 +17773,12 @@ if (btnAdminConfig) btnAdminConfig.hidden = !isAdminMode();
 if (btnAdminChangePin) btnAdminChangePin.hidden = !isAdminMode();
 if (btnAdminManual) btnAdminManual.hidden = !isAdminMode();
 
+if (btnAdminStudents) btnAdminStudents.hidden = !isAdminMode();
 
 
+if (btnAdminStudents) {
+  btnAdminStudents.addEventListener("click", openAdminStudentsManager_);
+}
 
 if (btnComprasMenu) {
   btnComprasMenu.addEventListener("click", async () => {
@@ -22587,6 +22593,96 @@ async function gsCourseStudents(course) {
   try { data = await res.json(); } catch { throw new Error("Respuesta inválida del servidor"); }
   if (!data.ok) throw new Error(data.msg || data.error || "course_students_failed");
   return data.students || [];
+}
+
+
+async function gsAdminStudentSave(payload = {}) {
+  const res = await fetch(GS_WEBAPP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "admin_student_save",
+      ...payload,
+      key: GS_API_KEY
+    })
+  });
+
+  const data = await res.json();
+  if (!data.ok) throw new Error(data.msg || data.error || "admin_student_save_failed");
+  return data;
+}
+
+function clearStudentsCache_(course) {
+  try {
+    localStorage.removeItem(LS_STUDENTS_CACHE_PREFIX + String(course || "").trim());
+  } catch {}
+}
+
+async function openAdminStudentsManager_() {
+  if (!isAdminMode()) return;
+
+  const course = prompt("Curso exacto. Ej: OCTAVO, DECIMO, 8A, 10B");
+  if (!course) return;
+
+  const mode = prompt("Escribe: agregar, editar o eliminar");
+  if (!mode) return;
+
+  const m = String(mode).trim().toLowerCase();
+
+  try {
+    setLoading(true, "Guardando…", "Actualizando estudiante.");
+
+    if (m === "agregar") {
+      const newName = prompt("Nombre completo del estudiante:");
+      if (!newName) return;
+
+      await gsAdminStudentSave({
+        mode: "add",
+        course,
+        new_name: newName
+      });
+    }
+
+    else if (m === "editar") {
+      const oldName = prompt("Nombre actual del estudiante:");
+      if (!oldName) return;
+
+      const newName = prompt("Nuevo nombre completo:");
+      if (!newName) return;
+
+      await gsAdminStudentSave({
+        mode: "edit",
+        course,
+        old_name: oldName,
+        new_name: newName
+      });
+    }
+
+    else if (m === "eliminar") {
+      const oldName = prompt("Nombre exacto del estudiante a eliminar del curso:");
+      if (!oldName) return;
+
+      const ok = confirm(`¿Eliminar del curso a "${oldName}"? No se borran notas históricas.`);
+      if (!ok) return;
+
+      await gsAdminStudentSave({
+        mode: "delete",
+        course,
+        old_name: oldName
+      });
+    }
+
+    else {
+      alert("Opción inválida. Usa: agregar, editar o eliminar.");
+      return;
+    }
+
+    clearStudentsCache_(course);
+    alert("Listo ✅ Cierra y vuelve a abrir la planilla para ver la lista actualizada.");
+  } catch (e) {
+    alert(String(e?.message || e));
+  } finally {
+    setLoading(false);
+  }
 }
 
 function fillSelect_(selectEl, items, placeholderText) {
