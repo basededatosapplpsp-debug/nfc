@@ -18362,7 +18362,15 @@ Total Cog.<br>
     </div>
   ` : "";
 
-  notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
+ __notasEstudiantes.sort((a, b) =>
+  notasNombreVista_(a.estudiante).localeCompare(
+    notasNombreVista_(b.estudiante),
+    "es",
+    { sensitivity: "base" }
+  )
+);
+
+notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
     if (!student.notas) student.notas = {};
 
     const calc = notasCalcStudent_(student);
