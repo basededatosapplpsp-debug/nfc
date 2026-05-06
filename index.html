@@ -18424,9 +18424,7 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
       return `
         <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
           <div class="notas-student-top">
-           <div class="notas-cell notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+            <div class="notas-cell notas-student-name">${escapeHtml(estudianteVista || "Estudiante")}</div>
           </div>
 
           <div class="notas-inputs">
@@ -18482,9 +18480,7 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
     return `
       <div class="notas-student-card ${rowClass} ${isOpen ? "is-open" : ""}" data-student-idx="${sIdx}">
         <button class="notas-student-toggle" type="button" data-nota-student-toggle="${sIdx}">
-          <div class="notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+          <div class="notas-student-name">${escapeHtml(estudianteVista || "Estudiante")}</div>
           <div class="notas-student-toggle-right">
             ${notasEstadoBadge_(calc.estado, calc.criterio)}
             <span class="notas-toggle-icon">${isOpen ? "−" : "+"}</span>
@@ -18627,8 +18623,6 @@ input.addEventListener("blur", () => {
     });
   });
 
-
-  
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
       notasOpenDetallePc_(Number(btn.dataset.notaDetails));
