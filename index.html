@@ -18628,19 +18628,7 @@ input.addEventListener("blur", () => {
   });
 
 
-  notasGridEl.querySelectorAll("[data-nota-student-manager]").forEach(el => {
-  el.addEventListener("dblclick", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const sIdx = Number(el.dataset.notaStudentManager);
-    const student = __notasEstudiantes[sIdx];
-    if (!student) return;
-
-    openNotasStudentModal_(student.estudiante, sIdx);
-  });
-});
-
+  
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
     btn.addEventListener("click", () => {
       notasOpenDetallePc_(Number(btn.dataset.notaDetails));
