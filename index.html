@@ -18884,7 +18884,7 @@ if (actions) {
     });
   }
 
-  btnNotasGestionarEstudiantes.hidden = !isAdminMode();
+  btnNotasGestionarEstudiantes.hidden = false;
 
   actions.appendChild(btnNotasAgregarColumna);
   actions.appendChild(btnNotasAgregarCognitivo);
@@ -22638,10 +22638,7 @@ function clearStudentsCache_(course) {
 }
 
 async function openAdminStudentsManager_(opts = {}) {
-  if (!isAdminMode()) {
-    alert("Solo disponible en modo administrador.");
-    return;
-  }
+  // Disponible para docente/usuario normal desde la planilla
 
   const course = String(opts.course || notasCursoEl?.value || "").trim() ||
     prompt("Curso exacto. Ej: OCTAVO, DECIMO, 8A, 10B");
