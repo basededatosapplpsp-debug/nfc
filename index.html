@@ -18628,7 +18628,18 @@ input.addEventListener("blur", () => {
   });
 
 
+  notasGridEl.querySelectorAll("[data-nota-student-manager]").forEach(el => {
+  el.addEventListener("dblclick", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
+    const sIdx = Number(el.dataset.notaStudentManager);
+    const student = __notasEstudiantes[sIdx];
+    if (!student) return;
+
+    openNotasStudentModal_(student.estudiante, sIdx);
+  });
+});
 
 
 
@@ -22641,11 +22652,11 @@ async function gsCourseStudents(course) {
 async function gsAdminStudentSave(payload = {}) {
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
- body: JSON.stringify({
-  action: "admin_student_save",
-  ...payload,
-  key: GS_API_KEY
-})
+    body: JSON.stringify({
+      action: "admin_student_save",
+      ...payload,
+      key: GS_API_KEY
+    })
   });
 
   const data = await res.json();
