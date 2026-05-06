@@ -22599,11 +22599,11 @@ async function gsCourseStudents(course) {
 async function gsAdminStudentSave(payload = {}) {
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
-    body: JSON.stringify({
-      action: "admin_student_save",
-      ...payload,
-      key: GS_API_KEY
-    })
+ body: JSON.stringify({
+  action: "admin_student_save",
+  ...payload,
+  key: GS_API_KEY
+})
   });
 
   const data = await res.json();
