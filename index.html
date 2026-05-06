@@ -19577,9 +19577,11 @@ async function notasGuardarPlanilla_(){
       return;
     }
 
-    setLoading(true, "Sincronizando…", "Enviando planilla a Supabase.");
+  if (loaderTitleEl) loaderTitleEl.textContent = "Sincronizando…";
+if (loaderMsgEl) loaderMsgEl.textContent = "Enviando planilla a Supabase.";
+setStatus("warn", "Sincronizando…", "Enviando planilla a Supabase.");
 
-    const data = await notasEnviarPayloadSupabase_(payload);
+const data = await notasEnviarPayloadSupabase_(payload);
 
     // 3) Si subió bien, marca como sincronizada
     await notasGuardarLocalSeguro_(payload, { pending: false });
