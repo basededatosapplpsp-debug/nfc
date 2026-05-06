@@ -7137,6 +7137,16 @@ body[data-theme="light"] #parqueResult .parque-badge{
 }
 
 
+#notasStudentModal{
+  z-index: 10000050 !important;
+}
+
+#notasStudentModal .modal-card{
+  z-index: 10000051 !important;
+}
+
+
+
 
 </style>
 </head>
@@ -22728,6 +22738,17 @@ function closeNotasStudentModal_() {
     oldName: ""
   };
 }
+
+
+function normalizeText(v) {
+  return String(v || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ");
+}
+
 
 async function notasStudentSaveAction_(mode) {
   const course = String(notasCursoEl?.value || "").trim();
