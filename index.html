@@ -4306,16 +4306,10 @@ h1,h2,
 }
 
 .notas-student-card{
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid var(--line);
   border-radius:16px;
   padding:12px;
-  background:rgba(255,255,255,.05);
-  transition: background-color .18s ease, box-shadow .18s ease;
-}
-
-.notas-student-card:hover{
-  background:rgba(255,255,255,.08);
-  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  background:rgba(255,255,255,.04);
 }
 
 .notas-student-top{
@@ -4349,24 +4343,11 @@ h1,h2,
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  font-weight: 700;
 }
 
 .notas-input-row input{
   text-align:center;
   font-weight:900;
-  background: rgba(11,95,255,.08) !important;
-  border: 1px solid rgba(11,95,255,.25) !important;
-  color: var(--text) !important;
-  padding: 8px 6px !important;
-  border-radius: 8px !important;
-  transition: all .18s ease;
-}
-
-.notas-input-row input:focus{
-  background: rgba(11,95,255,.15) !important;
-  border-color: rgba(11,95,255,.5) !important;
-  box-shadow: 0 0 0 3px rgba(11,95,255,.15) !important;
 }
 
 .notas-summary{
@@ -4374,15 +4355,6 @@ h1,h2,
   display:flex;
   gap:8px;
   flex-wrap:wrap;
-}
-
-.notas-summary .badge{
-  font-size: 11px;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
 }
 
 .notas-empty{
@@ -4396,11 +4368,6 @@ h1,h2,
     display:table;
     width:100%;
     border-collapse:collapse;
-    border: 2px solid rgba(11,95,255,.5);
-    border-radius: 12px;
-    overflow: hidden;
-    background: rgba(11,95,255,.08);
-    box-shadow: 0 12px 32px rgba(11,95,255,.2);
   }
 
   .notas-grid.table-mode .notas-student-card{
@@ -4408,16 +4375,6 @@ h1,h2,
     padding:0;
     border:0;
     background:transparent;
-    transition: background-color .12s ease;
-  }
-  
-  .notas-grid.table-mode .notas-student-card:nth-child(odd) {
-    background: rgba(255,255,255,.03);
-  }
-  
-  .notas-grid.table-mode .notas-student-card:hover{
-    background: rgba(11,95,255,.12) !important;
-    box-shadow: inset 2px 0 0 rgba(11,95,255,.35);
   }
 
   .notas-grid.table-mode .notas-student-top,
@@ -4428,58 +4385,28 @@ h1,h2,
 
   .notas-grid.table-mode .notas-cell{
     display:table-cell;
-    border-right: 2px solid rgba(11,95,255,.3);
-    border-bottom: 2px solid rgba(11,95,255,.25);
-    padding: 14px 12px;
+    border-bottom:1px solid var(--line);
+    padding:8px;
     vertical-align:middle;
     white-space:nowrap;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  
-  .notas-grid.table-mode .notas-cell:last-child{
-    border-right: none;
   }
 
   .notas-grid.table-mode .notas-student-name{
     min-width:220px;
-    font-weight: 800;
-    padding: 12px 14px;
   }
 
   .notas-grid.table-mode input{
     width:78px;
-    text-align: center;
-    padding: 8px 4px;
-    font-weight: 700;
-    border: 1px solid rgba(11,95,255,.25) !important;
-    background: rgba(11,95,255,.08) !important;
-  }
-  
-  .notas-grid.table-mode input:focus{
-    background: rgba(11,95,255,.18) !important;
-    border-color: rgba(11,95,255,.5) !important;
   }
 }
 
 .notas-header-row .notas-cell{
   font-weight: 950;
-  font-size: 13px;
-  letter-spacing: 0.5px;
-  color: #ffffff;
-  background: linear-gradient(180deg, rgba(11,95,255,.45), rgba(11,95,255,.3));
-  border-right: 3px solid rgba(11,95,255,.6);
-  border-bottom: 3px solid rgba(11,95,255,.55);
+  color: var(--muted);
+  background: rgba(255,255,255,.06);
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 16px 12px;
-  text-transform: uppercase;
-  box-shadow: 0 6px 18px rgba(11,95,255,.3);
-}
-  
-.notas-header-row .notas-cell:last-child{
-  border-right: none;
 }
 
 
@@ -4488,14 +4415,13 @@ h1,h2,
 /* ===== NOTAS: detalles de riesgo ===== */
 .notas-detail-mini{
   margin-top:8px;
-  padding:10px 12px;
+  padding:8px 10px;
   border-radius:12px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  border:1px dashed var(--line);
+  background:rgba(0,0,0,.10);
   font-size:12px;
   color:var(--muted);
-  line-height:1.4;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+  line-height:1.35;
 }
 
 .notas-grid.table-mode .notas-detail-mini{
@@ -4503,48 +4429,28 @@ h1,h2,
 }
 
 .notas-row-bajo{
-  background: rgba(239,68,68,.12) !important;
-  border-bottom-color: rgba(239,68,68,.2) !important;
-}
-
-.notas-row-bajo:hover{
-  background: rgba(239,68,68,.18) !important;
+  border-color: rgba(239,68,68,.45) !important;
+  background: rgba(239,68,68,.08) !important;
 }
 
 .notas-row-debe{
-  background: rgba(248,244,5,.12) !important;
-  border-bottom-color: rgba(248,244,5,.2) !important;
-}
-
-.notas-row-debe:hover{
-  background: rgba(248,244,5,.18) !important;
+  border-color: rgba(248,244,5,.45) !important;
+  background: rgba(248,244,5,.08) !important;
 }
 
 .notas-row-riesgo{
-  background: rgba(245,158,11,.12) !important;
-  border-bottom-color: rgba(245,158,11,.2) !important;
-}
-
-.notas-row-riesgo:hover{
-  background: rgba(245,158,11,.18) !important;
+  border-color: rgba(245,158,11,.45) !important;
+  background: rgba(245,158,11,.08) !important;
 }
 
 
 .notas-component-box{
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid var(--line);
   border-radius:16px;
-  padding:14px;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+  padding:12px;
+  background:rgba(255,255,255,.04);
   display:grid;
   gap:10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,.12);
-  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
-}
-
-.notas-component-box:hover{
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-  box-shadow: 0 6px 16px rgba(0,0,0,.18);
-  transform: translateY(-1px);
 }
 
 .notas-component-title{
@@ -4683,8 +4589,6 @@ h1,h2,
   overflow:auto;
   padding:16px;
   -webkit-overflow-scrolling:touch;
-  background: radial-gradient(circle at 20% 30%, rgba(11,95,255,.04), transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(59,130,246,.03), transparent 50%);
 }
 
 
