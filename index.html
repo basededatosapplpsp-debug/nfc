@@ -18328,34 +18328,12 @@ notasProgramarAutoGuardado_();
 
 
 function notasNombreApellidoPrimero_(nombre){
-  const parts = String(nombre || "")
-    .trim()
-    .replace(/\s+/g, " ")
-    .split(" ")
-    .filter(Boolean);
-
-  if (parts.length < 3) return parts.join(" ");
-
-  const apellidos = parts.slice(-2).join(" ");
-  const nombres = parts.slice(0, -2).join(" ");
-
-  return `${apellidos} ${nombres}`.trim();
+  return String(nombre || "").trim().replace(/\s+/g, " ");
 }
-
 
 function notasNombreVista_(nombre){
-  const clean = String(nombre || "").trim().replace(/\s+/g, " ");
-  if (!clean) return "";
-
-  const parts = clean.split(" ");
-  if (parts.length < 3) return clean;
-
-  const apellidos = parts.slice(-2).join(" ");
-  const nombres = parts.slice(0, -2).join(" ");
-
-  return `${apellidos} ${nombres}`.trim();
+  return String(nombre || "").trim().replace(/\s+/g, " ");
 }
-
 
 
 
