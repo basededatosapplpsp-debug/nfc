@@ -6668,17 +6668,17 @@ body.is-pc-mode .single-action-wrap{
   }
 }
 
-/* ===== FIX: confirmación encima del modal de actividad ===== */
-#appConfirm{
-  z-index: 100010 !important;
-}
-
+/* ===== FIX GLOBAL: confirmación siempre encima de cualquier modal ===== */
+#appConfirm,
 #appConfirm.modal-backdrop{
-  z-index: 100010 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483646 !important;
 }
 
 #appConfirm .modal-card{
-  z-index: 100011 !important;
+  position: relative !important;
+  z-index: 2147483647 !important;
 }
 
 
@@ -12017,8 +12017,13 @@ function confirmPro({
     btnOk.classList.toggle("btn-danger", danger);
     btnOk.classList.toggle("btn-primary", !danger);
 
-    modal.hidden = false;
-    document.body.classList.add("is-loading"); // bloquea fondo
+   if (modal.parentElement !== document.body) {
+  document.body.appendChild(modal);
+}
+
+modal.style.zIndex = "2147483646";
+modal.hidden = false;
+document.body.classList.add("is-loading"); // bloquea fondo
 
     __confirmResolve = (val) => {
       modal.hidden = true;
