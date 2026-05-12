@@ -22811,7 +22811,13 @@ const studentPlanillaCtx_ = {
         return;
       }
 
-      const ok = confirm(`¿Eliminar del curso a "${oldName}"? No se borran notas históricas.`);
+     const ok = await confirmPro({
+  title: "Eliminar estudiante",
+  msg: `¿Eliminar del curso a "${oldName}"?\n\nNo se borran notas históricas.`,
+  okText: "Sí, eliminar",
+  cancelText: "Cancelar",
+  danger: true
+});
       if (!ok) return;
 
      await gsAdminStudentSave({
