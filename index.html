@@ -7183,13 +7183,13 @@ body[data-theme="light"] #parqueResult .parque-badge{
     align-items: flex-start !important;
   }
 
-  #notasAlertasList .disc-item .name{
-    white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-    line-height: 1.15 !important;
-    max-width: 100% !important;
-  }
+#notasAlertasList .disc-item .name{
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.15 !important;
+  max-width: 100% !important;
+}
 
   #notasAlertasList .disc-item .muted,
   #notasAlertasList .disc-item .small{
