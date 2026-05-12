@@ -19649,16 +19649,14 @@ const data = await notasEnviarPayloadSupabase_(payload);
 }
 
 btnNotasPlanilla?.addEventListener("click", async () => {
-  if (userMenu) userMenu.hidden = false;
-  if (notasSubMenu) notasSubMenu.hidden = false;
+  if (notasSubMenu) notasSubMenu.hidden = true;
+  if (userMenu) userMenu.hidden = true;
   await notasOpenPlanilla_();
 });
 
 btnNotasCerrar?.addEventListener("click", () => {
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
-  mantenerMenuNotasAbierto_();
 });
-
 
 btnNotasCargarEstudiantes?.addEventListener("click", () => notasLoadStudents_());
 
@@ -19731,8 +19729,6 @@ btnNotasStudentsBack?.addEventListener("click", async () => {
   // 6. Cerrar vistas
   if (notasStudentsModal) notasStudentsModal.hidden = true;
   if (notasPlanillaModal) notasPlanillaModal.hidden = true;
-
-  mantenerMenuNotasAbierto_();
 });
 
 
@@ -20453,8 +20449,8 @@ async function notasAlertasCompartirTodos_(){
 
 
 btnNotasAlertas?.addEventListener("click", async () => {
-  if (userMenu) userMenu.hidden = false;
-  if (notasSubMenu) notasSubMenu.hidden = false;
+  if (notasSubMenu) notasSubMenu.hidden = true;
+  if (userMenu) userMenu.hidden = true;
   await notasAlertasOpen_();
 });
 
@@ -20479,7 +20475,6 @@ notasAlertasAsignaturaEl?.addEventListener("change", async () => {
 
 btnNotasAlertasCerrar?.addEventListener("click", () => {
   if (notasAlertasModal) notasAlertasModal.hidden = true;
-  mantenerMenuNotasAbierto_();
 });
 
 btnNotasAlertasCompartir?.addEventListener("click", notasAlertasCompartir_);
@@ -20505,14 +20500,6 @@ function setMenuOpen(open) {
   userMenu.hidden = !open;
   btnUserMenu.setAttribute("aria-expanded", String(open));
 }
-
-function mantenerMenuNotasAbierto_(){
-  setMenuOpen(true);
-
-  if (notasSubMenu) notasSubMenu.hidden = false;
-  if (btnNotasMenu) btnNotasMenu.setAttribute("aria-expanded", "true");
-}
-
 
 function isHorariosModalTarget_(target) {
   if (!target) return false;
