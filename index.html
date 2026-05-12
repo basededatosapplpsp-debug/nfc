@@ -20525,15 +20525,31 @@ function isHorariosModalTarget_(target) {
   );
 }
 
+function isNotasModalTarget_(target) {
+  if (!target) return false;
+
+  return (
+    (notasPlanillaModal && notasPlanillaModal.contains(target)) ||
+    (notasStudentsModal && notasStudentsModal.contains(target)) ||
+    (notasAlertasModal && notasAlertasModal.contains(target)) ||
+    (notasAlertasDetalleMobileModal && notasAlertasDetalleMobileModal.contains(target))
+  );
+}
+
 function shouldKeepMenuOpenForTarget_(target) {
   if (!target) return false;
 
   return (
     (userMenu && userMenu.contains(target)) ||
     (btnUserMenu && btnUserMenu.contains(target)) ||
+
     (horariosSubMenu && horariosSubMenu.contains(target)) ||
     (btnHorariosMenu && btnHorariosMenu.contains(target)) ||
-    isHorariosModalTarget_(target)
+    isHorariosModalTarget_(target) ||
+
+    (notasSubMenu && notasSubMenu.contains(target)) ||
+    (btnNotasMenu && btnNotasMenu.contains(target)) ||
+    isNotasModalTarget_(target)
   );
 }
 
