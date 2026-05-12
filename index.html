@@ -18328,13 +18328,22 @@ notasProgramarAutoGuardado_();
 
 
 function notasNombreApellidoPrimero_(nombre){
-  return String(nombre || "").trim().replace(/\s+/g, " ");
+  const parts = String(nombre || "").trim().replace(/\s+/g, " ").split(" ").filter(Boolean);
+
+  if (parts.length >= 4) {
+    return [...parts.slice(2), ...parts.slice(0, 2)].join(" ");
+  }
+
+  if (parts.length === 3) {
+    return [...parts.slice(1), parts[0]].join(" ");
+  }
+
+  return parts.join(" ");
 }
 
 function notasNombreVista_(nombre){
-  return String(nombre || "").trim().replace(/\s+/g, " ");
+  return notasNombreApellidoPrimero_(nombre);
 }
-
 
 
 function notasRenderGrid_(){
