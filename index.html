@@ -19649,8 +19649,8 @@ const data = await notasEnviarPayloadSupabase_(payload);
 }
 
 btnNotasPlanilla?.addEventListener("click", async () => {
-  if (notasSubMenu) notasSubMenu.hidden = true;
-  if (userMenu) userMenu.hidden = true;
+  if (userMenu) userMenu.hidden = false;
+  if (notasSubMenu) notasSubMenu.hidden = false;
   await notasOpenPlanilla_();
 });
 
@@ -20449,8 +20449,8 @@ async function notasAlertasCompartirTodos_(){
 
 
 btnNotasAlertas?.addEventListener("click", async () => {
-  if (notasSubMenu) notasSubMenu.hidden = true;
-  if (userMenu) userMenu.hidden = true;
+  if (userMenu) userMenu.hidden = false;
+  if (notasSubMenu) notasSubMenu.hidden = false;
   await notasAlertasOpen_();
 });
 
