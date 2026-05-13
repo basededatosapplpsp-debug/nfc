@@ -19309,12 +19309,12 @@ async function notasSyncPendientes_({ silent = true } = {}){
           notasAlertasBuscar_({ silent: true, useCache: false });
         }
       } catch (e) {
-        await notasIdbPut_(NOTAS_IDB_QUEUE, {
-          ...item,
-          attempts: Number(item.attempts || 0) + 1,
-          lastError: String(e?.message || e),
-          lastAttempt: Date.now()
-        });
+await notasIdbPut_(NOTAS_IDB_QUEUE, {
+  ...item,
+  attempts: Number(item.attempts || 0) + 1,
+  lastError: String(e?.message || e),
+  lastAttempt: Date.now()
+});
       }
     }
   } finally {
