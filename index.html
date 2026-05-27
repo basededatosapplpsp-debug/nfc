@@ -20363,15 +20363,13 @@ __notasAlertaMsg =
     const detalles = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
 
     // resaltado de componentes
-const raw = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
-
-// separa por líneas reales para respetar estructura tipo planilla
-const detallesFormateados = raw
+// resaltado de componentes + formato tipo planilla
+const detallesFormateados = String(notasFormatoDetallesAgrupados_(a.detalles) || "")
   .split("\n")
   .map(line => {
     let l = line.trim();
 
-    // fuerza inicio limpio de cada bloque (alineación real)
+    // fuerza inicio limpio de cada componente (alineación tipo planilla)
     l = l
       .replace(/^Procedimental\s*:/gi, "*Procedimental:*")
       .replace(/^Cognitivo\s*:/gi, "*Cognitivo:*")
@@ -20386,12 +20384,12 @@ const detallesFormateados = raw
   })
   .join("\n");
 
-    return (
-      `- ${a.asignatura || "Asignatura"}\n` +
-      `  Estado: ${a.estado || "—"}\n` +
-      `  Definitiva: ${fmtNota(a.definitiva)}\n` +
-      `  Detalles: ${detallesFormateados}`
-    );
+return (
+  `- ${a.asignatura || "Asignatura"}\n` +
+  `  Estado: ${a.estado || "—"}\n` +
+  `  Definitiva: ${fmtNota(a.definitiva)}\n` +
+  `  Detalles:\n${detallesFormateados}`
+);
   }).join("\n\n");
 
   if (notasAlertasEsMobile_() && notasAlertasDetalleMobileModal && notasAlertasDetalleMobileBody) {
