@@ -20347,9 +20347,8 @@ async function notasAlertasDetalle_(item){
 const fmtNota = (v) => {
   const val = v === null || v === undefined || v === "" ? "VACÍO" : v;
 
-  // resalta 1 o vacío
-  if (val === "VACÍO") return `**${val}**`;
-  if (Number(val) === 1) return `**${val}**`;
+  if (val === "VACÍO") return `[VACÍO]`;
+  if (Number(val) === 1) return `[1]`;
 
   return String(val);
 };
@@ -20365,9 +20364,9 @@ __notasAlertaMsg =
 
     // resaltado de componentes
     const detallesFormateados = detalles
-      .replace(/Procedimental\s*:/gi, "**Procedimental:**")
-      .replace(/Cognitivo\s*:/gi, "**Cognitivo:**")
-      .replace(/Actitudinal\s*:/gi, "**Actitudinal:**")
+.replace(/Procedimental\s*:/gi, "🔹 PROCEDIMENTAL:")
+.replace(/Cognitivo\s*:/gi, "🔹 COGNITIVO:")
+.replace(/Actitudinal\s*:/gi, "🔹 ACTITUDINAL:")
       .replace(/:\s*(\d+(\.\d+)?|VACÍO|$)/g, (_, n) => `: ${fmtNota(n)}`);
 
     return (
