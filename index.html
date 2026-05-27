@@ -20363,24 +20363,26 @@ __notasAlertaMsg =
     const detalles = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
 
     // resaltado de componentes
-const detallesFormateados = String(notasFormatoDetallesAgrupados_(a.detalles) || "")
+const raw = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
+
+// separa por líneas reales para respetar estructura tipo planilla
+const detallesFormateados = raw
   .split("\n")
   .map(line => {
-    line = line
-      .replace(/Procedimental\s*:/gi, "*Procedimental:*")
-      .replace(/Cognitivo\s*:/gi, "*Cognitivo:*")
-      .replace(/Actitudinal\s*:/gi, "*Actitudinal:*");
+    let l = line.trim();
 
-    line = line.replace(/:\s*(\d+(\.\d+)?|VACÍO|$)/g, (_, n) => {
-      const val = n === null || n === undefined || n === "" ? "VACÍO" : n;
+    // fuerza inicio limpio de cada bloque (alineación real)
+    l = l
+      .replace(/^Procedimental\s*:/gi, "*Procedimental:*")
+      .replace(/^Cognitivo\s*:/gi, "*Cognitivo:*")
+      .replace(/^Actitudinal\s*:/gi, "*Actitudinal:*");
 
-      if (val === "VACÍO") return `: *VACÍO*`;
-      if (Number(val) === 1) return `: *1*`;
+    // resalta VACÍO y 1 en cualquier parte
+    l = l
+      .replace(/\bVACÍO\b/g, "*VACÍO*")
+      .replace(/:\s*1\b/g, ": *1*");
 
-      return `: ${val}`;
-    });
-
-    return line.trim();
+    return l;
   })
   .join("\n");
 
