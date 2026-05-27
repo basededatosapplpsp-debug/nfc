@@ -20363,11 +20363,26 @@ __notasAlertaMsg =
     const detalles = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
 
     // resaltado de componentes
-    const detallesFormateados = detalles
-.replace(/Procedimental\s*:/gi, "🔹 PROCEDIMENTAL:")
-.replace(/Cognitivo\s*:/gi, "🔹 COGNITIVO:")
-.replace(/Actitudinal\s*:/gi, "🔹 ACTITUDINAL:")
-      .replace(/:\s*(\d+(\.\d+)?|VACÍO|$)/g, (_, n) => `: ${fmtNota(n)}`);
+const detallesFormateados = String(notasFormatoDetallesAgrupados_(a.detalles) || "")
+  .split("\n")
+  .map(line => {
+    line = line
+      .replace(/Procedimental\s*:/gi, "*Procedimental:*")
+      .replace(/Cognitivo\s*:/gi, "*Cognitivo:*")
+      .replace(/Actitudinal\s*:/gi, "*Actitudinal:*");
+
+    line = line.replace(/:\s*(\d+(\.\d+)?|VACÍO|$)/g, (_, n) => {
+      const val = n === null || n === undefined || n === "" ? "VACÍO" : n;
+
+      if (val === "VACÍO") return `: *VACÍO*`;
+      if (Number(val) === 1) return `: *1*`;
+
+      return `: ${val}`;
+    });
+
+    return line.trim();
+  })
+  .join("\n");
 
     return (
       `- ${a.asignatura || "Asignatura"}\n` +
