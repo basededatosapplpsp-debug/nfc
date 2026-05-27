@@ -17979,8 +17979,11 @@ function notasCalcStudent_(student){
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-if (nota === null) detalles.push(`Procedimental - ${col.nombre}: vacía`);
-else if (nota === 1) detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
+if (nota === null) {
+  detalles.push(`Procedimental - ${col.nombre}: vacía`);
+} else if (Number(nota) <= 1) {
+  detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
+}
 
     return nota;
   });
@@ -17989,16 +17992,22 @@ else if (nota === 1) detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-   if (nota === null) detalles.push(`Cognitivo - ${col.nombre}: vacía`);
-else if (nota === 1) detalles.push(`Cognitivo - ${col.nombre}: igual a 1`);
+if (nota === null) {
+  detalles.push(`Cognitivo - ${col.nombre}: vacía`);
+} else if (Number(nota) <= 1) {
+  detalles.push(`Cognitivo - ${col.nombre}: igual a 1`);
+}
 
     return nota;
   });
 
   const actitudinal = notasParseNota_(student.notas?.actitudinal);
 
-if (actitudinal === null) detalles.push("Actitudinal: vacía");
-else if (actitudinal === 1) detalles.push("Actitudinal: igual a 1");
+if (actitudinal === null) {
+  detalles.push("Actitudinal: vacía");
+} else if (Number(actitudinal) <= 1) {
+  detalles.push("Actitudinal: igual a 1");
+}
 
   const procTotal = notasAvg_(procNotas);
   const cogTotal = notasAvg_(cogNotas);
