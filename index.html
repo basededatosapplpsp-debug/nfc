@@ -18847,11 +18847,13 @@ function notasOpenDetallePc_(sIdx){
 }
 
 async function notasLoadCourses_(){
-  // 1. Cargamos la lista completa
   const courses = await gsCoursesListCached();
-  
-  // 2. Obtenemos el perfil del docente (asumiendo que loadProfile() devuelve el objeto con nivel_educativo)
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  
+  // AGREGAMOS ESTE CONSOLE.LOG
+  console.log("DEBUG: Perfil completo:", profile);
+  console.log("DEBUG: Nivel detectado:", profile?.nivel_educativo);
+
   const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
 
   // 3. Filtramos la lista según el nivel
