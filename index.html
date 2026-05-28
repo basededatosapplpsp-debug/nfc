@@ -19985,10 +19985,49 @@ function notasAlertasCacheKey_(){
   return `${NOTAS_ALERTAS_DATA_CACHE}::${year}::${curso || "TODOS"}::${periodo || "TODOS"}`;
 }
 
+function notasCursoPerteneceNivelDocente_(curso){
+  const nivelDocente = String(localStorage.getItem("user_nivel_educativo") || "BACHILLERATO")
+    .toUpperCase()
+    .trim();
+
+  const normalizar = (texto) => String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const nivelDocenteNorm = normalizar(nivelDocente);
+  const c = normalizar(curso);
+
+  let nivelCurso = "bachillerato";
+
+  if (c.includes("pre") || c.includes("jardin") || c.includes("trans") || c.startsWith("0")) {
+    nivelCurso = "pre escolar";
+  } else if (
+    c.includes("primero") || c.includes("segundo") || c.includes("tercero") ||
+    c.includes("cuarto") || c.includes("quinto") || c.includes("primaria")
+  ) {
+    nivelCurso = "primaria";
+  } else if (
+    c.includes("sexto") || c.includes("septimo") || c.includes("octav") ||
+    c.includes("noveno") || c.includes("decim") || c.includes("once") || c.includes("bach")
+  ) {
+    nivelCurso = "bachillerato";
+  }
+
+  return normalizar(nivelCurso) === nivelDocenteNorm;
+}
+
+
+
 function notasAlertasAplicarItems_(rawItems){
   const asignaturaSeleccionada = String(notasAlertasAsignaturaEl?.value || "").trim();
 
-  const normalizados = (rawItems || []).map(notasAlertasDerivarMeta_);
+ const normalizados = (rawItems || [])
+  .filter(item => notasCursoPerteneceNivelDocente_(item.curso))
+  .map(notasAlertasDerivarMeta_);
 const tipoFiltradoItems = notasAlertasFiltrarPorTipo_(normalizados);
 
   notasAlertasLlenarAsignaturas_(tipoFiltradoItems, asignaturaSeleccionada);
@@ -20023,11 +20062,14 @@ async function notasAlertasLoadCourses_(){
   const cached = notasCacheRead_(NOTAS_ALERTAS_COURSES_CACHE);
 
   if (cached?.value?.length) {
-    fillSelect_(notasAlertasCursoEl, cached.value, "Todos los cursos");
+    const filtradosCache = cached.value.filter(notasCursoPerteneceNivelDocente_);
+    fillSelect_(notasAlertasCursoEl, filtradosCache, "Todos los cursos");
   }
 
   const courses = await gsCoursesList();
-  fillSelect_(notasAlertasCursoEl, courses, "Todos los cursos");
+  const filtrados = (courses || []).filter(notasCursoPerteneceNivelDocente_);
+
+  fillSelect_(notasAlertasCursoEl, filtrados, "Todos los cursos");
   notasCacheWrite_(NOTAS_ALERTAS_COURSES_CACHE, courses);
 }
 
