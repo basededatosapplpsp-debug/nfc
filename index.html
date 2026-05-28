@@ -20171,6 +20171,14 @@ function notasAlertasFiltrarPorTipo_(items){
     const procTotal = notasAlertasNum_(item.proc_total);
     const cogTotal = notasAlertasNum_(item.cog_total);
 
+    if (tipo === "procedimental") {
+      return procTotal !== null && procTotal < 3.5;
+    }
+
+    if (tipo === "cognitivo") {
+      return cogTotal !== null && cogTotal < 3.5;
+    }
+
     if (tipo === "definitiva") {
       return definitiva !== null && definitiva < 3.5;
     }
@@ -20190,27 +20198,6 @@ function notasAlertasFiltrarPorTipo_(items){
       return estado === "BAJO";
     }
 
-    if (tipo === "procedimental") {
-      return detalles.includes("procedimental") &&
-        (
-          detalles.includes("nota baja") ||
-          detalles.includes("vacía") ||
-          detalles.includes("vacia") ||
-          detalles.includes("igual a 1") ||
-          (procTotal !== null && procTotal < 3.5)
-        );
-    }
-
-    if (tipo === "cognitivo") {
-      return detalles.includes("cognitivo") &&
-        (
-          detalles.includes("vacía") ||
-          detalles.includes("vacia") ||
-          detalles.includes("igual a 1") ||
-          (cogTotal !== null && cogTotal < 3.5)
-        );
-    }
-
     if (tipo === "insuficiente") return criterio === "INSUFICIENTE";
     if (tipo === "aceptable") return criterio === "ACEPTABLE";
     if (tipo === "bueno") return criterio === "BUENO";
@@ -20218,6 +20205,19 @@ function notasAlertasFiltrarPorTipo_(items){
 
     return true;
   });
+}
+
+
+
+function notasAlertasMostrarSoloDefinitiva_(){
+  const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
+
+  return [
+    "procedimental",
+    "cognitivo",
+    "definitiva",
+    "debe"
+  ].includes(tipo);
 }
 
 function notasAlertasKey_(item){
@@ -20447,8 +20447,15 @@ async function notasAlertasDetalle_(item){
               ${a.docente_nombre ? ` · Docente: ${escapeHtml(a.docente_nombre)}` : ""}
             </div>
 
-        <div class="notas-alerta-subject-details">
-  ${notasFormatoDetallesAgrupadosHtml_(a.detalles)}
+ <div class="notas-alerta-subject-details">
+  ${
+    notasAlertasMostrarSoloDefinitiva_()
+      ? `<div class="notas-detalle-linea">
+          <strong class="notas-detalle-grupo">Nota definitiva actual:</strong>
+          ${escapeHtml(String(a.definitiva ?? "—"))}
+        </div>`
+      : notasFormatoDetallesAgrupadosHtml_(a.detalles)
+  }
 </div>
           </div>
         `).join("")}
