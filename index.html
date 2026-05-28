@@ -18848,35 +18848,39 @@ function notasOpenDetallePc_(sIdx){
 
 async function notasLoadCourses_(){
   const courses = await gsCoursesListCached();
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
   
-  // AGREGAMOS ESTE CONSOLE.LOG
-  console.log("DEBUG: Perfil completo:", profile);
-  console.log("DEBUG: Nivel detectado:", profile?.nivel_educativo);
+  // 1. Obtenemos el perfil local
+  let profile = typeof loadProfile === "function" ? loadProfile() : {};
+  
+  // 2. BUSCAR EL NIVEL: 
+  // Primero intentamos la propiedad nivel_educativo del perfil
+  // Si no está (como ocurre ahora), buscamos en el objeto que supuestamente cargaste de la DB
+  let nivelDocente = (profile?.nivel_educativo || "").toUpperCase().trim();
 
-  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
+  // Si sigue vacío, forzamos la lectura desde el objeto global que a veces usa Supabase
+  if (!nivelDocente && window._userProfile) {
+      nivelDocente = (window._userProfile.nivel_educativo || "").toUpperCase().trim();
+  }
 
-  // 3. Filtramos la lista según el nivel
-  const listaFiltrada = (courses || [])
-    .map(c => String(c || "").trim())
-    .filter(Boolean)
-    .filter(curso => {
-      const cursoTexto = curso.toLowerCase();
-      let nivelRegistro = "BACHILLERATO"; 
+  // Si después de todo sigue vacío, el valor por defecto:
+  if (!nivelDocente) nivelDocente = "PRIMARIA"; // O el que tú quieras por seguridad
 
-      // Lógica de clasificación
-      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.startsWith("0")) {
-        nivelRegistro = "PRE-ESCOLAR";
-      } else if (/(6|7|8|9|10|11|sexto|sept|octav|nove|deci|once|bach)/.test(cursoTexto)) {
-        nivelRegistro = "BACHILLERATO";
-      } else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto|primaria)/.test(cursoTexto)) {
-        nivelRegistro = "PRIMARIA";
-      }
+  console.log("DEBUG: Nivel docente final para filtrar:", nivelDocente);
 
-      return nivelRegistro === nivelDocente;
-    });
+  // 3. Filtrar la lista
+  const listaFiltrada = (courses || []).filter(curso => {
+    const c = curso.toLowerCase();
+    
+    // Clasificación del curso
+    let nivel = "BACHILLERATO";
+    if (c.includes("pre") || c.includes("jardin") || c.startsWith("0")) nivel = "PRE-ESCOLAR";
+    else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto)/.test(c)) nivel = "PRIMARIA";
+    
+    // Aquí está la clave: comparar el nivel detectado con el nivel del docente
+    return nivel === nivelDocente;
+  });
 
-  // 4. Renderizamos en el select
+  console.log("DEBUG: Cursos resultantes:", listaFiltrada);
   fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
 }
 
