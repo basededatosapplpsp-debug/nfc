@@ -18848,48 +18848,35 @@ function notasOpenDetallePc_(sIdx){
 
 async function notasLoadCourses_() {
   const courses = await gsCoursesListCached();
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
   
-  let nivelDocente = "BACHILLERATO"; // Valor por defecto
+  // 1. Obtener el nivel guardado en localStorage (el que viene de Supabase)
+  const nivelDocente = String(localStorage.getItem("user_nivel_educativo") || "BACHILLERATO")
+    .toUpperCase()
+    .trim();
 
-  // BUSCAMOS EL NIVEL REAL EN LA TABLA 'devices' DE SUPABASE
-  if (profile.email) {
-    try {
-      // Hacemos la consulta directa a la tabla donde sí está el dato
-      const { data, error } = await _supabase
-        .from('devices')
-        .select('nivel_educativo')
-        .eq('email', profile.email)
-        .single();
+  // 2. Función auxiliar para normalizar texto (quita acentos y espacios extra)
+  const normalizar = (texto) => texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  const nivelDocenteNorm = normalizar(nivelDocente);
 
-      if (data && data.nivel_educativo) {
-        nivelDocente = data.nivel_educativo.toUpperCase().trim();
-        console.log("DEBUG: Nivel obtenido de Supabase:", nivelDocente);
-      }
-    } catch (e) {
-      console.error("Error al consultar nivel en Supabase:", e);
-    }
-  }
-
-  // FILTRADO LÓGICO
+  // 3. Filtrar
   const listaFiltrada = (courses || []).filter(curso => {
-    const c = curso.toLowerCase();
+    const c = normalizar(curso);
     
-    // Identificar nivel del curso
+    // Clasificación del curso
     let nivelCurso = "BACHILLERATO";
-    if (c.includes("pre") || c.includes("jardin") || c.startsWith("0")) {
+    if (c.includes("pre") || c.includes("jardin") || c.includes("trans") || c.startsWith("0")) {
       nivelCurso = "PRE-ESCOLAR";
-    } else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto|primaria)/.test(c)) {
+    } else if (c.includes("primero") || c.includes("segundo") || c.includes("tercero") || c.includes("cuarto") || c.includes("quinto") || c.includes("primaria")) {
       nivelCurso = "PRIMARIA";
-    } else if (/(6|7|8|9|10|11|sexto|sept|octav|nove|deci|once|bach)/.test(c)) {
+    } else if (c.includes("sexto") || c.includes("septimo") || c.includes("octav") || c.includes("noveno") || c.includes("decim") || c.includes("once") || c.includes("bach")) {
       nivelCurso = "BACHILLERATO";
     }
-    
-    // Comparar nivel del curso con el nivel del docente obtenido de Supabase
-    return nivelCurso === nivelDocente;
+
+    // Comparación final normalizada
+    return nivelCurso.toLowerCase() === nivelDocenteNorm;
   });
 
-  console.log("DEBUG: Lista final para el docente:", listaFiltrada);
+  console.log("DEBUG: Nivel Docente:", nivelDocenteNorm, "Cursos resultantes:", listaFiltrada);
   fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
 }
 
