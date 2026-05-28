@@ -18847,45 +18847,34 @@ function notasOpenDetallePc_(sIdx){
 }
 
 async function notasLoadCourses_(){
-  // 1. Cargar la lista completa de cursos desde el caché o el servidor
+  // 1. Cargamos la lista completa
   const courses = await gsCoursesListCached();
   
-  // 2. Obtener el nivel educativo del docente autenticado (tabla 'devices')
+  // 2. Obtenemos el perfil del docente (asumiendo que loadProfile() devuelve el objeto con nivel_educativo)
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
   const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
 
-  // 3. Filtrar los cursos según las reglas de negocio
+  // 3. Filtramos la lista según el nivel
   const listaFiltrada = (courses || [])
     .map(c => String(c || "").trim())
     .filter(Boolean)
     .filter(curso => {
       const cursoTexto = curso.toLowerCase();
-      let nivelRegistro = "BACHILLERATO"; // Nivel por defecto si no encaja en los otros
+      let nivelRegistro = "BACHILLERATO"; 
 
+      // Lógica de clasificación
       if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.startsWith("0")) {
         nivelRegistro = "PRE-ESCOLAR";
-      } else if (
-        /(6|7|8|9|10|11)/.test(cursoTexto) || 
-        cursoTexto.includes("sexto") || cursoTexto.includes("septi") || 
-        cursoTexto.includes("octav") || cursoTexto.includes("nove") || 
-        cursoTexto.includes("deci") || cursoTexto.includes("once") ||
-        cursoTexto.includes("bach")
-      ) {
+      } else if (/(6|7|8|9|10|11|sexto|sept|octav|nove|deci|once|bach)/.test(cursoTexto)) {
         nivelRegistro = "BACHILLERATO";
-      } else if (
-        /(1|2|3|4|5)/.test(cursoTexto) || 
-        cursoTexto.includes("primero") || cursoTexto.includes("segundo") || 
-        cursoTexto.includes("tercero") || cursoTexto.includes("cuarto") || 
-        cursoTexto.includes("quinto") || cursoTexto.includes("primaria")
-      ) {
+      } else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto|primaria)/.test(cursoTexto)) {
         nivelRegistro = "PRIMARIA";
       }
 
-      // Solo permite cursos que coincidan con el nivel de quien inició sesión
       return nivelRegistro === nivelDocente;
     });
 
-  // 4. Inyectar la lista ya filtrada en el select de la interfaz de notas
+  // 4. Renderizamos en el select
   fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
 }
 
