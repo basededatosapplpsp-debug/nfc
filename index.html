@@ -18847,8 +18847,46 @@ function notasOpenDetallePc_(sIdx){
 }
 
 async function notasLoadCourses_(){
+  // 1. Cargar la lista completa de cursos desde el caché o el servidor
   const courses = await gsCoursesListCached();
-  fillSelect_(notasCursoEl, courses, "Selecciona curso");
+  
+  // 2. Obtener el nivel educativo del docente autenticado (tabla 'devices')
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
+
+  // 3. Filtrar los cursos según las reglas de negocio
+  const listaFiltrada = (courses || [])
+    .map(c => String(c || "").trim())
+    .filter(Boolean)
+    .filter(curso => {
+      const cursoTexto = curso.toLowerCase();
+      let nivelRegistro = "BACHILLERATO"; // Nivel por defecto si no encaja en los otros
+
+      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.startsWith("0")) {
+        nivelRegistro = "PRE-ESCOLAR";
+      } else if (
+        /(6|7|8|9|10|11)/.test(cursoTexto) || 
+        cursoTexto.includes("sexto") || cursoTexto.includes("septi") || 
+        cursoTexto.includes("octav") || cursoTexto.includes("nove") || 
+        cursoTexto.includes("deci") || cursoTexto.includes("once") ||
+        cursoTexto.includes("bach")
+      ) {
+        nivelRegistro = "BACHILLERATO";
+      } else if (
+        /(1|2|3|4|5)/.test(cursoTexto) || 
+        cursoTexto.includes("primero") || cursoTexto.includes("segundo") || 
+        cursoTexto.includes("tercero") || cursoTexto.includes("cuarto") || 
+        cursoTexto.includes("quinto") || cursoTexto.includes("primaria")
+      ) {
+        nivelRegistro = "PRIMARIA";
+      }
+
+      // Solo permite cursos que coincidan con el nivel de quien inició sesión
+      return nivelRegistro === nivelDocente;
+    });
+
+  // 4. Inyectar la lista ya filtrada en el select de la interfaz de notas
+  fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
 }
 
 async function notasLoadStudents_(){
