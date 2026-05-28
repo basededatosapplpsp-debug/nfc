@@ -14226,6 +14226,39 @@ async function asignaturasLoadForCurrentUser_(options = {}) {
   return items;
 }
 
+
+async function asignaturasSyncOnPcLogin_(profile = null) {
+  const p = profile || (typeof loadProfile === "function" ? loadProfile() : null);
+  const mode = String(p?.mode || "").toLowerCase();
+
+  if (!mode.includes("pc")) return [];
+
+  try {
+    const deviceId = asignaturasCurrentDeviceId_();
+
+    if (deviceId && typeof asignaturasClearCache_ === "function") {
+      asignaturasClearCache_(deviceId);
+    }
+
+    const items = await asignaturasLoadForCurrentUser_({ force: true });
+
+    if (typeof notasAsignaturasCacheSet_ === "function") {
+      notasAsignaturasCacheSet_(items);
+    }
+
+    if (typeof reportesRenderAsignaturas_ === "function") {
+      reportesRenderAsignaturas_(items);
+    }
+
+    return items;
+  } catch (e) {
+    console.warn("No pude actualizar asignaturas en modo PC:", e);
+    return [];
+  }
+}
+
+
+
 async function asignaturasOpen_() {
   try {
     setMenuOpen(false);
@@ -22019,7 +22052,13 @@ if (btnPcLinkEnter) {
       applySessionUI(profile);
       applyPcModeUI_();
 
-      setStatus("", "Modo PC activo", "Entraste vinculado al celular. Entrada y salida quedan desactivadas.");
+    setStatus("", "Modo PC activo", "Entraste vinculado al celular. Entrada y salida quedan desactivadas.");
+
+try {
+  await asignaturasSyncOnPcLogin_(profile);
+} catch (e) {
+  console.warn("No pude sincronizar asignaturas al iniciar en modo PC:", e);
+}
     } catch (e) {
       pcLinkHint.textContent = String(e && e.message ? e.message : e);
     } finally {
