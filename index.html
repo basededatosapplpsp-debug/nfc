@@ -14169,6 +14169,12 @@ async function gsAsignaturasGet(deviceId) {
   catch { throw new Error("Respuesta inválida del servidor"); }
 
   if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
+
+  // 🧠 NUEVO: Guardamos el nivel que nos da el backend ("PRIMARIA", "BACHILLERATO", etc.)
+  // Si por alguna razón no viene, dejamos "BACHILLERATO" por defecto
+  const nivelEducativo = String(data.nivel || "BACHILLERATO").toUpperCase();
+  localStorage.setItem("user_nivel_educativo", nivelEducativo);
+
   return Array.isArray(data.items) ? data.items : [];
 }
 
@@ -16507,10 +16513,15 @@ async function gsReportesGuardar(payload) {
 }
 
 async function gsReportesList(payload) {
+  // 🧠 NUEVO: Obtenemos el email del perfil del docente actual
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
       action: "reportes_pendientes_list",
+      email, // 👈 Se lo inyectamos aquí para que el backend filtre por nivel educativo
       ...payload,
       key: GS_API_KEY
     })
@@ -16525,10 +16536,14 @@ async function gsReportesList(payload) {
 }
 
 async function gsReportesDelete(payload) {
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const email = String(profile?.email || "").trim().toLowerCase();
+
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
     body: JSON.stringify({
       action: "reportes_pendientes_delete",
+      email, // 👈 Inyectado por consistencia y seguridad
       ...payload,
       key: GS_API_KEY
     })
@@ -17972,6 +17987,13 @@ function notasAvg_(arr){
 function notasCalcStudent_(student){
   const detalles = [];
 
+  // 1. OBTENER EL NIVEL EDUCATIVO DEL DOCENTE ACTUAL
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
+
+  // 2. CONFIGURAR LA NOTA LÍMITE SEGÚN EL NIVEL
+  const notaLimite = nivelDocente === "PRIMARIA" ? 3.3 : 3.5;
+
   const procedimentales = (__notasColumnas || []).filter(c => c.componente === "procedimental");
   const cognitivos = (__notasColumnas || []).filter(c => c.componente === "cognitivo");
 
@@ -17979,11 +18001,11 @@ function notasCalcStudent_(student){
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-if (nota === null) {
-  detalles.push(`Procedimental - ${col.nombre}: vacía`);
-} else if (Number(nota) <= 1) {
-  detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
-}
+    if (nota === null) {
+      detalles.push(`Procedimental - ${col.nombre}: vacía`);
+    } else if (Number(nota) <= 1) {
+      detalles.push(`Procedimental - ${col.nombre}: igual a 1`);
+    }
 
     return nota;
   });
@@ -17992,22 +18014,22 @@ if (nota === null) {
     const key = String(col.orden);
     const nota = notasParseNota_(student.notas?.[key]);
 
-if (nota === null) {
-  detalles.push(`Cognitivo - ${col.nombre}: vacía`);
-} else if (Number(nota) <= 1) {
-  detalles.push(`Cognitivo - ${col.nombre}: igual a 1`);
-}
+    if (nota === null) {
+      detalles.push(`Cognitivo - ${col.nombre}: vacía`);
+    } else if (Number(nota) <= 1) {
+      detalles.push(`Cognitivo - ${col.nombre}: igual a 1`);
+    }
 
     return nota;
   });
 
   const actitudinal = notasParseNota_(student.notas?.actitudinal);
 
-if (actitudinal === null) {
-  detalles.push("Actitudinal: vacía");
-} else if (Number(actitudinal) <= 1) {
-  detalles.push("Actitudinal: igual a 1");
-}
+  if (actitudinal === null) {
+    detalles.push("Actitudinal: vacía");
+  } else if (Number(actitudinal) <= 1) {
+    detalles.push("Actitudinal: igual a 1");
+  }
 
   const procTotal = notasAvg_(procNotas);
   const cogTotal = notasAvg_(cogNotas);
@@ -18017,70 +18039,76 @@ if (actitudinal === null) {
       ? Math.round(((procTotal * 0.4) + (cogTotal * 0.4) + (actitudinal * 0.2)) * 10) / 10
       : "—";
 
-let estado = "OK";
+  let estado = "OK";
 
-const hayDebeNotas = detalles.some(d =>
-  d.includes("vacía") ||
-  d.includes("igual a 1")
-);
+  const hayDebeNotas = detalles.some(d =>
+    d.includes("vacía") ||
+    d.includes("igual a 1")
+  );
 
-const tieneDefinitiva =
-  definitiva !== "—" &&
-  definitiva !== null &&
-  definitiva !== "" &&
-  Number.isFinite(Number(definitiva));
+  const tieneDefinitiva =
+    definitiva !== "—" &&
+    definitiva !== null &&
+    definitiva !== "" &&
+    Number.isFinite(Number(definitiva));
 
-const procNotasBajas = procedimentales
-  .map(col => {
-    const key = String(col.orden);
-    const nota = notasParseNota_(student.notas?.[key]);
-    return {
-      nombre: String(col.nombre || `Actividad ${col.orden}`),
-      nota
-    };
-  })
-  .filter(x => x.nota !== null && x.nota > 1 && x.nota < 3.5);
+  // APLICACIÓN DEL LÍMITE DINÁMICO EN LAS NOTAS BAJAS PARCIALES
+  const procNotasBajas = procedimentales
+    .map(col => {
+      const key = String(col.orden);
+      const nota = notasParseNota_(student.notas?.[key]);
+      return {
+        nombre: String(col.nombre || `Actividad ${col.orden}`),
+        nota
+      };
+    })
+    .filter(x => x.nota !== null && x.nota > 1 && x.nota < notaLimite);
 
-procNotasBajas.forEach(x => {
-  detalles.push(`Procedimental - ${x.nombre}: nota baja ${x.nota}`);
-});
+  procNotasBajas.forEach(x => {
+    detalles.push(`Procedimental - ${x.nombre}: nota baja ${x.nota}`);
+  });
 
-if (hayDebeNotas) {
-  estado = "DEBE_NOTAS";
-} else if (procNotasBajas.length) {
-  estado = "RIESGO";
-} else if (tieneDefinitiva) {
-  estado = Number(definitiva) < 3.5 ? "BAJO" : "OK";
-} else if (procTotal !== null && procTotal < 3.5) {
-  estado = "BAJO";
-} else {
-  estado = "OK";
+  // DETERMINACIÓN DEL ESTADO UTILIZANDO LA VARIABLE NOTALIMITE
+  if (hayDebeNotas) {
+    estado = "DEBE_NOTAS";
+  } else if (procNotasBajas.length) {
+    estado = "RIESGO";
+  } else if (tieneDefinitiva) {
+    estado = Number(definitiva) < notaLimite ? "BAJO" : "OK";
+  } else if (procTotal !== null && procTotal < notaLimite) {
+    estado = "BAJO";
+  } else {
+    estado = "OK";
+  }
+
+  const notaBase =
+    tieneDefinitiva ? Number(definitiva) :
+    procTotal !== null ? Number(procTotal) :
+    null;
+
+  let criterio = "SIN_NOTA";
+
+  // ESCALA DE DESEMPEÑOS RESPETANDO EL LÍMITE DE PÉRDIDA CORRESPONDIENTE
+  if (notaBase !== null) {
+    if (notaBase < notaLimite) criterio = "INSUFICIENTE";
+    else if (notaBase < 4.0) criterio = "ACEPTABLE";
+    else if (notaBase < 4.6) criterio = "BUENO";
+    else criterio = "EXCELENTE";
+  }
+
+  return {
+    procTotal: procTotal ?? "—",
+    cogTotal: cogTotal ?? "—",
+    actitudinal: actitudinal ?? "—",
+    definitiva,
+    estado,
+    criterio,
+    detalles: detalles.join("; ")
+  };
 }
 
-const notaBase =
-  tieneDefinitiva ? Number(definitiva) :
-  procTotal !== null ? Number(procTotal) :
-  null;
 
-let criterio = "SIN_NOTA";
 
-if (notaBase !== null) {
-  if (notaBase < 3.5) criterio = "INSUFICIENTE";
-  else if (notaBase < 4.0) criterio = "ACEPTABLE";
-  else if (notaBase < 4.6) criterio = "BUENO";
-  else criterio = "EXCELENTE";
-}
-
-return {
-  procTotal: procTotal ?? "—",
-  cogTotal: cogTotal ?? "—",
-  actitudinal: actitudinal ?? "—",
-  definitiva,
-  estado,
-  criterio,
-  detalles: detalles.join("; ")
-};
-}
 function notasEstadoBadge_(estado, criterio = ""){
   const est = String(estado || "").trim().toUpperCase();
   const crit = String(criterio || "").trim().toUpperCase();
@@ -18115,19 +18143,30 @@ function notasEstadoBadge_(estado, criterio = ""){
 function notasRenderColumnas_(){
   if (!notasColumnasListEl) return;
 
+  // 1. Obtener el perfil y nivel del docente logueado
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
+
+  // Ajustar el texto de ayuda según el nivel
+  let notaMinimaText = "3.5";
+  if (nivelDocente === "PRIMARIA") {
+    notaMinimaText = "3.3"; // Nota mínima configurada para Primaria en el backend
+  }
+
   const proc = (__notasColumnas || []).filter(c => c.componente === "procedimental");
   const cog = (__notasColumnas || []).filter(c => c.componente === "cognitivo");
 
   notasColumnasListEl.innerHTML = `
     <div class="notas-component-box">
       <div class="notas-component-title">Procedimental <span>40%</span></div>
-      <div class="muted small">Tareas, talleres y actividades. Aquí se valida si debe actividades o tiene notas menores a 3.5.</div>
+      <div class="muted small">Tareas, talleres y actividades. Aquí se valida si debe actividades o tiene notas menores a ${notaMinimaText}.</div>
 
       ${proc.map((col) => {
         const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
+        // CORREGIDO: El value ahora solo lleva el nombre limpio de la actividad, evitando romper el HTML
         return `
           <div class="notas-col-item simple" data-col-idx="${idx}">
-            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="<span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span>" placeholder="Tarea / Taller" />
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Tarea / Taller" title="Doble clic para editar o eliminar" />
             <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
           </div>
         `;
@@ -18142,7 +18181,7 @@ function notasRenderColumnas_(){
         const idx = __notasColumnas.findIndex(c => c.orden === col.orden);
         return `
           <div class="notas-col-item simple" data-col-idx="${idx}">
-            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="<span class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="Doble clic para editar o eliminar">${escapeHtml(col.nombre || "")}</span>" placeholder="Evaluación / Quiz" />
+            <input class="modal-input" data-nota-col-name="${idx}" type="text" value="${escapeHtml(col.nombre || "")}" placeholder="Evaluación / Quiz" title="Doble clic para editar o eliminar" />
             <button class="notas-col-del" type="button" data-nota-col-del="${idx}">×</button>
           </div>
         `;
@@ -18155,6 +18194,7 @@ function notasRenderColumnas_(){
     </div>
   `;
 
+  // Listeners de cambios en inputs
   notasColumnasListEl.querySelectorAll("[data-nota-col-name]").forEach(input => {
     input.addEventListener("input", () => {
       const idx = Number(input.dataset.notaColName);
@@ -18163,6 +18203,7 @@ function notasRenderColumnas_(){
     });
   });
 
+  // Listeners de eliminación
   notasColumnasListEl.querySelectorAll("[data-nota-col-del]").forEach(btn => {
     btn.addEventListener("click", () => {
       const idx = Number(btn.dataset.notaColDel);
@@ -18174,7 +18215,7 @@ function notasRenderColumnas_(){
   });
 
   if (notasPorcentajeTotalEl) {
-    notasPorcentajeTotalEl.textContent = "Peso final: Procedimental 40% + Cognitivo 40% + Actitudinal 20%";
+    notasPorcentajeTotalEl.textContent = `Peso final: Procedimental 40% + Cognitivo 40% + Actitudinal 20% (${nivelDocente})`;
   }
 }
 
@@ -18420,11 +18461,18 @@ function notasRenderGrid_(){
     return;
   }
 
-  const isDesktop = window.matchMedia("(min-width: 900px)").matches;
-  notasGridEl.className = isDesktop ? "notas-grid table-mode" : "notas-grid";
+  // OBTENER EL PERFIL Y NIVEL EDUCATIVO DEL DOCENTE LOGUEADO
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
 
+  // Definir la nota límite de alerta según el nivel educativo
+  const notaLimiteAlerta = nivelDocente === "PRIMARIA" ? 3.3 : 3.5;
+
+  const isDesktop = window.matchMedia("(min-width: 900px)").matches;
   const procCols = notasColumnasPorComponente_("procedimental");
   const cogCols = notasColumnasPorComponente_("cognitivo");
+
+  notasGridEl.className = isDesktop ? "notas-grid table-mode" : "notas-grid";
 
   const headerHtml = isDesktop ? `
     <div class="notas-student-card notas-header-row">
@@ -18432,49 +18480,48 @@ function notasRenderGrid_(){
 
       ${procCols.map(col => `
         <div class="notas-cell">
-     <span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span>
+          <span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span>
         </div>
       `).join("")}
 
       <div class="notas-cell notas-total-cell">
-   Total Proc.<br>
-<span class="muted small notas-total-percent">40%</span>
+        Total Proc.<br>
+        <span class="muted small notas-total-percent">40%</span>
       </div>
 
       ${cogCols.map(col => `
         <div class="notas-cell">
-<span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span>
+          <span class="notas-col-editable notas-col-title" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || "")}">${escapeHtml(col.nombre || "")}</span>
         </div>
       `).join("")}
 
       <div class="notas-cell notas-total-cell">
-Total Cog.<br>
-<span class="muted small notas-total-percent">40%</span>
+        Total Cog.<br>
+        <span class="muted small notas-total-percent">40%</span>
       </div>
 
-   <div class="notas-cell notas-actitudinal-head">
-  Actitudinal<br>
-  <span class="muted small">20%</span>
-</div>
+      <div class="notas-cell notas-actitudinal-head">
+        Actitudinal<br>
+        <span class="muted small">20%</span>
+      </div>
 
       <div class="notas-cell">Definitiva</div>
       <div class="notas-cell notas-estado-cell">Estado</div>
     </div>
   ` : "";
 
- __notasEstudiantes.sort((a, b) =>
-  notasNombreVista_(a.estudiante).localeCompare(
-    notasNombreVista_(b.estudiante),
-    "es",
-    { sensitivity: "base" }
-  )
-);
+  __notasEstudiantes.sort((a, b) =>
+    notasNombreVista_(a.estudiante).localeCompare(
+      notasNombreVista_(b.estudiante),
+      "es",
+      { sensitivity: "base" }
+    )
+  );
 
-notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
+  notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
     if (!student.notas) student.notas = {};
 
     const calc = notasCalcStudent_(student);
-
     const estudianteVista = notasNombreVista_(student.estudiante);
 
     const rowClass =
@@ -18483,13 +18530,21 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
       calc.estado === "RIESGO" ? "notas-row-riesgo" :
       "";
 
+    // Calcular promedios parciales en vivo numéricamente
+    const promProcNum = parseFloat(notasPromedioComponente_(student, "procedimental")) || 0;
+    const promCogNum = parseFloat(notasPromedioComponente_(student, "cognitivo")) || 0;
+
+    // Determinar si los totales parciales van perdiendo (Aplica clase CSS de alerta)
+    const alertaProcClass = (promProcNum > 0 && promProcNum < notaLimiteAlerta) ? "notas-detalle-alerta" : "";
+    const alertaCogClass = (promCogNum > 0 && promCogNum < notaLimiteAlerta) ? "notas-detalle-alerta" : "";
+
     if (isDesktop) {
       return `
         <div class="notas-student-card ${rowClass}" data-student-idx="${sIdx}">
           <div class="notas-student-top">
-           <div class="notas-cell notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+            <div class="notas-cell notas-student-name" data-nota-student-manager="${sIdx}">
+              ${escapeHtml(estudianteVista || "Estudiante")}
+            </div>
           </div>
 
           <div class="notas-inputs">
@@ -18502,8 +18557,8 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
               `;
             }).join("")}
 
-            <div class="notas-cell notas-total-cell">
-              <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+            <div class="notas-cell notas-total-cell ${alertaProcClass}">
+              <strong>${promProcNum.toFixed(1)}</strong>
             </div>
 
             ${cogCols.map(col => {
@@ -18515,8 +18570,8 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
               `;
             }).join("")}
 
-            <div class="notas-cell notas-total-cell">
-              <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+            <div class="notas-cell notas-total-cell ${alertaCogClass}">
+              <strong>${promCogNum.toFixed(1)}</strong>
             </div>
 
             <div class="notas-cell">
@@ -18525,16 +18580,16 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
           </div>
 
           <div class="notas-summary">
-          <div class="notas-cell notas-definitiva-cell">
-  <span class="notas-definitiva-badge">${escapeHtml(String(calc.definitiva ?? "—"))}</span>
-</div>
-        <div class="notas-cell notas-estado-cell">
-  ${calc.detalles ? `
-    <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
-      ${notasEstadoBadge_(calc.estado, calc.criterio)}
-    </button>
-  ` : notasEstadoBadge_(calc.estado, calc.criterio)}
-</div>
+            <div class="notas-cell notas-definitiva-cell">
+              <span class="notas-definitiva-badge">${escapeHtml(String(calc.definitiva ?? "—"))}</span>
+            </div>
+            <div class="notas-cell notas-estado-cell">
+              ${calc.detalles ? `
+                <button class="notas-status-btn" type="button" data-nota-details="${sIdx}">
+                  ${notasEstadoBadge_(calc.estado, calc.criterio)}
+                </button>
+              ` : notasEstadoBadge_(calc.estado, calc.criterio)}
+            </div>
           </div>
         </div>
       `;
@@ -18546,8 +18601,8 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
       <div class="notas-student-card ${rowClass} ${isOpen ? "is-open" : ""}" data-student-idx="${sIdx}">
         <button class="notas-student-toggle" type="button" data-nota-student-toggle="${sIdx}">
           <div class="notas-student-name" data-nota-student-manager="${sIdx}">
-  ${escapeHtml(estudianteVista || "Estudiante")}
-</div>
+            ${escapeHtml(estudianteVista || "Estudiante")}
+          </div>
           <div class="notas-student-toggle-right">
             ${notasEstadoBadge_(calc.estado, calc.criterio)}
             <span class="notas-toggle-icon">${isOpen ? "−" : "+"}</span>
@@ -18560,28 +18615,30 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
               const key = String(col.orden);
               return `
                 <div class="notas-input-row">
-<label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                  <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
                 </div>
               `;
             }).join("")}
 
-            <div class="notas-input-row notas-total-row">
-             <label>Total Procedimental <span class="notas-mobile-pill">40%</span></label>
-              <strong>${escapeHtml(String(notasPromedioComponente_(student, "procedimental")))}</strong>
+            <div class="notas-input-row notas-total-row ${alertaProcClass}">
+              <label>Total Procedimental <span class="notas-mobile-pill">40%</span></label>
+              <strong>${promProcNum.toFixed(1)}</strong>
             </div>
 
             ${cogCols.map(col => {
               const key = String(col.orden);
               return `
                 <div class="notas-input-row">
-<label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                  <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
                 </div>
               `;
             }).join("")}
 
-            <div class="notas-input-row notas-total-row">
+            <div class="notas-input-row notas-total-row ${alertaCogClass}">
               <label>Total Cognitivo <span class="notas-mobile-pill">40%</span></label>
-              <strong>${escapeHtml(String(notasPromedioComponente_(student, "cognitivo")))}</strong>
+              <strong>${promCogNum.toFixed(1)}</strong>
             </div>
 
             <div class="notas-input-row">
@@ -18595,121 +18652,81 @@ notasGridEl.innerHTML = headerHtml + __notasEstudiantes.map((student, sIdx) => {
           </div>
 
           ${calc.detalles ? `
-        <div class="notas-detail-mini">
-  ${notasFormatoDetallesAgrupadosHtml_(calc.detalles)}
-</div>
-
-          <button class="btn btn-secondary notas-share-student-btn" type="button" data-nota-share="${sIdx}">
-  Compartir reporte
-</button>
+            <div class="notas-detail-mini">
+              ${notasFormatoDetallesAgrupadosHtml_(calc.detalles)}
+            </div>
+            <button class="btn btn-secondary notas-share-student-btn" type="button" data-nota-share="${sIdx}">
+              Compartir reporte
+            </button>
           ` : ""}
         ` : ""}
       </div>
     `;
   }).join("");
 
-notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const idx = Number(btn.dataset.notaStudentToggle);
-    const wasOpen = (__notasOpenStudentIdx === idx);
+  // =========================================================
+  // LISTENERS Y EVENTOS MANTENIDOS EXACTAMENTE IGUALES
+  // =========================================================
+  notasGridEl.querySelectorAll("[data-nota-student-toggle]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.notaStudentToggle);
+      const wasOpen = (__notasOpenStudentIdx === idx);
+      __notasOpenStudentIdx = wasOpen ? null : idx;
+      notasRenderGrid_();
 
-    __notasOpenStudentIdx = wasOpen ? null : idx;
-    notasRenderGrid_();
-
-    if (!wasOpen && window.matchMedia("(max-width: 899px)").matches) {
-      requestAnimationFrame(() => {
-        const card = notasGridEl.querySelector(`[data-student-idx="${idx}"]`);
-        const scroller = document.querySelector("#notasStudentsModal .notas-grid-scroll");
-
-        if (!card || !scroller) return;
-
-       const modal = document.querySelector("#notasStudentsModal");
-const header = modal?.querySelector(".notas-screen-header");
-
-const headerH = header ? header.offsetHeight : 0;
-const topExtra = headerH + 12;
-
-const targetTop = card.offsetTop - topExtra;
-
-    scroller.scrollTo({
-  top: Math.max(0, targetTop),
-  behavior: "auto"
-});
-      });
-    }
-  });
-});
-
-notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
-
-  input.addEventListener("pointerdown", (e) => {
-  e.stopPropagation();
-});
-
-  input.addEventListener("focus", () => {
-    setTimeout(() => input.select(), 0);
+      if (!wasOpen && window.matchMedia("(max-width: 899px)").matches) {
+        requestAnimationFrame(() => {
+          const card = notasGridEl.querySelector(`[data-student-idx="${idx}"]`);
+          const scroller = document.querySelector("#notasStudentsModal .notas-grid-scroll");
+          if (!card || !scroller) return;
+          const modal = document.querySelector("#notasStudentsModal");
+          const header = modal?.querySelector(".notas-screen-header");
+          const headerH = header ? header.offsetHeight : 0;
+          const targetTop = card.offsetTop - (headerH + 12);
+          scroller.scrollTo({ top: Math.max(0, targetTop), behavior: "auto" });
+        });
+      }
+    });
   });
 
-  input.addEventListener("click", () => {
-    input.select();
+  notasGridEl.querySelectorAll("[data-nota-input]").forEach(input => {
+    input.addEventListener("pointerdown", (e) => { e.stopPropagation(); });
+    input.addEventListener("focus", () => { setTimeout(() => input.select(), 0); });
+    input.addEventListener("click", () => { input.select(); });
+    input.addEventListener("input", () => {
+      const sIdx = Number(input.dataset.notaInput);
+      const key = String(input.dataset.notaKey || "");
+      if (!__notasEstudiantes[sIdx]) return;
+      if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+      __notasEstudiantes[sIdx].notas[key] = input.value;
+      notasProgramarAutoGuardado_();
+    });
+    input.addEventListener("change", () => { notasProgramarAutoGuardado_(); });
+    input.addEventListener("blur", () => {
+      setTimeout(() => {
+        const active = document.activeElement;
+        if (active && active.matches("#notasStudentsModal [data-nota-input]")) return;
+        notasRenderGrid_();
+      }, 180);
+    });
   });
-
-input.addEventListener("input", () => {
-  const sIdx = Number(input.dataset.notaInput);
-  const key = String(input.dataset.notaKey || "");
-
-  if (!__notasEstudiantes[sIdx]) return;
-  if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
-
-  __notasEstudiantes[sIdx].notas[key] = input.value;
-
-  // Autoguardado tipo Excel
-  notasProgramarAutoGuardado_();
-});
-
-input.addEventListener("change", () => {
-  notasProgramarAutoGuardado_();
-});
-
-input.addEventListener("blur", () => {
-  setTimeout(() => {
-    const active = document.activeElement;
-
-    if (active && active.matches("#notasStudentsModal [data-nota-input]")) {
-      return;
-    }
-
-    notasRenderGrid_();
-  }, 180);
-});
-});
 
   notasGridEl.querySelectorAll("[data-nota-col-edit]").forEach(el => {
-    el.addEventListener("dblclick", () => {
-      notasEditarColumna_(Number(el.dataset.notaColEdit));
-    });
+    el.addEventListener("dblclick", () => { notasEditarColumna_(Number(el.dataset.notaColEdit)); });
   });
-
 
   notasGridEl.querySelectorAll("[data-nota-student-manager]").forEach(el => {
-  el.addEventListener("dblclick", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const sIdx = Number(el.dataset.notaStudentManager);
-    const student = __notasEstudiantes[sIdx];
-    if (!student) return;
-
-    openNotasStudentModal_(student.estudiante, sIdx);
+    el.addEventListener("dblclick", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const sIdx = Number(el.dataset.notaStudentManager);
+      const student = __notasEstudiantes[sIdx];
+      if (!student) return;
+      openNotasStudentModal_(student.estudiante, sIdx);
+    });
   });
-});
-
-
 
   notasGridEl.querySelectorAll("[data-nota-details]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      notasOpenDetallePc_(Number(btn.dataset.notaDetails));
-    });
+    btn.addEventListener("click", () => { notasOpenDetallePc_(Number(btn.dataset.notaDetails)); });
   });
 
   notasGridEl.querySelectorAll("[data-nota-share]").forEach(btn => {
@@ -18722,34 +18739,25 @@ input.addEventListener("blur", () => {
       const curso = String(notasCursoEl?.value || "").trim();
       const asignatura = String(notasAsignaturaEl?.value || "").trim();
       const periodo = String(notasPeriodoEl?.value || "1").trim();
+      const estudianteVista = notasNombreVista_(student.estudiante);
 
-    const detallesAgrupados = notasFormatoDetallesAgrupados_(calc.detalles);
-
-const estudianteVista = notasNombreVista_(student.estudiante);
-
-const msg =
-  `Reporte académico\n\n` +
-  `Estudiante: ${estudianteVista}\n` +
-  `Curso: ${curso}\n` +
-  `Asignatura: ${asignatura}\n` +
-  `Periodo: ${periodo}\n` +
-  `Definitiva: ${calc.definitiva}\n` +
-  `Estado: ${calc.estado}\n\n` +
-  `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
+      const msg = `Reporte académico\n\n` +
+                  `Estudiante: ${estudianteVista}\n` +
+                  `Curso: ${curso}\n` +
+                  `Asignatura: ${asignatura}\n` +
+                  `Periodo: ${periodo}\n` +
+                  `Definitiva: ${calc.definitiva}\n` +
+                  `Estado: ${calc.estado}\n\n` +
+                  `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
 
       if (navigator.share) {
-        await navigator.share({
-          title: "Reporte académico",
-          text: msg
-        });
+        await navigator.share({ title: "Reporte académico", text: msg });
         return;
       }
-
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
     });
   });
 }
-
 
 
 
@@ -27932,14 +27940,50 @@ function lateSetHint_(msg){
 function lateRenderCourses_(courses){
   if (!lateCourseEl) return;
 
-  const list = (courses || []).map(c => String(c || "").trim()).filter(Boolean);
-  const prev = String(lateCourseEl.value || "").trim();
+  // 1. Obtener el nivel educativo del docente actual
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+  const nivelDocente = String(profile?.nivel_educativo || "").toUpperCase(); // "PRIMARIA", "BACHILLERATO", "PRE-ESCOLAR"
 
+  // 2. Filtrar la lista de cursos en el frontend para que coincidan con su nivel asignado
+  const list = (courses || [])
+    .map(c => String(c || "").trim())
+    .filter(Boolean)
+    .filter(curso => {
+      if (!nivelDocente) return true; // Si no tiene nivel definido (ej. Admin), ve todos
+      
+      const cursoTexto = curso.toLowerCase();
+      let nivelRegistro = "BACHILLERATO"; // Lógica espejo de tu backend
+
+      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.includes("parv")) {
+        nivelRegistro = "PRE-ESCOLAR";
+      } else if (
+        /(6|7|8|9|10|11)/.test(cursoTexto) || 
+        cursoTexto.includes("sexto") || cursoTexto.includes("septi") || 
+        cursoTexto.includes("octav") || cursoTexto.includes("nove") || 
+        cursoTexto.includes("deci") || cursoTexto.includes("once") || 
+        cursoTexto.includes("undec") || cursoTexto.includes("bach")
+      ) {
+        nivelRegistro = "BACHILLERATO";
+      } else if (
+        /(1|2|3|4|5)/.test(cursoTexto) || 
+        cursoTexto.includes("primero") || cursoTexto.includes("segundo") || 
+        cursoTexto.includes("tercero") || cursoTexto.includes("cuarto") || 
+        cursoTexto.includes("quinto")
+      ) {
+        nivelRegistro = "PRIMARIA";
+      }
+
+      // Retorna verdadero solo si el curso pertenece al nivel del docente
+      return nivelRegistro === nivelDocente;
+    });
+
+  const prev = String(lateCourseEl.value || "").trim();
   lateCourseEl.innerHTML = "";
 
+  // Agregamos opción por defecto adaptada a su nivel
   const optAll = document.createElement("option");
   optAll.value = "__ALL__";
-  optAll.textContent = "Todos los cursos";
+  optAll.textContent = nivelDocente ? `Todos los de ${nivelDocente}` : "Todos los cursos";
   lateCourseEl.appendChild(optAll);
 
   list.forEach(c => {
