@@ -18846,41 +18846,50 @@ function notasOpenDetallePc_(sIdx){
   });
 }
 
-async function notasLoadCourses_(){
+async function notasLoadCourses_() {
   const courses = await gsCoursesListCached();
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
   
-  // 1. Obtenemos el perfil local
-  let profile = typeof loadProfile === "function" ? loadProfile() : {};
-  
-  // 2. BUSCAR EL NIVEL: 
-  // Primero intentamos la propiedad nivel_educativo del perfil
-  // Si no está (como ocurre ahora), buscamos en el objeto que supuestamente cargaste de la DB
-  let nivelDocente = (profile?.nivel_educativo || "").toUpperCase().trim();
+  let nivelDocente = "BACHILLERATO"; // Valor por defecto
 
-  // Si sigue vacío, forzamos la lectura desde el objeto global que a veces usa Supabase
-  if (!nivelDocente && window._userProfile) {
-      nivelDocente = (window._userProfile.nivel_educativo || "").toUpperCase().trim();
+  // BUSCAMOS EL NIVEL REAL EN LA TABLA 'devices' DE SUPABASE
+  if (profile.email) {
+    try {
+      // Hacemos la consulta directa a la tabla donde sí está el dato
+      const { data, error } = await _supabase
+        .from('devices')
+        .select('nivel_educativo')
+        .eq('email', profile.email)
+        .single();
+
+      if (data && data.nivel_educativo) {
+        nivelDocente = data.nivel_educativo.toUpperCase().trim();
+        console.log("DEBUG: Nivel obtenido de Supabase:", nivelDocente);
+      }
+    } catch (e) {
+      console.error("Error al consultar nivel en Supabase:", e);
+    }
   }
 
-  // Si después de todo sigue vacío, el valor por defecto:
-  if (!nivelDocente) nivelDocente = "PRIMARIA"; // O el que tú quieras por seguridad
-
-  console.log("DEBUG: Nivel docente final para filtrar:", nivelDocente);
-
-  // 3. Filtrar la lista
+  // FILTRADO LÓGICO
   const listaFiltrada = (courses || []).filter(curso => {
     const c = curso.toLowerCase();
     
-    // Clasificación del curso
-    let nivel = "BACHILLERATO";
-    if (c.includes("pre") || c.includes("jardin") || c.startsWith("0")) nivel = "PRE-ESCOLAR";
-    else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto)/.test(c)) nivel = "PRIMARIA";
+    // Identificar nivel del curso
+    let nivelCurso = "BACHILLERATO";
+    if (c.includes("pre") || c.includes("jardin") || c.startsWith("0")) {
+      nivelCurso = "PRE-ESCOLAR";
+    } else if (/(1|2|3|4|5|primero|segundo|tercero|cuarto|quinto|primaria)/.test(c)) {
+      nivelCurso = "PRIMARIA";
+    } else if (/(6|7|8|9|10|11|sexto|sept|octav|nove|deci|once|bach)/.test(c)) {
+      nivelCurso = "BACHILLERATO";
+    }
     
-    // Aquí está la clave: comparar el nivel detectado con el nivel del docente
-    return nivel === nivelDocente;
+    // Comparar nivel del curso con el nivel del docente obtenido de Supabase
+    return nivelCurso === nivelDocente;
   });
 
-  console.log("DEBUG: Cursos resultantes:", listaFiltrada);
+  console.log("DEBUG: Lista final para el docente:", listaFiltrada);
   fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
 }
 
