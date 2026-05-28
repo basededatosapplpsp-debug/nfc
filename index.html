@@ -27940,28 +27940,26 @@ function lateSetHint_(msg){
 function lateRenderCourses_(courses){
   if (!lateCourseEl) return;
 
-  // 1. Obtener el nivel educativo del docente actual
+  // 1. Obtener el nivel educativo del docente actual desde tu tabla 'devices'
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const nivelDocente = String(profile?.nivel_educativo || "").toUpperCase(); // "PRIMARIA", "BACHILLERATO", "PRE-ESCOLAR"
+  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
 
   // 2. Filtrar la lista de cursos en el frontend para que coincidan con su nivel asignado
   const list = (courses || [])
     .map(c => String(c || "").trim())
     .filter(Boolean)
     .filter(curso => {
-      if (!nivelDocente) return true; // Si no tiene nivel definido (ej. Admin), ve todos
-      
       const cursoTexto = curso.toLowerCase();
-      let nivelRegistro = "BACHILLERATO"; // Lógica espejo de tu backend
+      let nivelRegistro = "BACHILLERATO"; // Por defecto
 
-      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.includes("parv")) {
+      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.includes("parv") || cursoTexto.startsWith("0")) {
         nivelRegistro = "PRE-ESCOLAR";
       } else if (
         /(6|7|8|9|10|11)/.test(cursoTexto) || 
         cursoTexto.includes("sexto") || cursoTexto.includes("septi") || 
         cursoTexto.includes("octav") || cursoTexto.includes("nove") || 
         cursoTexto.includes("deci") || cursoTexto.includes("once") || 
-        cursoTexto.includes("undec") || cursoTexto.includes("bach")
+        cursoTexto.includes("bach")
       ) {
         nivelRegistro = "BACHILLERATO";
       } else if (
@@ -27973,7 +27971,7 @@ function lateRenderCourses_(courses){
         nivelRegistro = "PRIMARIA";
       }
 
-      // Retorna verdadero solo si el curso pertenece al nivel del docente
+      // Deja pasar únicamente los cursos del nivel del docente autenticado
       return nivelRegistro === nivelDocente;
     });
 
@@ -27983,7 +27981,7 @@ function lateRenderCourses_(courses){
   // Agregamos opción por defecto adaptada a su nivel
   const optAll = document.createElement("option");
   optAll.value = "__ALL__";
-  optAll.textContent = nivelDocente ? `Todos los de ${nivelDocente}` : "Todos los cursos";
+  optAll.textContent = `Todos los de ${nivelDocente}`;
   lateCourseEl.appendChild(optAll);
 
   list.forEach(c => {
