@@ -9049,7 +9049,7 @@ body[data-theme="light"] #parqueResult .parque-badge{
   <i class="fa-solid fa-share-nodes"></i>
 </button>
 
-<button id="btnNotasAlertasCompartir" class="btn btn-secondary" hidden>Compartir</button>
+<button id="btnNotasAlertasCompartir" class="btn btn-secondary" hidden>Compartir selección</button>
 <button id="btnNotasAlertasCerrar" class="btn">Cerrar</button>
     </div>
   </div>
@@ -20399,6 +20399,73 @@ function notasFormatoDetallesAgrupadosTexto_(detalles){
 }
 
 
+function notasAlertasFmtNota_(v){
+  const val = v === null || v === undefined || v === "" ? "—" : v;
+  return String(val);
+}
+
+function notasAlertasDetallesPorFiltroTexto_(a){
+  const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
+  const detallesRaw = String(a.detalles || "");
+  const partes = detallesRaw.split(";").map(x => x.trim()).filter(Boolean);
+
+  if (tipo === "procedimental") {
+    return `Nota procedimental: ${notasAlertasFmtNota_(a.proc_total)}`;
+  }
+
+  if (tipo === "cognitivo") {
+    return `Nota cognitiva: ${notasAlertasFmtNota_(a.cog_total)}`;
+  }
+
+  if (tipo === "definitiva" || tipo === "bajo" || tipo === "insuficiente" || tipo === "aceptable" || tipo === "bueno" || tipo === "excelente") {
+    return `Nota definitiva: ${notasAlertasFmtNota_(a.definitiva)}`;
+  }
+
+  if (tipo === "debe") {
+    const pendientes = partes.filter(x => {
+      const t = x.toLowerCase();
+      return t.includes("vacía") || t.includes("vacia") || t.includes("igual a 1");
+    });
+
+    return pendientes.length
+      ? `Actividades pendientes:\n${notasFormatoDetallesAgrupadosTexto_(pendientes.join("; "))}`
+      : "Actividades pendientes: —";
+  }
+
+  if (tipo === "riesgo" || tipo === "notas_bajas") {
+    const bajas = partes.filter(x => x.toLowerCase().includes("nota baja"));
+
+    return bajas.length
+      ? `Notas bajas:\n${notasFormatoDetallesAgrupadosTexto_(bajas.join("; "))}`
+      : "Notas bajas: —";
+  }
+
+  return `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(a.detalles)}`;
+}
+
+function notasAlertasDetallesPorFiltroHtml_(a){
+  return notasAlertasDetallesPorFiltroTexto_(a)
+    .split("\n")
+    .map(line => {
+      let html = escapeHtml(line);
+
+      html = html.replace(
+        /^(Nota procedimental:|Nota cognitiva:|Nota definitiva:|Actividades pendientes:|Notas bajas:|Detalles:)/,
+        `<strong class="notas-detalle-grupo">$1</strong>`
+      );
+
+      html = html.replace(
+        /\b(vacía|vacia|igual a 1|nota baja|baja)\b/gi,
+        `<strong class="notas-detalle-alerta">$1</strong>`
+      );
+
+      return `<div class="notas-detalle-linea">${html}</div>`;
+    })
+    .join("");
+}
+
+
+
 async function notasAlertasDetalle_(item){
   if (!item || !notasAlertasDetalleEl) return;
 
@@ -20435,77 +20502,28 @@ async function notasAlertasDetalle_(item){
               ${a.docente_nombre ? ` · Docente: ${escapeHtml(a.docente_nombre)}` : ""}
             </div>
 
-   <div class="notas-alerta-subject-details">
-  ${
-    notasAlertasMostrarSoloNotaActual_(notasAlertasTipoEl?.value)
-      ? `<div class="notas-detalle-linea">
-           <strong class="notas-detalle-grupo">Nota actual:</strong>
-           ${
-             (function(){
-               const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
-               if(tipo === "procedimental") return escapeHtml(String(a.proc_total ?? "—"));
-               if(tipo === "cognitivo") return escapeHtml(String(a.cog_total ?? "—"));
-               if(tipo === "definitiva") return escapeHtml(String(a.definitiva ?? "—"));
-               return "—";
-             })()
-           }
-         </div>`
-      : notasFormatoDetallesAgrupadosHtml_(a.detalles)
-  }
-</div>
+            <div class="notas-alerta-subject-details">
+              ${notasAlertasDetallesPorFiltroHtml_(a)}
+            </div>
           </div>
         `).join("")}
       </div>
     </div>
   `;
 
-const fmtNota = (v) => {
-  const val = v === null || v === undefined || v === "" ? "VACÍO" : v;
-
-  if (val === "VACÍO") return `-`;
-  if (Number(val) === 1) return `[1]`;
-
-  return String(val);
-};
-
-__notasAlertaMsg =
-  `Reporte académico\n\n` +
-  `Estudiante: ${item.estudiante || "Sin nombre"}\n` +
-  `Curso: ${item.curso || "—"}\n` +
-  `Periodo: ${item.periodo || "—"}\n\n` +
-  `Materias con alerta:\n\n` +
-  alertas.map(a => {
-    const detalles = String(notasFormatoDetallesAgrupados_(a.detalles) || "");
-
-    // resaltado de componentes
-// resaltado de componentes + formato tipo planilla
-const detallesFormateados = String(notasFormatoDetallesAgrupados_(a.detalles) || "")
-  .split("\n")
-  .map(line => {
-    let l = line.trim();
-
-    // fuerza inicio limpio de cada componente (alineación tipo planilla)
-    l = l
-      .replace(/^Procedimental\s*:/gi, "*Procedimental:*")
-      .replace(/^Cognitivo\s*:/gi, "*Cognitivo:*")
-      .replace(/^Actitudinal\s*:/gi, "*Actitudinal:*");
-
-    // resalta VACÍO y 1 en cualquier parte
-    l = l
-      .replace(/\bvacía\b/g, "*vacía*")
-      .replace(/:\s*igual a 1\b/g, ": *igual a 1*");
-
-    return l;
-  })
-  .join("\n");
-
-return (
-  `- ${a.asignatura || "Asignatura"}\n` +
-  `  Estado: ${a.estado || "—"}\n` +
-  `  Definitiva: ${fmtNota(a.definitiva)}\n` +
-  `  Detalles:\n${detallesFormateados}`
-);
-  }).join("\n\n");
+  __notasAlertaMsg =
+    `Reporte académico\n\n` +
+    `Estudiante: ${item.estudiante || "Sin nombre"}\n` +
+    `Curso: ${item.curso || "—"}\n` +
+    `Periodo: ${item.periodo || "—"}\n\n` +
+    `Materias con alerta:\n\n` +
+    alertas.map(a => {
+      return (
+        `- ${a.asignatura || "Asignatura"}\n` +
+        `  Estado: ${a.estado || "—"}\n` +
+        `  ${notasAlertasDetallesPorFiltroTexto_(a).replace(/\n/g, "\n  ")}`
+      );
+    }).join("\n\n");
 
   if (notasAlertasEsMobile_() && notasAlertasDetalleMobileModal && notasAlertasDetalleMobileBody) {
     notasAlertasDetalleMobileBody.innerHTML = notasAlertasDetalleEl.innerHTML;
@@ -20515,7 +20533,6 @@ return (
 
   if (btnNotasAlertasCompartir) btnNotasAlertasCompartir.hidden = false;
 }
-
 
 
 function notasAlertasSubjectKey_(v){
@@ -20664,12 +20681,11 @@ async function notasAlertasCompartirTodos_(){
         `Curso: ${item.curso || "—"}\n` +
         `Periodo: ${item.periodo || "—"}\n` +
         `Materias:\n` +
-        alertas.map(a =>
-          `  - ${a.asignatura || "Asignatura"}\n` +
-          `    Estado: ${a.estado || "—"}\n` +
-          `    Definitiva: ${a.definitiva ?? "—"}\n` +
-          `    Detalles: ${a.detalles || "Sin detalles."}`
-        ).join("\n");
+  alertas.map(a =>
+  `  - ${a.asignatura || "Asignatura"}\n` +
+  `    Estado: ${a.estado || "—"}\n` +
+  `    ${notasAlertasDetallesPorFiltroTexto_(a).replace(/\n/g, "\n    ")}`
+).join("\n");
     }).join("\n\n");
 
   if (navigator.share) {
