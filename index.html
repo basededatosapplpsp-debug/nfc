@@ -20109,30 +20109,40 @@ async function notasAutoLoadStudentsOnCourse_(){
 btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
 
 btnNotasDescargarExcel?.addEventListener("click", async () => {
-  const res = await fetch("/api/notas?key=API_KEY", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "notas_planilla_export_xlsx",
-      curso: notasCursoEl?.value,
-      asignatura: notasAsignaturaEl?.value,
-      periodo: notasPeriodoEl?.value,
-      year: new Date().getFullYear(),
-      email: userEmail
-    })
-  });
+  try {
+    const res = await fetch("/api/notas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "notas_planilla_export_xlsx",
+        curso: String(notasCursoEl?.value || "").trim(),
+        asignatura: String(notasAsignaturaEl?.value || "").trim(),
+        periodo: String(notasPeriodoEl?.value || "1").trim(),
+        year: new Date().getFullYear(),
+        email: userEmail
+      })
+    });
 
-  if (!res.ok) return notasSetHint_("Error descargando Excel ❌");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return notasSetHint_("Error descargando Excel ❌ " + (err.msg || ""));
+    }
 
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `planilla_${notasCursoEl?.value}_${notasAsignaturaEl?.value}_${notasPeriodoEl?.value}.xlsx`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `planilla_${notasCursoEl?.value}_${notasAsignaturaEl?.value}_${notasPeriodoEl?.value}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    notasSetHint_("Planilla descargada ✅");
+  } catch (err) {
+    console.error(err);
+    notasSetHint_("Error descargando Excel ❌");
+  }
 });
 
 function notasAlertasHint_(msg){
