@@ -20447,7 +20447,8 @@ function notasAlertasDetallesPorFiltroHtml_(a){
   return notasAlertasDetallesPorFiltroTexto_(a)
     .split("\n")
     .map(line => {
-      let html = escapeHtml(line);
+     let html = escapeHtml(line)
+  .replace(/\*/g, "");
 
       html = html.replace(
         /^(Nota procedimental:|Nota cognitiva:|Nota definitiva:|Actividades pendientes:|Notas bajas:|Detalles:)/,
