@@ -20110,18 +20110,67 @@ btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
 
 btnNotasDescargarExcel?.addEventListener("click", async () => {
   try {
-    const res = await fetch("/api/notas", {
+    const profile = typeof loadProfile === "function" ? loadProfile() : {};
+    const email = String(profile?.email || "").trim().toLowerCase();
+
+    const curso = String(notasCursoEl?.value || "").trim();
+    const asignatura = String(notasAsignaturaEl?.value || "").trim();
+    const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+    if (!curso) return notasSetHint_("Selecciona un curso.");
+    if (!asignatura) return notasSetHint_("Selecciona una asignatura.");
+    if (!email) return notasSetHint_("No se encontró el correo del docente.");
+
+    notasSetHint_("Generando Excel…");
+
+    const res = await fetch(GS_WEBAPP_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         action: "notas_planilla_export_xlsx",
-        curso: String(notasCursoEl?.value || "").trim(),
-        asignatura: String(notasAsignaturaEl?.value || "").trim(),
-        periodo: String(notasPeriodoEl?.value || "1").trim(),
+        key: GS_API_KEY,
+        curso,
+        asignatura,
+        periodo,
         year: new Date().getFullYear(),
-        email: userEmail
+        email
       })
     });
+
+    const contentType = String(res.headers.get("Content-Type") || "");
+
+    if (!res.ok || contentType.includes("application/json")) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.msg || err.error || "No se pudo generar el Excel.");
+    }
+
+    const blob = await res.blob();
+
+    const safeName = `planilla_${curso}_${asignatura}_periodo_${periodo}`
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w\-]+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `${safeName}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 0);
+
+    notasSetHint_("Planilla descargada en Excel ✅");
+  } catch (err) {
+    console.error(err);
+    notasSetHint_("Error descargando Excel ❌ " + String(err?.message || err));
+  }
+});
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -28192,13 +28241,17 @@ if ("serviceWorker" in navigator) {
   });
 
   window.addEventListener("load", async () => {
-    await registerAndUpdateSW_();
+   if (typeof registerAndUpdateSW_ === "function") {
+  await registerAndUpdateSW_();
+}
     await checkAppBuildAndRefresh_();
   });
 
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible") {
-      await registerAndUpdateSW_();
+      if (typeof registerAndUpdateSW_ === "function") {
+  await registerAndUpdateSW_();
+}
       await checkAppBuildAndRefresh_();
     }
   });
