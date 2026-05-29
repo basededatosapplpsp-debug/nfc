@@ -8989,9 +8989,14 @@ body[data-theme="light"] #parqueResult .parque-badge{
   <div id="notasGrid" class="notas-grid"></div>
 </div>
 
-    <div class="notas-bottom-actions">
-      <button id="btnNotasStudentsGuardar" class="btn btn-primary" type="button">Guardar planilla</button>
-    </div>
+<div class="notas-bottom-actions">
+  <button id="btnNotasDescargarExcel" class="btn btn-secondary" type="button">
+    Descargar Excel
+  </button>
+  <button id="btnNotasStudentsGuardar" class="btn btn-primary" type="button">
+    Guardar planilla
+  </button>
+</div>
   </div>
 </div>
 
@@ -11299,6 +11304,7 @@ const btnNotasCargarPlanilla = $("btnNotasCargarPlanilla");
 const btnNotasAgregarColumna = $("btnNotasAgregarColumna");
 const btnNotasAgregarCognitivo = $("btnNotasAgregarCognitivo");
 const btnNotasGuardar = $("btnNotasGuardar");
+const btnNotasDescargarExcel = $("btnNotasDescargarExcel");
 let btnNotasCompartirDebe = null;
 const btnNotasCerrar = $("btnNotasCerrar");
 
@@ -19053,11 +19059,16 @@ if (actions) {
 
  
 
-  actions.appendChild(btnNotasAgregarColumna);
-  actions.appendChild(btnNotasAgregarCognitivo);
-  actions.appendChild(btnNotasCompartirDebe);
-  actions.appendChild(btnNotasCargarPlanilla);
-  actions.appendChild(btnNotasGuardar);
+actions.appendChild(btnNotasAgregarColumna);
+actions.appendChild(btnNotasAgregarCognitivo);
+actions.appendChild(btnNotasCompartirDebe);
+
+if (btnNotasDescargarExcel) {
+  actions.appendChild(btnNotasDescargarExcel);
+}
+
+actions.appendChild(btnNotasCargarPlanilla);
+actions.appendChild(btnNotasGuardar);
 }
 
   document.getElementById("notasPcHintSlot")?.appendChild(notasHintEl);
@@ -19747,6 +19758,118 @@ async function notasCompartirDebeTodos_(){
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
+function notasExcelSafe_(v){
+  return String(v ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function notasNombreArchivoExcel_(texto){
+  return String(texto || "planilla")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w\-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
+function notasDescargarExcel_(){
+  const curso = String(notasCursoEl?.value || "").trim();
+  const asignatura = String(notasAsignaturaEl?.value || "").trim();
+  const periodo = String(notasPeriodoEl?.value || "1").trim();
+
+  if (!__notasEstudiantes.length) {
+    return notasSetHint_("No hay estudiantes cargados para descargar.");
+  }
+
+  const procCols = notasColumnasPorComponente_("procedimental");
+  const cogCols = notasColumnasPorComponente_("cognitivo");
+
+  const headers = [
+    "Estudiante",
+    ...procCols.map(c => c.nombre || `Actividad ${c.orden}`),
+    "Total Procedimental 40%",
+    ...cogCols.map(c => c.nombre || `Cognitivo ${c.orden}`),
+    "Total Cognitivo 40%",
+    "Actitudinal 20%",
+    "Definitiva",
+    "Estado",
+    "Desempeño",
+    "Detalles"
+  ];
+
+  const rows = [...__notasEstudiantes]
+    .sort((a, b) => notasNombreVista_(a.estudiante).localeCompare(
+      notasNombreVista_(b.estudiante),
+      "es",
+      { sensitivity: "base" }
+    ))
+    .map(student => {
+      const calc = notasCalcStudent_(student);
+
+      return [
+        notasNombreVista_(student.estudiante),
+        ...procCols.map(c => student.notas?.[String(c.orden)] ?? ""),
+        calc.procTotal ?? "—",
+        ...cogCols.map(c => student.notas?.[String(c.orden)] ?? ""),
+        calc.cogTotal ?? "—",
+        calc.actitudinal ?? "—",
+        calc.definitiva ?? "—",
+        calc.estado ?? "—",
+        calc.criterio ?? "—",
+        String(calc.detalles || "").replace(/;/g, " | ")
+      ];
+    });
+
+  const html = `
+    <html>
+      <head>
+        <meta charset="UTF-8">
+      </head>
+      <body>
+        <table border="1">
+          <tr>
+            <th colspan="${headers.length}">
+              Planilla de notas - ${notasExcelSafe_(curso)} - ${notasExcelSafe_(asignatura)} - Periodo ${notasExcelSafe_(periodo)}
+            </th>
+          </tr>
+          <tr>
+            ${headers.map(h => `<th>${notasExcelSafe_(h)}</th>`).join("")}
+          </tr>
+          ${rows.map(row => `
+            <tr>
+              ${row.map(cell => `<td>${notasExcelSafe_(cell)}</td>`).join("")}
+            </tr>
+          `).join("")}
+        </table>
+      </body>
+    </html>
+  `;
+
+  const blob = new Blob([html], {
+    type: "application/vnd.ms-excel;charset=utf-8"
+  });
+
+  const fileName = notasNombreArchivoExcel_(
+    `planilla_${curso}_${asignatura}_periodo_${periodo}`
+  ) + ".xls";
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 0);
+
+  notasSetHint_("Planilla descargada en Excel ✅");
+}
 
 
 async function notasGuardarPlanilla_(){
@@ -19984,6 +20107,8 @@ async function notasAutoLoadStudentsOnCourse_(){
 
 
 btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
+
+btnNotasDescargarExcel?.addEventListener("click", notasDescargarExcel_);
 
 function notasAlertasHint_(msg){
   if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
