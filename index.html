@@ -28241,17 +28241,13 @@ if ("serviceWorker" in navigator) {
   });
 
   window.addEventListener("load", async () => {
-   if (typeof registerAndUpdateSW_ === "function") {
-  await registerAndUpdateSW_();
-}
+    await registerAndUpdateSW_();
     await checkAppBuildAndRefresh_();
   });
 
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible") {
-      if (typeof registerAndUpdateSW_ === "function") {
-  await registerAndUpdateSW_();
-}
+      await registerAndUpdateSW_();
       await checkAppBuildAndRefresh_();
     }
   });
