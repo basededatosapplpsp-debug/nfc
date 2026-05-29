@@ -20108,7 +20108,32 @@ async function notasAutoLoadStudentsOnCourse_(){
 
 btnNotasStudentsGuardar?.addEventListener("click", notasGuardarPlanilla_);
 
-btnNotasDescargarExcel?.addEventListener("click", notasDescargarExcel_);
+btnNotasDescargarExcel?.addEventListener("click", async () => {
+  const res = await fetch("/api/notas?key=API_KEY", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "notas_planilla_export_xlsx",
+      curso: notasCursoEl?.value,
+      asignatura: notasAsignaturaEl?.value,
+      periodo: notasPeriodoEl?.value,
+      year: new Date().getFullYear(),
+      email: userEmail
+    })
+  });
+
+  if (!res.ok) return notasSetHint_("Error descargando Excel ❌");
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `planilla_${notasCursoEl?.value}_${notasAsignaturaEl?.value}_${notasPeriodoEl?.value}.xlsx`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
 
 function notasAlertasHint_(msg){
   if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
