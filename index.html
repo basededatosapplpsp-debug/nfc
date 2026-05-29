@@ -7249,6 +7249,8 @@ body[data-theme="light"] #parqueResult .parque-badge{
 
   <button id="btnAdminApproveDevices" class="menu-item" type="button" role="menuitem" hidden>Aprobar dispositivos</button>
 
+  <button id="btnAdminTeacherPerms" class="menu-item" type="button" role="menuitem" hidden>Permisos docentes</button>
+
   <button id="btnAdminStudents" class="menu-item" type="button" role="menuitem" hidden>Gestionar estudiantes</button>
 
   <!-- ✅ NUEVO: Botón que abre el submenú -->
@@ -7738,6 +7740,58 @@ body[data-theme="light"] #parqueResult .parque-badge{
   </div>
 </div>
 
+
+<!-- ======= MODAL PERMISOS DOCENTES (ADMIN) ======= -->
+<div id="adminTeacherPermsModal" class="modal-backdrop" hidden>
+  <div class="modal-card" style="width:min(620px,100%); max-height:calc(100dvh - 24px); display:flex; flex-direction:column; overflow:hidden;">
+    <h2 class="modal-title">Permisos docentes</h2>
+    <p class="modal-sub">
+      Selecciona un docente ya aprobado y asigna o quita permisos por nivel educativo.
+    </p>
+
+    <label class="modal-label" for="adminPermsTeacherSelect">Docente aprobado</label>
+    <select id="adminPermsTeacherSelect" class="modal-input">
+      <option value="">Cargando…</option>
+    </select>
+
+    <div style="margin-top:14px; border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.04);">
+      <div class="muted small" style="margin-bottom:10px;">Permisos de nivel educativo</div>
+
+      <label style="display:flex; align-items:center; gap:10px; margin:10px 0; font-weight:800;">
+        <input id="adminPermPre" type="checkbox">
+        Pre-escolar
+      </label>
+
+      <label style="display:flex; align-items:center; gap:10px; margin:10px 0; font-weight:800;">
+        <input id="adminPermPrimaria" type="checkbox">
+        Primaria
+      </label>
+
+      <label style="display:flex; align-items:center; gap:10px; margin:10px 0; font-weight:800;">
+        <input id="adminPermBachillerato" type="checkbox">
+        Bachillerato
+      </label>
+    </div>
+
+    <div id="adminPermsInfo" class="muted small" style="margin-top:10px;">
+      —
+    </div>
+
+    <div class="modal-actions" style="justify-content:flex-end; flex-wrap:wrap;">
+      <button id="btnAdminPermsClear" type="button" class="btn btn-danger">
+        Quitar permisos
+      </button>
+
+      <button id="btnAdminPermsSave" type="button" class="btn btn-primary">
+        Guardar permisos
+      </button>
+
+      <button id="btnAdminPermsClose" type="button" class="btn">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
 
 <div id="adminConfigModal" class="modal-backdrop" hidden>
   <div class="modal-card" style="width:min(520px,100%);">
@@ -11180,6 +11234,17 @@ const adminDevicesFilter = $("adminDevicesFilter");
 const btnAdminDevicesClose = $("btnAdminDevicesClose");
 const btnAdminDevicesReload = $("btnAdminDevicesReload");
 
+const btnAdminTeacherPerms = $("btnAdminTeacherPerms");
+const adminTeacherPermsModal = $("adminTeacherPermsModal");
+const adminPermsTeacherSelect = $("adminPermsTeacherSelect");
+const adminPermPre = $("adminPermPre");
+const adminPermPrimaria = $("adminPermPrimaria");
+const adminPermBachillerato = $("adminPermBachillerato");
+const adminPermsInfo = $("adminPermsInfo");
+const btnAdminPermsSave = $("btnAdminPermsSave");
+const btnAdminPermsClear = $("btnAdminPermsClear");
+const btnAdminPermsClose = $("btnAdminPermsClose");
+
 const btnUserMenu = $("btnUserMenu");
 const userMenu = $("userMenu");
 const userInitialsEl = $("userInitials");
@@ -12757,16 +12822,31 @@ async function gsAdminListDeviceRequests() {
   return data;
 }
 
-async function gsAdminSetDeviceAuth(id, authorized) {
+async function gsAdminSetDeviceAuth(id, authorized, extra = {}) {
+  const payload = {
+    action: "admin_set_device_auth",
+    id,
+    authorized: authorized ? "SI" : "NO",
+    key: GS_API_KEY
+  };
+
+  if ("allowed_name" in extra) {
+    payload.allowed_name = String(extra.allowed_name || "").trim();
+  }
+
+  if ("nivel_educativo" in extra) {
+    payload.nivel_educativo = String(extra.nivel_educativo || "").trim();
+  }
+
+  if ("niveles_educativos" in extra) {
+    payload.niveles_educativos = String(extra.niveles_educativos || "").trim();
+  }
+
   const res = await fetch(GS_WEBAPP_URL, {
     method: "POST",
-    body: JSON.stringify({
-      action: "admin_set_device_auth",
-      id,
-      authorized: authorized ? "SI" : "NO",
-      key: GS_API_KEY
-    })
+    body: JSON.stringify(payload)
   });
+
   const data = await res.json();
   if (!data.ok) throw new Error(data.msg || data.error || "admin_set_device_auth_failed");
   return data;
@@ -13433,6 +13513,8 @@ function setAdminMode(on) {
   if (btnAdminChangePin) btnAdminChangePin.hidden = !on;
 
   if (btnAdminManual) btnAdminManual.hidden = !on;
+
+  if (btnAdminApproveDevices) btnAdminApproveDevices.hidden = !on;
 
   if (btnAdminApproveDevices) btnAdminApproveDevices.hidden = !on;
 
@@ -14185,6 +14267,200 @@ function asignaturasClearCache_(deviceId) {
   } catch (e) {}
 }
 
+
+function textoBase_(texto) {
+  return String(texto || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizarNivelEducativo_(nivel) {
+  const n = textoBase_(nivel);
+
+  if (!n) return "";
+
+  if (n === "sin permisos" || n === "sin permiso" || n === "ninguno" || n === "none") {
+    return "SIN_PERMISOS";
+  }
+
+  if (n === "todos" || n === "todo" || n === "todos los niveles") {
+    return "TODOS";
+  }
+
+  if (
+    n.includes("pre") ||
+    n.includes("jardin") ||
+    n.includes("trans") ||
+    n.includes("parv")
+  ) {
+    return "PRE-ESCOLAR";
+  }
+
+  if (
+    n.includes("primaria") ||
+    n.includes("primero") ||
+    n.includes("segundo") ||
+    n.includes("tercero") ||
+    n.includes("cuarto") ||
+    n.includes("quinto")
+  ) {
+    return "PRIMARIA";
+  }
+
+  if (
+    n.includes("bachillerato") ||
+    n.includes("bach") ||
+    n.includes("secundaria") ||
+    n.includes("sexto") ||
+    n.includes("septimo") ||
+    n.includes("octavo") ||
+    n.includes("noveno") ||
+    n.includes("decimo") ||
+    n.includes("once")
+  ) {
+    return "BACHILLERATO";
+  }
+
+  return String(nivel || "").toUpperCase().trim();
+}
+
+function normalizarNivelesEducativos_(raw) {
+  const texto = Array.isArray(raw)
+    ? raw.join(",")
+    : String(raw || "").trim();
+
+  if (!texto) {
+    // Mantiene compatibilidad con tu comportamiento actual.
+    return ["BACHILLERATO"];
+  }
+
+  const arr = Array.isArray(raw)
+    ? raw
+    : texto.split(/[,|;/]+/);
+
+  const niveles = [...new Set(
+    arr
+      .map(normalizarNivelEducativo_)
+      .filter(Boolean)
+  )];
+
+  if (niveles.includes("SIN_PERMISOS")) {
+    return [];
+  }
+
+  if (niveles.includes("TODOS")) {
+    return ["PRE-ESCOLAR", "PRIMARIA", "BACHILLERATO"];
+  }
+
+  return niveles.filter(n =>
+    ["PRE-ESCOLAR", "PRIMARIA", "BACHILLERATO"].includes(n)
+  );
+}
+
+function nivelesToStorageValue_(niveles) {
+  const clean = normalizarNivelesEducativos_(niveles);
+  return clean.length ? clean.join(",") : "SIN_PERMISOS";
+}
+
+function saveNivelesDocenteLocal_(raw) {
+  const niveles = normalizarNivelesEducativos_(raw);
+  const value = niveles.length ? niveles.join(",") : "SIN_PERMISOS";
+
+  localStorage.setItem("user_nivel_educativo", value);
+  localStorage.setItem("user_niveles_educativos", JSON.stringify(niveles));
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : null;
+  if (profile) {
+    profile.nivel_educativo = value;
+    profile.niveles_educativos = niveles;
+    if (typeof saveProfile === "function") saveProfile(profile);
+  }
+
+  return niveles;
+}
+
+function nivelesDocenteActual_() {
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+
+  let raw = [];
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("user_niveles_educativos") || "null");
+    if (Array.isArray(saved)) raw = raw.concat(saved);
+  } catch {}
+
+  raw = raw.concat([
+    profile?.niveles_educativos,
+    profile?.nivel_educativo,
+    localStorage.getItem("user_nivel_educativo")
+  ]);
+
+  return normalizarNivelesEducativos_(
+    raw
+      .flat()
+      .filter(Boolean)
+      .join(",")
+  );
+}
+
+function nivelCursoPorNombre_(curso) {
+  const c = textoBase_(curso);
+
+  if (!c) return "BACHILLERATO";
+
+  if (
+    c.includes("pre") ||
+    c.includes("jardin") ||
+    c.includes("trans") ||
+    c.includes("parv") ||
+    /^0/.test(c)
+  ) {
+    return "PRE-ESCOLAR";
+  }
+
+  if (
+    c.includes("sexto") ||
+    c.includes("septimo") ||
+    c.includes("octav") ||
+    c.includes("noven") ||
+    c.includes("decim") ||
+    c.includes("once") ||
+    c.includes("bach") ||
+    /\b(6|7|8|9|10|11)\b/.test(c) ||
+    /^(6|7|8|9|10|11)[a-z]?\b/.test(c)
+  ) {
+    return "BACHILLERATO";
+  }
+
+  if (
+    c.includes("primero") ||
+    c.includes("segundo") ||
+    c.includes("tercero") ||
+    c.includes("cuarto") ||
+    c.includes("quinto") ||
+    c.includes("primaria") ||
+    /\b(1|2|3|4|5)\b/.test(c) ||
+    /^(1|2|3|4|5)[a-z]?\b/.test(c)
+  ) {
+    return "PRIMARIA";
+  }
+
+  return "BACHILLERATO";
+}
+
+function docentePuedeVerCurso_(curso) {
+  const niveles = nivelesDocenteActual_();
+  const nivelCurso = nivelCursoPorNombre_(curso);
+
+  return niveles.includes(nivelCurso);
+}
+
+
+
 async function gsAsignaturasGet(deviceId) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
   const email = String(profile?.email || "").trim().toLowerCase();
@@ -14205,10 +14481,20 @@ async function gsAsignaturasGet(deviceId) {
 
   if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
 
-  // 🧠 NUEVO: Guardamos el nivel que nos da el backend ("PRIMARIA", "BACHILLERATO", etc.)
-  // Si por alguna razón no viene, dejamos "BACHILLERATO" por defecto
-  const nivelEducativo = String(data.nivel || "BACHILLERATO").toUpperCase();
-  localStorage.setItem("user_nivel_educativo", nivelEducativo);
+const nivelesEducativos = normalizarNivelesEducativos_(
+  data.niveles_educativos ||
+  data.nivel_educativo ||
+  data.niveles ||
+  data.nivel ||
+  "BACHILLERATO"
+);
+
+const nivelEducativo = nivelesEducativos.length
+  ? nivelesEducativos.join(",")
+  : "SIN_PERMISOS";
+
+localStorage.setItem("user_nivel_educativo", nivelEducativo);
+localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
 
   return Array.isArray(data.items) ? data.items : [];
 }
@@ -17965,6 +18251,8 @@ if (faltasModal) {
 if (btnAdminViewAssist) btnAdminViewAssist.hidden = !isAdminMode();
 
 if (btnAdminApproveDevices) btnAdminApproveDevices.hidden = !isAdminMode();
+
+if (btnAdminApproveDevices) btnAdminApproveDevices.hidden = !isAdminMode();
 if (btnAdminConfig) btnAdminConfig.hidden = !isAdminMode();
 if (btnAdminChangePin) btnAdminChangePin.hidden = !isAdminMode();
 if (btnAdminManual) btnAdminManual.hidden = !isAdminMode();
@@ -18060,12 +18348,9 @@ function notasAvg_(arr){
 function notasCalcStudent_(student){
   const detalles = [];
 
-  // 1. OBTENER EL NIVEL EDUCATIVO DEL DOCENTE ACTUAL
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
-
-  // 2. CONFIGURAR LA NOTA LÍMITE SEGÚN EL NIVEL
-  const notaLimite = nivelDocente === "PRIMARIA" ? 3.3 : 3.5;
+// La nota límite depende del curso actual, no de todos los permisos del docente.
+const nivelCursoActual = nivelCursoPorNombre_(notasCursoEl?.value || "");
+const notaLimite = nivelCursoActual === "PRIMARIA" ? 3.3 : 3.5;
 
   const procedimentales = (__notasColumnas || []).filter(c => c.componente === "procedimental");
   const cognitivos = (__notasColumnas || []).filter(c => c.componente === "cognitivo");
@@ -18919,38 +19204,31 @@ function notasOpenDetallePc_(sIdx){
   });
 }
 
+
+
+
 async function notasLoadCourses_() {
   const courses = await gsCoursesListCached();
-  
-  // 1. Obtener el nivel guardado en localStorage (el que viene de Supabase)
-  const nivelDocente = String(localStorage.getItem("user_nivel_educativo") || "BACHILLERATO")
-    .toUpperCase()
-    .trim();
 
-  // 2. Función auxiliar para normalizar texto (quita acentos y espacios extra)
-  const normalizar = (texto) => texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-  const nivelDocenteNorm = normalizar(nivelDocente);
+  const nivelesDocente = nivelesDocenteActual_();
 
-  // 3. Filtrar
-  const listaFiltrada = (courses || []).filter(curso => {
-    const c = normalizar(curso);
-    
-    // Clasificación del curso
-    let nivelCurso = "BACHILLERATO";
-    if (c.includes("pre") || c.includes("jardin") || c.includes("trans") || c.startsWith("0")) {
-      nivelCurso = "PRE-ESCOLAR";
-    } else if (c.includes("primero") || c.includes("segundo") || c.includes("tercero") || c.includes("cuarto") || c.includes("quinto") || c.includes("primaria")) {
-      nivelCurso = "PRIMARIA";
-    } else if (c.includes("sexto") || c.includes("septimo") || c.includes("octav") || c.includes("noveno") || c.includes("decim") || c.includes("once") || c.includes("bach")) {
-      nivelCurso = "BACHILLERATO";
-    }
+  const listaFiltrada = (courses || [])
+    .map(c => String(c || "").trim())
+    .filter(Boolean)
+    .filter(docentePuedeVerCurso_);
 
-    // Comparación final normalizada
-    return nivelCurso.toLowerCase() === nivelDocenteNorm;
-  });
+  console.log(
+    "DEBUG: Permisos docente:",
+    nivelesDocente,
+    "Cursos resultantes:",
+    listaFiltrada
+  );
 
-  console.log("DEBUG: Nivel Docente:", nivelDocenteNorm, "Cursos resultantes:", listaFiltrada);
-  fillSelect_(notasCursoEl, listaFiltrada, "Selecciona curso");
+  fillSelect_(
+    notasCursoEl,
+    listaFiltrada,
+    nivelesDocente.length ? "Selecciona curso" : "Sin cursos autorizados"
+  );
 }
 
 async function notasLoadStudents_(){
@@ -20241,39 +20519,8 @@ function notasAlertasCacheKey_(){
   return `${NOTAS_ALERTAS_DATA_CACHE}::${year}::${curso || "TODOS"}::${periodo || "TODOS"}`;
 }
 
-function notasCursoPerteneceNivelDocente_(curso){
-  const nivelDocente = String(localStorage.getItem("user_nivel_educativo") || "BACHILLERATO")
-    .toUpperCase()
-    .trim();
-
-  const normalizar = (texto) => String(texto || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[-_]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const nivelDocenteNorm = normalizar(nivelDocente);
-  const c = normalizar(curso);
-
-  let nivelCurso = "bachillerato";
-
-  if (c.includes("pre") || c.includes("jardin") || c.includes("trans") || c.startsWith("0")) {
-    nivelCurso = "pre escolar";
-  } else if (
-    c.includes("primero") || c.includes("segundo") || c.includes("tercero") ||
-    c.includes("cuarto") || c.includes("quinto") || c.includes("primaria")
-  ) {
-    nivelCurso = "primaria";
-  } else if (
-    c.includes("sexto") || c.includes("septimo") || c.includes("octav") ||
-    c.includes("noveno") || c.includes("decim") || c.includes("once") || c.includes("bach")
-  ) {
-    nivelCurso = "bachillerato";
-  }
-
-  return normalizar(nivelCurso) === nivelDocenteNorm;
+function notasCursoPerteneceNivelDocente_(curso) {
+  return docentePuedeVerCurso_(curso);
 }
 
 
@@ -21465,7 +21712,24 @@ btnLoginSave.addEventListener("click", async () => {
     }
 
     // ✅ guardar perfil (sin romper nada)
-    const profile = { name, email, course };
+   const nivelesLogin = normalizarNivelesEducativos_(
+  chk?.niveles_educativos ||
+  chk?.nivel_educativo ||
+  chk?.niveles ||
+  chk?.nivel ||
+  "BACHILLERATO"
+);
+
+const profile = {
+  name,
+  email,
+  course,
+  nivel_educativo: nivelesLogin.length ? nivelesLogin.join(",") : "SIN_PERMISOS",
+  niveles_educativos: nivelesLogin
+};
+
+localStorage.setItem("user_nivel_educativo", profile.nivel_educativo);
+localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesLogin));
 
     // ✅ si el usuario escribió celular, lo guardamos también
     if (phone) profile.whatsapp_to = phone;
@@ -21984,6 +22248,49 @@ if (btnAdminDevicesReload) {
 if (btnAdminDevicesClose) btnAdminDevicesClose.addEventListener("click", closeAdminDevicesModal);
 
 
+if (btnAdminTeacherPerms) {
+  btnAdminTeacherPerms.addEventListener("click", async () => {
+    if (!isAdminMode()) {
+      setStatus("warn", "Requiere admin", "Ingresa como administrador primero.");
+      openAdminModal();
+      return;
+    }
+
+    try {
+      openAdminTeacherPermsModal();
+      setLoading(true, "Cargando…", "Leyendo docentes aprobados.");
+      await adminLoadTeacherPerms_();
+    } catch (e) {
+      if (adminPermsInfo) {
+        adminPermsInfo.textContent = String(e && e.message ? e.message : e);
+      }
+      setStatus("bad", "Error", String(e && e.message ? e.message : e));
+    } finally {
+      setLoading(false);
+    }
+  });
+}
+
+if (adminPermsTeacherSelect) {
+  adminPermsTeacherSelect.addEventListener("change", adminPaintSelectedTeacherPerms_);
+}
+
+if (btnAdminPermsSave) {
+  btnAdminPermsSave.addEventListener("click", () => adminSaveTeacherPerms_(false));
+}
+
+if (btnAdminPermsClear) {
+  btnAdminPermsClear.addEventListener("click", () => {
+    const ok = window.confirm("¿Seguro que deseas quitar todos los permisos de nivel a este docente?");
+    if (!ok) return;
+    adminSaveTeacherPerms_(true);
+  });
+}
+
+if (btnAdminPermsClose) {
+  btnAdminPermsClose.addEventListener("click", closeAdminTeacherPermsModal);
+}
+
 
 if (adminMonthSelect) {
   adminMonthSelect.addEventListener("change", async () => {
@@ -22025,6 +22332,211 @@ if (adminDevicesFilter) {
 }
 
 let __adminDevicesCache = [];
+
+let __adminTeacherPermsGroups = [];
+
+function adminIsDeviceAuthorized_(r) {
+  return r?.authorized === true ||
+    String(r?.authorized || "").toUpperCase() === "SI" ||
+    String(r?.authorized || "").toLowerCase() === "true";
+}
+
+function adminTeacherPermsName_(r) {
+  return String(
+    r?.allowed_name ||
+    r?.authorized_teacher ||
+    r?.name ||
+    r?.teacher ||
+    r?.docente ||
+    r?.email ||
+    ""
+  ).trim();
+}
+
+function adminTeacherPermsLevels_(r) {
+  return normalizarNivelesEducativos_(
+    r?.nivel_educativo ||
+    r?.niveles_educativos ||
+    r?.niveles ||
+    r?.nivel ||
+    "BACHILLERATO"
+  );
+}
+
+function adminBuildTeacherPermsGroups_() {
+  const map = new Map();
+
+  (__adminDevicesCache || [])
+    .filter(adminIsDeviceAuthorized_)
+    .forEach(r => {
+      const teacher = adminTeacherPermsName_(r);
+      if (!teacher) return;
+
+      if (!map.has(teacher)) {
+        map.set(teacher, {
+          teacher,
+          rows: [],
+          levels: []
+        });
+      }
+
+      const group = map.get(teacher);
+      group.rows.push(r);
+
+      const levels = adminTeacherPermsLevels_(r);
+      group.levels = [...new Set([...group.levels, ...levels])];
+    });
+
+  return [...map.values()]
+    .sort((a, b) => a.teacher.localeCompare(b.teacher, "es"));
+}
+
+function adminSetPermCheckboxes_(levels) {
+  const set = new Set(normalizarNivelesEducativos_(levels));
+
+  if (adminPermPre) adminPermPre.checked = set.has("PRE-ESCOLAR");
+  if (adminPermPrimaria) adminPermPrimaria.checked = set.has("PRIMARIA");
+  if (adminPermBachillerato) adminPermBachillerato.checked = set.has("BACHILLERATO");
+}
+
+function adminReadPermCheckboxes_() {
+  const out = [];
+
+  if (adminPermPre?.checked) out.push("PRE-ESCOLAR");
+  if (adminPermPrimaria?.checked) out.push("PRIMARIA");
+  if (adminPermBachillerato?.checked) out.push("BACHILLERATO");
+
+  return out;
+}
+
+function adminSelectedPermGroup_() {
+  const teacher = String(adminPermsTeacherSelect?.value || "").trim();
+  return __adminTeacherPermsGroups.find(g => g.teacher === teacher) || null;
+}
+
+function adminPaintSelectedTeacherPerms_() {
+  const group = adminSelectedPermGroup_();
+
+  if (!group) {
+    adminSetPermCheckboxes_([]);
+    if (adminPermsInfo) adminPermsInfo.textContent = "No hay docente seleccionado.";
+    return;
+  }
+
+  adminSetPermCheckboxes_(group.levels);
+
+  const levelsText = group.levels.length
+    ? group.levels.join(" / ")
+    : "Sin permisos";
+
+  if (adminPermsInfo) {
+    adminPermsInfo.textContent =
+      `Dispositivos aprobados vinculados: ${group.rows.length}. Permisos actuales: ${levelsText}.`;
+  }
+}
+
+function openAdminTeacherPermsModal() {
+  if (!adminTeacherPermsModal) return;
+
+  adminTeacherPermsModal.hidden = false;
+
+  if (adminPermsTeacherSelect) {
+    adminPermsTeacherSelect.innerHTML = `<option value="">Cargando…</option>`;
+  }
+
+  if (adminPermsInfo) {
+    adminPermsInfo.textContent = "Cargando docentes aprobados…";
+  }
+
+  adminSetPermCheckboxes_([]);
+}
+
+function closeAdminTeacherPermsModal() {
+  if (!adminTeacherPermsModal) return;
+  adminTeacherPermsModal.hidden = true;
+}
+
+async function adminLoadTeacherPerms_() {
+  const data = await gsAdminListDeviceRequests();
+
+  __adminDevicesCache = Array.isArray(data?.requests)
+    ? data.requests
+    : [];
+
+  __adminTeacherPermsGroups = adminBuildTeacherPermsGroups_();
+
+  if (!adminPermsTeacherSelect) return;
+
+  if (!__adminTeacherPermsGroups.length) {
+    adminPermsTeacherSelect.innerHTML = `<option value="">No hay docentes aprobados</option>`;
+    adminSetPermCheckboxes_([]);
+    if (adminPermsInfo) {
+      adminPermsInfo.textContent = "No hay docentes aprobados para asignar permisos.";
+    }
+    return;
+  }
+
+  adminPermsTeacherSelect.innerHTML = `
+    <option value="">Selecciona docente</option>
+    ${__adminTeacherPermsGroups.map(g => `
+      <option value="${escapeHtml(g.teacher)}">${escapeHtml(g.teacher)}</option>
+    `).join("")}
+  `;
+
+  adminPermsTeacherSelect.value = __adminTeacherPermsGroups[0].teacher;
+  adminPaintSelectedTeacherPerms_();
+}
+
+async function adminSaveTeacherPerms_(clear = false) {
+  const group = adminSelectedPermGroup_();
+
+  if (!group) {
+    setStatus("warn", "Falta docente", "Selecciona un docente aprobado.");
+    return;
+  }
+
+  const levels = clear ? [] : adminReadPermCheckboxes_();
+  const nivelValue = levels.length ? levels.join(",") : "SIN_PERMISOS";
+
+  const ids = group.rows
+    .map(r => String(r.id || "").trim())
+    .filter(Boolean);
+
+  if (!ids.length) {
+    setStatus("bad", "Sin ID", "No encontré los ID de los dispositivos de ese docente.");
+    return;
+  }
+
+  try {
+    setLoading(
+      true,
+      "Guardando permisos…",
+      `Actualizando permisos de ${group.teacher}.`
+    );
+
+    await Promise.all(ids.map(id =>
+      gsAdminSetDeviceAuth(id, true, {
+        allowed_name: group.teacher,
+        nivel_educativo: nivelValue,
+        niveles_educativos: nivelValue
+      })
+    ));
+
+    await adminLoadTeacherPerms_();
+
+    setStatus(
+      "",
+      "Permisos actualizados",
+      levels.length
+        ? `${group.teacher}: ${levels.join(" / ")} ✅`
+        : `${group.teacher}: sin permisos de nivel ✅`
+    );
+  } catch (e) {
+    setStatus("bad", "Error", String(e && e.message ? e.message : e));
+  } finally {
+    setLoading(false);
+  }
+}
 
 function openAdminDevicesModal() {
   if (!adminDevicesModal) return;
@@ -28294,51 +28806,26 @@ function lateSetHint_(msg){
   if (lateHintEl) lateHintEl.textContent = String(msg || "");
 }
 
-function lateRenderCourses_(courses){
+function lateRenderCourses_(courses) {
   if (!lateCourseEl) return;
 
-  // 1. Obtener el nivel educativo del docente actual desde tu tabla 'devices'
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase().trim();
+  const nivelesDocente = nivelesDocenteActual_();
 
-  // 2. Filtrar la lista de cursos en el frontend para que coincidan con su nivel asignado
   const list = (courses || [])
     .map(c => String(c || "").trim())
     .filter(Boolean)
-    .filter(curso => {
-      const cursoTexto = curso.toLowerCase();
-      let nivelRegistro = "BACHILLERATO"; // Por defecto
-
-      if (cursoTexto.includes("pre") || cursoTexto.includes("jardin") || cursoTexto.includes("trans") || cursoTexto.includes("parv") || cursoTexto.startsWith("0")) {
-        nivelRegistro = "PRE-ESCOLAR";
-      } else if (
-        /(6|7|8|9|10|11)/.test(cursoTexto) || 
-        cursoTexto.includes("sexto") || cursoTexto.includes("septi") || 
-        cursoTexto.includes("octav") || cursoTexto.includes("nove") || 
-        cursoTexto.includes("deci") || cursoTexto.includes("once") || 
-        cursoTexto.includes("bach")
-      ) {
-        nivelRegistro = "BACHILLERATO";
-      } else if (
-        /(1|2|3|4|5)/.test(cursoTexto) || 
-        cursoTexto.includes("primero") || cursoTexto.includes("segundo") || 
-        cursoTexto.includes("tercero") || cursoTexto.includes("cuarto") || 
-        cursoTexto.includes("quinto")
-      ) {
-        nivelRegistro = "PRIMARIA";
-      }
-
-      // Deja pasar únicamente los cursos del nivel del docente autenticado
-      return nivelRegistro === nivelDocente;
-    });
+    .filter(docentePuedeVerCurso_);
 
   const prev = String(lateCourseEl.value || "").trim();
+
   lateCourseEl.innerHTML = "";
 
-  // Agregamos opción por defecto adaptada a su nivel
   const optAll = document.createElement("option");
   optAll.value = "__ALL__";
-  optAll.textContent = `Todos los de ${nivelDocente}`;
+  optAll.textContent = nivelesDocente.length
+    ? `Todos (${nivelesDocente.join(" / ")})`
+    : "Sin cursos autorizados";
+
   lateCourseEl.appendChild(optAll);
 
   list.forEach(c => {
@@ -28354,7 +28841,6 @@ function lateRenderCourses_(courses){
     lateCourseEl.value = "__ALL__";
   }
 }
-
 function lateRenderStudents_(students){
   const list = Array.isArray(students) ? students : [];
 
