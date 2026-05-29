@@ -20171,53 +20171,41 @@ function notasAlertasFiltrarPorTipo_(items){
     const procTotal = notasAlertasNum_(item.proc_total);
     const cogTotal = notasAlertasNum_(item.cog_total);
 
-    if (tipo === "procedimental") {
-      return procTotal !== null && procTotal < 3.5;
+    switch(tipo){
+      case "procedimental":
+        return procTotal !== null && procTotal < 3.5;
+      case "cognitivo":
+        return cogTotal !== null && cogTotal < 3.5;
+      case "definitiva":
+        return definitiva !== null && definitiva < 3.5;
+      case "debe":
+        return estado === "DEBE_NOTAS" ||
+               detalles.includes("vacía") ||
+               detalles.includes("vacia") ||
+               detalles.includes("igual a 1");
+      case "riesgo":
+      case "notas_bajas":
+        return estado === "RIESGO" || detalles.includes("nota baja");
+      case "bajo":
+        return estado === "BAJO";
+      case "insuficiente":
+        return criterio === "INSUFICIENTE";
+      case "aceptable":
+        return criterio === "ACEPTABLE";
+      case "bueno":
+        return criterio === "BUENO";
+      case "excelente":
+        return criterio === "EXCELENTE";
+      default:
+        return true;
     }
-
-    if (tipo === "cognitivo") {
-      return cogTotal !== null && cogTotal < 3.5;
-    }
-
-    if (tipo === "definitiva") {
-      return definitiva !== null && definitiva < 3.5;
-    }
-
-    if (tipo === "debe") {
-      return estado === "DEBE_NOTAS" ||
-        detalles.includes("vacía") ||
-        detalles.includes("vacia") ||
-        detalles.includes("igual a 1");
-    }
-
-    if (tipo === "riesgo" || tipo === "notas_bajas") {
-      return estado === "RIESGO" || detalles.includes("nota baja");
-    }
-
-    if (tipo === "bajo") {
-      return estado === "BAJO";
-    }
-
-    if (tipo === "insuficiente") return criterio === "INSUFICIENTE";
-    if (tipo === "aceptable") return criterio === "ACEPTABLE";
-    if (tipo === "bueno") return criterio === "BUENO";
-    if (tipo === "excelente") return criterio === "EXCELENTE";
-
-    return true;
   });
 }
 
 
-
-function notasAlertasMostrarSoloDefinitiva_(){
-  const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
-
-  return [
-    "procedimental",
-    "cognitivo",
-    "definitiva",
-    "debe"
-  ].includes(tipo);
+function notasAlertasMostrarSoloNotaActual_(tipo){
+  tipo = String(tipo || "").trim().toLowerCase();
+  return ["procedimental","cognitivo","definitiva"].includes(tipo);
 }
 
 function notasAlertasKey_(item){
@@ -20447,13 +20435,21 @@ async function notasAlertasDetalle_(item){
               ${a.docente_nombre ? ` · Docente: ${escapeHtml(a.docente_nombre)}` : ""}
             </div>
 
- <div class="notas-alerta-subject-details">
+   <div class="notas-alerta-subject-details">
   ${
-    notasAlertasMostrarSoloDefinitiva_()
+    notasAlertasMostrarSoloNotaActual_(notasAlertasTipoEl?.value)
       ? `<div class="notas-detalle-linea">
-          <strong class="notas-detalle-grupo">Nota definitiva actual:</strong>
-          ${escapeHtml(String(a.definitiva ?? "—"))}
-        </div>`
+           <strong class="notas-detalle-grupo">Nota actual:</strong>
+           ${
+             (function(){
+               const tipo = String(notasAlertasTipoEl?.value || "").trim().toLowerCase();
+               if(tipo === "procedimental") return escapeHtml(String(a.proc_total ?? "—"));
+               if(tipo === "cognitivo") return escapeHtml(String(a.cog_total ?? "—"));
+               if(tipo === "definitiva") return escapeHtml(String(a.definitiva ?? "—"));
+               return "—";
+             })()
+           }
+         </div>`
       : notasFormatoDetallesAgrupadosHtml_(a.detalles)
   }
 </div>
