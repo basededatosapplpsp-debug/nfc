@@ -20172,27 +20172,7 @@ btnNotasDescargarExcel?.addEventListener("click", async () => {
   }
 });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      return notasSetHint_("Error descargando Excel ❌ " + (err.msg || ""));
-    }
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `planilla_${notasCursoEl?.value}_${notasAsignaturaEl?.value}_${notasPeriodoEl?.value}.xlsx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-    notasSetHint_("Planilla descargada ✅");
-  } catch (err) {
-    console.error(err);
-    notasSetHint_("Error descargando Excel ❌");
-  }
-});
 
 function notasAlertasHint_(msg){
   if (notasAlertasHintEl) notasAlertasHintEl.textContent = String(msg || "");
@@ -28241,13 +28221,17 @@ if ("serviceWorker" in navigator) {
   });
 
   window.addEventListener("load", async () => {
-    await registerAndUpdateSW_();
+    if (typeof registerAndUpdateSW_ === "function") {
+  await registerAndUpdateSW_();
+}
     await checkAppBuildAndRefresh_();
   });
 
   document.addEventListener("visibilitychange", async () => {
     if (document.visibilityState === "visible") {
-      await registerAndUpdateSW_();
+      if (typeof registerAndUpdateSW_ === "function") {
+  await registerAndUpdateSW_();
+}
       await checkAppBuildAndRefresh_();
     }
   });
