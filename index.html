@@ -14481,23 +14481,91 @@ async function gsAsignaturasGet(deviceId) {
 
   if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
 
-const nivelesEducativos = normalizarNivelesEducativos_(
-  data.niveles_educativos ||
-  data.nivel_educativo ||
-  data.niveles ||
-  data.nivel ||
-  "BACHILLERATO"
-);
+  // ======= Nuevo bloque para sincronizar niveles y guardar en localStorage/profile =======
+  const nivelesEducativos = normalizarNivelesEducativos_(
+    data.niveles_educativos ||
+    data.nivel_educativo ||
+    data.niveles ||
+    data.nivel ||
+    "BACHILLERATO"
+  );
 
-const nivelEducativo = nivelesEducativos.length
-  ? nivelesEducativos.join(",")
-  : "SIN_PERMISOS";
+  const nivelEducativo = nivelesEducativos.length
+    ? nivelesEducativos.join(",")
+    : "SIN_PERMISOS";
 
-localStorage.setItem("user_nivel_educativo", nivelEducativo);
-localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
+  localStorage.setItem("user_nivel_educativo", nivelEducativo);
+  localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
+
+  if (profile) {
+    profile.nivel_educativo = nivelEducativo;
+    profile.niveles_educativos = nivelesEducativos;
+
+    if (typeof saveProfile === "function") {
+      saveProfile(profile);
+    } else {
+      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
+    }
+  }
+  // ====================================================================================
 
   return Array.isArray(data.items) ? data.items : [];
 }
+
+
+let __permissionsSyncBusy = false;
+
+async function syncTeacherPermissionsSoft_() {
+  if (__permissionsSyncBusy) return false;
+  if (typeof isAdminMode === "function" && isAdminMode()) return false;
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : null;
+  if (!profile || !profile.email) return false;
+
+  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
+    ? asignaturasCurrentDeviceId_()
+    : (typeof getDeviceId === "function" ? getDeviceId() : "");
+
+  if (!deviceId) return false;
+
+  __permissionsSyncBusy = true;
+
+  try {
+    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
+
+    await gsAsignaturasGet(deviceId);
+
+    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
+
+    if (before === after) return false;
+
+    console.log("Permisos actualizados:", before, "=>", after);
+
+    if (typeof notasLoadCourses_ === "function") {
+      try { await notasLoadCourses_(); } catch {}
+    }
+
+    if (typeof lateLoadCourses_ === "function") {
+      try { await lateLoadCourses_(); } catch {}
+    }
+
+    if (typeof setStatus === "function") {
+      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
+    }
+
+    return true;
+  } catch (e) {
+    console.warn("No se pudieron sincronizar permisos:", e);
+    return false;
+  } finally {
+    __permissionsSyncBusy = false;
+  }
+}
+
 
 async function gsAsignaturasSave(deviceId, items) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
@@ -27070,64 +27138,6 @@ async function validateCurrentDeviceSession_(options = {}) {
     });
 
     if (resp && resp.authorized === true) {
-      const rawPerms = String(
-        resp.niveles_educativos ||
-        resp.nivel_educativo ||
-        resp.niveles ||
-        resp.nivel ||
-        localStorage.getItem("user_nivel_educativo") ||
-        "BACHILLERATO"
-      ).toUpperCase().trim();
-
-      const prevPerms = String(localStorage.getItem("user_nivel_educativo") || "")
-        .toUpperCase()
-        .trim();
-
-      const permisosArray = rawPerms === "SIN_PERMISOS"
-        ? []
-        : rawPerms
-            .split(/[,|;/]+/)
-            .map(x => String(x || "").trim().toUpperCase())
-            .filter(Boolean);
-
-      localStorage.setItem("user_nivel_educativo", rawPerms);
-      localStorage.setItem("user_niveles_educativos", JSON.stringify(permisosArray));
-
-      if (resp.allowed_name) {
-        profile.name = String(resp.allowed_name || "").trim();
-      }
-
-      profile.nivel_educativo = rawPerms;
-      profile.niveles_educativos = permisosArray;
-
-      if (typeof saveProfile === "function") {
-        saveProfile(profile);
-      } else {
-        localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
-      }
-
-      const changed = rawPerms !== prevPerms;
-
-      if (changed) {
-        try { applySessionUI(profile); } catch {}
-
-        try {
-          if (typeof notasLoadCourses_ === "function" && typeof notasPlanillaModal !== "undefined" && notasPlanillaModal && !notasPlanillaModal.hidden) {
-            await notasLoadCourses_();
-          }
-        } catch {}
-
-        try {
-          if (typeof lateLoadCourses_ === "function" && typeof lateArrivalModal !== "undefined" && lateArrivalModal && !lateArrivalModal.hidden) {
-            await lateLoadCourses_();
-          }
-        } catch {}
-
-        if (!silent) {
-          setStatus("", "Permisos actualizados", `Niveles autorizados: ${rawPerms || "SIN_PERMISOS"}`);
-        }
-      }
-
       return true;
     }
 
@@ -27140,6 +27150,7 @@ async function validateCurrentDeviceSession_(options = {}) {
 
     return false;
   } catch (e) {
+    // Si falla internet, no cerramos sesión por error de red
     if (!silent) {
       console.warn("No se pudo validar autorización del dispositivo:", e);
     }
@@ -27148,11 +27159,13 @@ async function validateCurrentDeviceSession_(options = {}) {
     __deviceAuthWatcherBusy = false;
   }
 }
+
 function startDeviceAuthWatcher_() {
   if (__deviceAuthWatcherTimer) return;
 
   __deviceAuthWatcherTimer = setInterval(() => {
     validateCurrentDeviceSession_({ silent: true });
+    syncTeacherPermissionsSoft_();
   }, 5000); // cada 5 segundos
 }
 
@@ -28733,14 +28746,10 @@ async function hardRefreshPWA() {
 
 btnRefreshSW.addEventListener("click", async () => {
   try {
-    showRefreshSpin("Actualizando permisos…");
+    showRefreshSpin("Actualizando…");
 
     await new Promise(resolve => requestAnimationFrame(() => resolve()));
     await new Promise(resolve => setTimeout(resolve, 60));
-
-    await validateCurrentDeviceSession_({ silent: false });
-
-    showRefreshSpin("Actualizando app…");
 
     await hardRefreshPWA();
 
