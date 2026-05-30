@@ -14481,7 +14481,6 @@ async function gsAsignaturasGet(deviceId) {
 
   if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
 
-  // ======= Nuevo bloque para sincronizar niveles y guardar en localStorage/profile =======
   const nivelesEducativos = normalizarNivelesEducativos_(
     data.niveles_educativos ||
     data.nivel_educativo ||
@@ -14507,65 +14506,9 @@ async function gsAsignaturasGet(deviceId) {
       localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
     }
   }
-  // ====================================================================================
 
   return Array.isArray(data.items) ? data.items : [];
 }
-
-
-let __permissionsSyncBusy = false;
-
-async function syncTeacherPermissionsSoft_() {
-  if (__permissionsSyncBusy) return false;
-  if (typeof isAdminMode === "function" && isAdminMode()) return false;
-
-  const profile = typeof loadProfile === "function" ? loadProfile() : null;
-  if (!profile || !profile.email) return false;
-
-  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
-    ? asignaturasCurrentDeviceId_()
-    : (typeof getDeviceId === "function" ? getDeviceId() : "");
-
-  if (!deviceId) return false;
-
-  __permissionsSyncBusy = true;
-
-  try {
-    const before = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
-
-    await gsAsignaturasGet(deviceId);
-
-    const after = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
-
-    if (before === after) return false;
-
-    console.log("Permisos actualizados:", before, "=>", after);
-
-    if (typeof notasLoadCourses_ === "function") {
-      try { await notasLoadCourses_(); } catch {}
-    }
-
-    if (typeof lateLoadCourses_ === "function") {
-      try { await lateLoadCourses_(); } catch {}
-    }
-
-    if (typeof setStatus === "function") {
-      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
-    }
-
-    return true;
-  } catch (e) {
-    console.warn("No se pudieron sincronizar permisos:", e);
-    return false;
-  } finally {
-    __permissionsSyncBusy = false;
-  }
-}
-
 
 async function gsAsignaturasSave(deviceId, items) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
@@ -16961,6 +16904,64 @@ async function gsReportesList(payload) {
   if (!data.ok) throw new Error(data.msg || data.error || "reportes_list_failed");
   return Array.isArray(data.items) ? data.items : [];
 }
+
+
+let __permissionsSyncBusy = false;
+
+async function syncTeacherPermissionsSoft_() {
+  if (__permissionsSyncBusy) return false;
+  if (typeof isAdminMode === "function" && isAdminMode()) return false;
+
+  const profile = typeof loadProfile === "function" ? loadProfile() : null;
+  if (!profile || !profile.email) return false;
+
+  const deviceId = typeof asignaturasCurrentDeviceId_ === "function"
+    ? asignaturasCurrentDeviceId_()
+    : (typeof getDeviceId === "function" ? getDeviceId() : "");
+
+  if (!deviceId) return false;
+
+  __permissionsSyncBusy = true;
+
+  try {
+    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
+
+    asignaturasClearCache_(deviceId);
+
+    await gsAsignaturasGet(deviceId);
+
+    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
+
+    if (before === after) return false;
+
+    console.log("Permisos actualizados:", before, "=>", after);
+
+    if (typeof notasLoadCourses_ === "function") {
+      try { await notasLoadCourses_(); } catch {}
+    }
+
+    if (typeof lateLoadCourses_ === "function") {
+      try { await lateLoadCourses_(); } catch {}
+    }
+
+    if (typeof setStatus === "function") {
+      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
+    }
+
+    return true;
+  } catch (e) {
+    console.warn("No se pudieron sincronizar permisos:", e);
+    return false;
+  } finally {
+    __permissionsSyncBusy = false;
+  }
+}
+
+
 
 async function gsReportesDelete(payload) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
