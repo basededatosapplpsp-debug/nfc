@@ -8338,7 +8338,7 @@ body[data-theme="light"] #parqueResult .parque-badge{
 <div id="asignaturasModal" class="modal-backdrop" hidden>
   <div class="modal-card" style="width:min(640px,100%); max-height:calc(100dvh - 28px); overflow-y:auto;">
     <h2 class="modal-title">Asignaturas</h2>
-    <p class="modal-sub">Guarda hasta 10 asignaturas para este usuario.</p>
+    <p class="modal-sub">Guarda hasta 15 asignaturas para este usuario.</p>
 
     <label class="modal-label" for="asg1">Asignatura 1</label>
     <input id="asg1" class="modal-input" type="text" placeholder="Ej: Matemáticas" />
@@ -8369,6 +8369,21 @@ body[data-theme="light"] #parqueResult .parque-badge{
 
     <label class="modal-label" for="asg10">Asignatura 10</label>
     <input id="asg10" class="modal-input" type="text" placeholder="Ej: Informática" />
+
+    <label class="modal-label" for="asg11">Asignatura 11</label>
+<input id="asg11" class="modal-input" type="text" placeholder="Ej: Asignatura 11" />
+
+<label class="modal-label" for="asg12">Asignatura 12</label>
+<input id="asg12" class="modal-input" type="text" placeholder="Ej: Asignatura 12" />
+
+<label class="modal-label" for="asg13">Asignatura 13</label>
+<input id="asg13" class="modal-input" type="text" placeholder="Ej: Asignatura 13" />
+
+<label class="modal-label" for="asg14">Asignatura 14</label>
+<input id="asg14" class="modal-input" type="text" placeholder="Ej: Asignatura 14" />
+
+<label class="modal-label" for="asg15">Asignatura 15</label>
+<input id="asg15" class="modal-input" type="text" placeholder="Ej: Asignatura 15" />
     <div id="asignaturasHint" class="modal-hint muted small"></div>
 
 <div class="modal-actions" style="justify-content:flex-end;">
@@ -11370,6 +11385,11 @@ const asg7 = $("asg7");
 const asg8 = $("asg8");
 const asg9 = $("asg9");
 const asg10 = $("asg10");
+const asg11 = $("asg11");
+const asg12 = $("asg12");
+const asg13 = $("asg13");
+const asg14 = $("asg14");
+const asg15 = $("asg15");
 const asignaturasHint = $("asignaturasHint");
 const btnAsignaturasSave = $("btnAsignaturasSave");
 const btnAsignaturasClose = $("btnAsignaturasClose");
@@ -14172,7 +14192,12 @@ function asignaturasGetFormValues_() {
     String(asg7?.value || "").trim(),
     String(asg8?.value || "").trim(),
     String(asg9?.value || "").trim(),
-    String(asg10?.value || "").trim()
+    String(asg10?.value || "").trim(),
+    String(asg11?.value || "").trim(),
+    String(asg12?.value || "").trim(),
+    String(asg13?.value || "").trim(),
+    String(asg14?.value || "").trim(),
+    String(asg15?.value || "").trim()
   ];
 }
 
@@ -14188,6 +14213,11 @@ function asignaturasFillForm_(items) {
   if (asg8) asg8.value = arr[7] || "";
   if (asg9) asg9.value = arr[8] || "";
   if (asg10) asg10.value = arr[9] || "";
+  if (asg11) asg11.value = arr[10] || "";
+  if (asg12) asg12.value = arr[11] || "";
+  if (asg13) asg13.value = arr[12] || "";
+  if (asg14) asg14.value = arr[13] || "";
+  if (asg15) asg15.value = arr[14] || "";
 }
 
 function asignaturasCurrentDeviceId_() {
