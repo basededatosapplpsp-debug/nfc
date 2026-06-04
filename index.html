@@ -17070,6 +17070,16 @@ asignaturasClearCache_(deviceId);
 
 await gsAsignaturasGet(deviceId);
 
+console.log("LOCAL cursos:", localStorage.getItem("user_cursos_permitidos"));
+
+const p = loadProfile();
+console.log("PROFILE cursos:", p?.cursos_permitidos);
+
+console.log(
+  "FUNC cursos:",
+  cursosPermitidosDocenteActual_()
+);
+
 const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
   .toUpperCase()
   .trim();
@@ -17101,7 +17111,7 @@ console.log(
     if (typeof lateLoadCourses_ === "function") {
       try { await lateLoadCourses_(); } catch {}
     }
-    
+
     try {
   if (typeof initAllModalCourses_ === "function") {
     await initAllModalCourses_();
