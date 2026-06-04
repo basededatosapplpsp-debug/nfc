@@ -14637,14 +14637,6 @@ async function gsAsignaturasGet(deviceId) {
     } else {
       localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
     }
-
-    // 🔹 NUEVO: refrescar los componentes que dependen de cursos permitidos
-    if (typeof notasAlertasLoadCourses_ === "function") {
-      await notasAlertasLoadCourses_();
-    }
-    if (typeof initAllModalCourses_ === "function") {
-      initAllModalCourses_();
-    }
   }
 
   return Array.isArray(data.items) ? data.items : [];
@@ -17064,21 +17056,43 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-    const before = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
+const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "")
+  .toUpperCase()
+  .trim();
 
-    asignaturasClearCache_(deviceId);
+const beforeCursos = JSON.stringify(
+  normalizarCursosPermitidos_(
+    localStorage.getItem("user_cursos_permitidos")
+  )
+);
 
-    await gsAsignaturasGet(deviceId);
+asignaturasClearCache_(deviceId);
 
-    const after = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
+await gsAsignaturasGet(deviceId);
 
-    if (before === after) return false;
+const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
+  .toUpperCase()
+  .trim();
 
-    console.log("Permisos actualizados:", before, "=>", after);
+const afterCursos = JSON.stringify(
+  normalizarCursosPermitidos_(
+    localStorage.getItem("user_cursos_permitidos")
+  )
+);
+
+const nivelCambio = beforeNivel !== afterNivel;
+const cursosCambio = beforeCursos !== afterCursos;
+
+if (!nivelCambio && !cursosCambio) return false;
+
+console.log(
+  "Permisos actualizados:",
+  beforeNivel,
+  "=>",
+  afterNivel,
+  "| cursos:",
+  cursosCambio
+);
 
     if (typeof notasLoadCourses_ === "function") {
       try { await notasLoadCourses_(); } catch {}
@@ -17088,9 +17102,13 @@ async function syncTeacherPermissionsSoft_() {
       try { await lateLoadCourses_(); } catch {}
     }
 
-    if (typeof setStatus === "function") {
-      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
-    }
+if (typeof setStatus === "function") {
+  setStatus(
+    "",
+    "Permisos actualizados",
+    "Se actualizaron los permisos del docente."
+  );
+}
 
     return true;
   } catch (e) {
