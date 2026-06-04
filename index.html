@@ -19488,7 +19488,19 @@ function notasOpenDetallePc_(sIdx){
 
 
 async function notasLoadCourses_() {
+
+  
   const courses = await gsCoursesListCached();
+
+  console.log("LS nivel:", localStorage.getItem("user_nivel_educativo"));
+console.log("LS niveles:", localStorage.getItem("user_niveles_educativos"));
+console.log("LS cursos:", localStorage.getItem("user_cursos_permitidos"));
+
+const p = loadProfile();
+
+console.log("PROFILE nivel:", p?.nivel_educativo);
+console.log("PROFILE niveles:", p?.niveles_educativos);
+console.log("PROFILE cursos:", p?.cursos_permitidos);
 
   const nivelesDocente = nivelesDocenteActual_();
 
