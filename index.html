@@ -17062,32 +17062,33 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-    const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
+    const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "").trim();
 
     const beforeCursos = JSON.stringify(
-      normalizarCursosPermitidos_(localStorage.getItem("user_cursos_permitidos") || "")
-        .map(normalizarCursoKey_)
-        .sort()
+      normalizarCursosPermitidos_(
+        localStorage.getItem("user_cursos_permitidos") || ""
+      ).map(normalizarCursoKey_).sort()
     );
 
-    if (typeof asignaturasClearCache_ === "function") {
-      asignaturasClearCache_(deviceId);
-    }
+    const resp = await gsCheckDeviceAuth({
+      action: "check_device_auth",
+      email: String(profile.email || "").trim().toLowerCase(),
+      device_id: deviceId
+    });
 
-    const items = await gsAsignaturasGet(deviceId);
+    if (!resp || resp.authorized !== true) return false;
 
-    const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
-      .toUpperCase()
-      .trim();
-
-    const afterCursosArray = normalizarCursosPermitidos_(
-      localStorage.getItem("user_cursos_permitidos") || ""
+    const saved = saveNivelesYCursosDocenteLocal_(
+      resp.niveles_educativos || resp.nivel_educativo || "SIN_PERMISOS",
+      resp.cursos_permitidos || ""
     );
+
+    const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "").trim();
 
     const afterCursos = JSON.stringify(
-      afterCursosArray.map(normalizarCursoKey_).sort()
+      normalizarCursosPermitidos_(
+        localStorage.getItem("user_cursos_permitidos") || ""
+      ).map(normalizarCursoKey_).sort()
     );
 
     const changedNivel = beforeNivel !== afterNivel;
@@ -17095,33 +17096,16 @@ async function syncTeacherPermissionsSoft_() {
 
     if (!changedNivel && !changedCursos) return false;
 
-    // ✅ limpiar cachés que dependen de cursos/niveles
+    const items = await gsAsignaturasGet(deviceId);
+
     if (typeof notasAlertasLimpiarCache_ === "function") {
       notasAlertasLimpiarCache_();
     }
 
-try {
-  Object.keys(localStorage).forEach(k => {
-    const keep =
-      k === "user_cursos_permitidos" ||
-      k === "user_nivel_educativo" ||
-      k === "user_niveles_educativos" ||
-      k === LS_PROFILE_KEY;
-
-    if (keep) return;
-
-    if (
-      k.includes("courses") ||
-      k.includes("cursos") ||
-      k.includes("asignaturas") ||
-      k.includes("notas_alertas")
-    ) {
-      localStorage.removeItem(k);
+    if (typeof asignaturasClearCache_ === "function") {
+      asignaturasClearCache_(deviceId);
     }
-  });
-} catch {}
 
-    // ✅ repintar formularios/listas con permisos nuevos
     if (typeof asignaturasFillForm_ === "function") {
       asignaturasFillForm_(items);
     }
@@ -17158,7 +17142,7 @@ try {
       setStatus(
         "",
         "Permisos actualizados",
-        `Niveles: ${afterNivel || "SIN_PERMISOS"} · Cursos: ${afterCursosArray.length ? afterCursosArray.join(" / ") : "ninguno"}`
+        `Niveles: ${afterNivel || "SIN_PERMISOS"} · Cursos: ${saved.cursos.length ? saved.cursos.join(" / ") : "ninguno"}`
       );
     }
 
@@ -27469,10 +27453,10 @@ async function validateCurrentDeviceSession_(options = {}) {
 function startDeviceAuthWatcher_() {
   if (__deviceAuthWatcherTimer) return;
 
-  __deviceAuthWatcherTimer = setInterval(() => {
-    validateCurrentDeviceSession_({ silent: true });
-    syncTeacherPermissionsSoft_();
-  }, 5000); // cada 5 segundos
+  __deviceAuthWatcherTimer = setInterval(async () => {
+    await validateCurrentDeviceSession_({ silent: true });
+    await syncTeacherPermissionsSoft_();
+  }, 5000);
 }
 
 function stopDeviceAuthWatcher_() {
