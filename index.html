@@ -17101,6 +17101,25 @@ console.log(
     if (typeof lateLoadCourses_ === "function") {
       try { await lateLoadCourses_(); } catch {}
     }
+    
+    try {
+  if (typeof initAllModalCourses_ === "function") {
+    await initAllModalCourses_();
+  }
+} catch (e) {
+  console.warn("No pude recargar modales:", e);
+}
+
+try {
+  if (typeof refreshFromSheet === "function") {
+    await refreshFromSheet({
+      silent: true,
+      useCache: false
+    });
+  }
+} catch (e) {
+  console.warn("No pude refrescar datos:", e);
+}
 
 if (typeof setStatus === "function") {
   setStatus(
