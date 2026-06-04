@@ -17100,18 +17100,26 @@ async function syncTeacherPermissionsSoft_() {
       notasAlertasLimpiarCache_();
     }
 
-    try {
-      Object.keys(localStorage).forEach(k => {
-        if (
-          k.includes("courses") ||
-          k.includes("cursos") ||
-          k.includes("asignaturas") ||
-          k.includes("notas_alertas")
-        ) {
-          localStorage.removeItem(k);
-        }
-      });
-    } catch {}
+try {
+  Object.keys(localStorage).forEach(k => {
+    const keep =
+      k === "user_cursos_permitidos" ||
+      k === "user_nivel_educativo" ||
+      k === "user_niveles_educativos" ||
+      k === LS_PROFILE_KEY;
+
+    if (keep) return;
+
+    if (
+      k.includes("courses") ||
+      k.includes("cursos") ||
+      k.includes("asignaturas") ||
+      k.includes("notas_alertas")
+    ) {
+      localStorage.removeItem(k);
+    }
+  });
+} catch {}
 
     // ✅ repintar formularios/listas con permisos nuevos
     if (typeof asignaturasFillForm_ === "function") {
