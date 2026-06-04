@@ -14421,27 +14421,21 @@ function nivelesToStorageValue_(niveles) {
   return clean.length ? clean.join(",") : "SIN_PERMISOS";
 }
 
-function saveNivelesYCursosDocenteLocal_(nivelesRaw, cursosRaw) {
-  const niveles = normalizarNivelesEducativos_(nivelesRaw);
-  const cursos = normalizarCursosPermitidos_(cursosRaw);
+function saveNivelesDocenteLocal_(raw) {
+  const niveles = normalizarNivelesEducativos_(raw);
+  const value = niveles.length ? niveles.join(",") : "SIN_PERMISOS";
 
-  const nivelValue = niveles.length ? niveles.join(",") : "SIN_PERMISOS";
-
-  localStorage.setItem("user_nivel_educativo", nivelValue);
+  localStorage.setItem("user_nivel_educativo", value);
   localStorage.setItem("user_niveles_educativos", JSON.stringify(niveles));
-  localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursos));
 
   const profile = typeof loadProfile === "function" ? loadProfile() : null;
   if (profile) {
-    profile.nivel_educativo = nivelValue;
+    profile.nivel_educativo = value;
     profile.niveles_educativos = niveles;
-    profile.cursos_permitidos = cursos;
-
     if (typeof saveProfile === "function") saveProfile(profile);
-    else localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
   }
 
-  return { niveles, cursos };
+  return niveles;
 }
 
 function nivelesDocenteActual_() {
@@ -17062,88 +17056,32 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-    const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "").trim();
+    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-    const beforeCursos = JSON.stringify(
-      normalizarCursosPermitidos_(
-        localStorage.getItem("user_cursos_permitidos") || ""
-      ).map(normalizarCursoKey_).sort()
-    );
+    asignaturasClearCache_(deviceId);
 
-    const resp = await gsCheckDeviceAuth({
-      action: "check_device_auth",
-      email: String(profile.email || "").trim().toLowerCase(),
-      device_id: deviceId
-    });
+    await gsAsignaturasGet(deviceId);
 
-    if (!resp || resp.authorized !== true) return false;
+    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-    const saved = saveNivelesYCursosDocenteLocal_(
-      resp.niveles_educativos || resp.nivel_educativo || "SIN_PERMISOS",
-      resp.cursos_permitidos || ""
-    );
+    if (before === after) return false;
 
-    const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "").trim();
-
-    const afterCursos = JSON.stringify(
-      normalizarCursosPermitidos_(
-        localStorage.getItem("user_cursos_permitidos") || ""
-      ).map(normalizarCursoKey_).sort()
-    );
-
-    const changedNivel = beforeNivel !== afterNivel;
-    const changedCursos = beforeCursos !== afterCursos;
-
-    if (!changedNivel && !changedCursos) return false;
-
-    const items = await gsAsignaturasGet(deviceId);
-
-    if (typeof notasAlertasLimpiarCache_ === "function") {
-      notasAlertasLimpiarCache_();
-    }
-
-    if (typeof asignaturasClearCache_ === "function") {
-      asignaturasClearCache_(deviceId);
-    }
-
-    if (typeof asignaturasFillForm_ === "function") {
-      asignaturasFillForm_(items);
-    }
-
-    if (typeof asignaturasSaveCache_ === "function") {
-      asignaturasSaveCache_(deviceId, items);
-    }
-
-    if (typeof initAllModalCourses_ === "function") {
-      try { initAllModalCourses_(); } catch {}
-    }
+    console.log("Permisos actualizados:", before, "=>", after);
 
     if (typeof notasLoadCourses_ === "function") {
-      try { await notasLoadCourses_({ force: true }); } catch {}
-    }
-
-    if (typeof notasAlertasLoadCourses_ === "function") {
-      try { await notasAlertasLoadCourses_(); } catch {}
+      try { await notasLoadCourses_(); } catch {}
     }
 
     if (typeof lateLoadCourses_ === "function") {
-      try { await lateLoadCourses_({ force: true }); } catch {}
-    }
-
-    if (typeof reportesLoadAsignaturas_ === "function") {
-      try { await reportesLoadAsignaturas_({ force: true }); } catch {}
-    }
-
-    if (typeof reportesRenderAsignaturas_ === "function") {
-      try { reportesRenderAsignaturas_(items); } catch {}
+      try { await lateLoadCourses_(); } catch {}
     }
 
     if (typeof setStatus === "function") {
-      setStatus(
-        "",
-        "Permisos actualizados",
-        `Niveles: ${afterNivel || "SIN_PERMISOS"} · Cursos: ${saved.cursos.length ? saved.cursos.join(" / ") : "ninguno"}`
-      );
+      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
     }
 
     return true;
@@ -22861,28 +22799,16 @@ async function adminSaveTeacherPerms_(clear = false) {
       `Actualizando permisos de ${group.teacher}.`
     );
 
-await Promise.all(ids.map(id =>
-  gsAdminSetDeviceAuth(id, true, {
-    allowed_name: group.teacher,
-    nivel_educativo: nivelValue,
-    niveles_educativos: nivelValue,
-    cursos_permitidos: cursosValue
-  })
-));
+    await Promise.all(ids.map(id =>
+      gsAdminSetDeviceAuth(id, true, {
+        allowed_name: group.teacher,
+        nivel_educativo: nivelValue,
+        niveles_educativos: nivelValue,
+        cursos_permitidos: cursosValue
+      })
+    ));
 
-// ✅ Actualizar localStorage y profile inmediatamente
-if (typeof loadProfile === "function") {
-  const profile = loadProfile() || {};
-  profile.cursos_permitidos = cursosValue.split(",").map(c => c.trim()).filter(Boolean);
-  profile.niveles_educativos = nivelesValue.split(",").map(n => n.trim()).filter(Boolean);
-  profile.nivel_educativo = nivelesValue.length ? nivelesValue.join(",") : "SIN_PERMISOS";
-  localStorage.setItem("user_cursos_permitidos", JSON.stringify(profile.cursos_permitidos));
-  localStorage.setItem("user_niveles_educativos", JSON.stringify(profile.niveles_educativos));
-  localStorage.setItem("user_nivel_educativo", profile.nivel_educativo);
-  if (typeof saveProfile === "function") saveProfile(profile);
-}
-
-await adminLoadTeacherPerms_();
+    await adminLoadTeacherPerms_();
 
     setStatus(
       "",
@@ -27453,10 +27379,10 @@ async function validateCurrentDeviceSession_(options = {}) {
 function startDeviceAuthWatcher_() {
   if (__deviceAuthWatcherTimer) return;
 
-  __deviceAuthWatcherTimer = setInterval(async () => {
-    await validateCurrentDeviceSession_({ silent: true });
-    await syncTeacherPermissionsSoft_();
-  }, 5000);
+  __deviceAuthWatcherTimer = setInterval(() => {
+    validateCurrentDeviceSession_({ silent: true });
+    syncTeacherPermissionsSoft_();
+  }, 5000); // cada 5 segundos
 }
 
 function stopDeviceAuthWatcher_() {
