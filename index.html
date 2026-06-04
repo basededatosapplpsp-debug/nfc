@@ -17060,15 +17060,25 @@ const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "")
   .toUpperCase()
   .trim();
 
-const beforeCursos = JSON.stringify(
-  normalizarCursosPermitidos_(
-    localStorage.getItem("user_cursos_permitidos")
-  )
-);
+let beforeCursos = [];
+
+try {
+  beforeCursos = JSON.parse(
+    localStorage.getItem("user_cursos_permitidos") || "[]"
+  );
+} catch {}
+
+beforeCursos = JSON.stringify(beforeCursos);
 
 asignaturasClearCache_(deviceId);
 
 await gsAsignaturasGet(deviceId);
+
+setStatus(
+  "",
+  "SYNC",
+  localStorage.getItem("user_cursos_permitidos") || "VACIO"
+);
 
 console.log("LOCAL cursos:", localStorage.getItem("user_cursos_permitidos"));
 
@@ -17084,11 +17094,15 @@ const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
   .toUpperCase()
   .trim();
 
-const afterCursos = JSON.stringify(
-  normalizarCursosPermitidos_(
-    localStorage.getItem("user_cursos_permitidos")
-  )
-);
+let afterCursos = [];
+
+try {
+  afterCursos = JSON.parse(
+    localStorage.getItem("user_cursos_permitidos") || "[]"
+  );
+} catch {}
+
+afterCursos = JSON.stringify(afterCursos);
 
 const nivelCambio = beforeNivel !== afterNivel;
 const cursosCambio = beforeCursos !== afterCursos;
