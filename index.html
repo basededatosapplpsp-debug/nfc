@@ -21720,14 +21720,14 @@ function requireLogin() {
   if (p && p.name && p.email && p.course) {
     applyPcModeUI_();
 
-    if (String(p.mode || "").toLowerCase() === "pc") {
-      stopDeviceAuthWatcher_();
-      loginModal.hidden = true;
-      setPcModeHomeStatus_();
-      return p;
-    }
+if (String(p.mode || "").toLowerCase() === "pc") {
+  startDeviceAuthWatcher_(); // mantener sincronización también en PC
+  loginModal.hidden = true;
+  setPcModeHomeStatus_();
+  return p;
+}
 
-    startDeviceAuthWatcher_();
+startDeviceAuthWatcher_();
     return p;
   }
 
