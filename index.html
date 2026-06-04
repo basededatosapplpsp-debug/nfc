@@ -7750,9 +7750,9 @@ body[data-theme="light"] #parqueResult .parque-badge{
 <div id="adminTeacherPermsModal" class="modal-backdrop" hidden>
   <div class="modal-card" style="width:min(620px,100%); max-height:calc(100dvh - 24px); display:flex; flex-direction:column; overflow:hidden;">
     <h2 class="modal-title">Permisos docentes</h2>
-    <p class="modal-sub">
-      Selecciona un docente ya aprobado y asigna o quita permisos por nivel educativo.
-    </p>
+<p class="modal-sub">
+  Selecciona un docente ya aprobado y asigna permisos por nivel educativo y, opcionalmente, cursos específicos adicionales.
+</p>
 
     <label class="modal-label" for="adminPermsTeacherSelect">Docente aprobado</label>
     <select id="adminPermsTeacherSelect" class="modal-input">
@@ -7777,6 +7777,21 @@ body[data-theme="light"] #parqueResult .parque-badge{
         Bachillerato
       </label>
     </div>
+
+    <div style="margin-top:14px; border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.04);">
+      <div class="muted small" style="margin-bottom:10px;">
+        Cursos específicos adicionales
+      </div>
+
+      <select id="adminPermCursos" class="modal-input" multiple size="6">
+      </select>
+
+      <div class="muted small" style="margin-top:8px;">
+        Puedes seleccionar cursos puntuales aunque no pertenezcan al nivel educativo marcado.
+        Ejemplo: Bachillerato + 5°.
+      </div>
+    </div>
+
 
     <div id="adminPermsInfo" class="muted small" style="margin-top:10px;">
       —
@@ -11260,6 +11275,7 @@ const adminPermsTeacherSelect = $("adminPermsTeacherSelect");
 const adminPermPre = $("adminPermPre");
 const adminPermPrimaria = $("adminPermPrimaria");
 const adminPermBachillerato = $("adminPermBachillerato");
+const adminPermCursos = $("adminPermCursos");
 const adminPermsInfo = $("adminPermsInfo");
 const btnAdminPermsSave = $("btnAdminPermsSave");
 const btnAdminPermsClear = $("btnAdminPermsClear");
@@ -12865,6 +12881,10 @@ async function gsAdminSetDeviceAuth(id, authorized, extra = {}) {
 
   if ("niveles_educativos" in extra) {
     payload.niveles_educativos = String(extra.niveles_educativos || "").trim();
+  }
+
+    if ("cursos_permitidos" in extra) {
+    payload.cursos_permitidos = String(extra.cursos_permitidos || "").trim();
   }
 
   const res = await fetch(GS_WEBAPP_URL, {
@@ -14487,7 +14507,75 @@ function nivelCursoPorNombre_(curso) {
   return "BACHILLERATO";
 }
 
+function normalizarCursoKey_(curso) {
+  return textoBase_(curso)
+    .replace(/[^a-z0-9]+/g, "")
+    .trim();
+}
+
+function normalizarCursosPermitidos_(raw) {
+  let value = raw;
+
+  if (typeof raw === "string") {
+    const txt = raw.trim();
+
+    if (txt.startsWith("[") && txt.endsWith("]")) {
+      try {
+        value = JSON.parse(txt);
+      } catch {
+        value = txt;
+      }
+    }
+  }
+
+  const texto = Array.isArray(value)
+    ? value.join(",")
+    : String(value || "").trim();
+
+  if (!texto) return [];
+
+  return [...new Set(
+    texto
+      .split(/[,|;/]+/)
+      .map(x => String(x || "").trim())
+      .filter(Boolean)
+  )];
+}
+
+function cursosPermitidosDocenteActual_() {
+  const profile = typeof loadProfile === "function" ? loadProfile() : {};
+
+  let raw = [];
+
+  try {
+    const saved = JSON.parse(localStorage.getItem("user_cursos_permitidos") || "null");
+    if (Array.isArray(saved)) raw = raw.concat(saved);
+  } catch {}
+
+  raw = raw.concat([
+    profile?.cursos_permitidos,
+    profile?.curso_permitido,
+    localStorage.getItem("user_cursos_permitidos")
+  ]);
+
+  return normalizarCursosPermitidos_(
+    raw
+      .flat()
+      .filter(Boolean)
+      .join(",")
+  );
+}
+
 function docentePuedeVerCurso_(curso) {
+  const cursoKey = normalizarCursoKey_(curso);
+
+  const cursosPermitidos = cursosPermitidosDocenteActual_();
+  const tieneCursoEspecifico = cursosPermitidos.some(c =>
+    normalizarCursoKey_(c) === cursoKey
+  );
+
+  if (tieneCursoEspecifico) return true;
+
   const niveles = nivelesDocenteActual_();
   const nivelCurso = nivelCursoPorNombre_(curso);
 
@@ -14528,12 +14616,21 @@ async function gsAsignaturasGet(deviceId) {
     ? nivelesEducativos.join(",")
     : "SIN_PERMISOS";
 
+  const cursosPermitidos = normalizarCursosPermitidos_(
+    data.cursos_permitidos ||
+    data.curso_permitido ||
+    data.cursos ||
+    ""
+  );
+
   localStorage.setItem("user_nivel_educativo", nivelEducativo);
   localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
+  localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursosPermitidos));
 
   if (profile) {
     profile.nivel_educativo = nivelEducativo;
     profile.niveles_educativos = nivelesEducativos;
+    profile.cursos_permitidos = cursosPermitidos;
 
     if (typeof saveProfile === "function") {
       saveProfile(profile);
@@ -18607,7 +18704,12 @@ function notasRenderColumnas_(){
 
   // 1. Obtener el perfil y nivel del docente logueado
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
+const nivelDocente = nivelCursoPorNombre_(
+  notasCursoEl?.value ||
+  profile?.course ||
+  profile?.nivel_educativo ||
+  "BACHILLERATO"
+);
 
   // Ajustar el texto de ayuda según el nivel
   let notaMinimaText = "3.5";
@@ -18925,7 +19027,12 @@ function notasRenderGrid_(){
 
   // OBTENER EL PERFIL Y NIVEL EDUCATIVO DEL DOCENTE LOGUEADO
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const nivelDocente = String(profile?.nivel_educativo || "BACHILLERATO").toUpperCase();
+ const nivelDocente = nivelCursoPorNombre_(
+  notasCursoEl?.value ||
+  profile?.course ||
+  profile?.nivel_educativo ||
+  "BACHILLERATO"
+);
 
   // Definir la nota límite de alerta según el nivel educativo
   const notaLimiteAlerta = nivelDocente === "PRIMARIA" ? 3.3 : 3.5;
@@ -21824,16 +21931,25 @@ btnLoginSave.addEventListener("click", async () => {
   "BACHILLERATO"
 );
 
+const cursosPermitidosLogin = normalizarCursosPermitidos_(
+  chk?.cursos_permitidos ||
+  chk?.curso_permitido ||
+  chk?.cursos ||
+  ""
+);
+
 const profile = {
   name,
   email,
   course,
   nivel_educativo: nivelesLogin.length ? nivelesLogin.join(",") : "SIN_PERMISOS",
-  niveles_educativos: nivelesLogin
+  niveles_educativos: nivelesLogin,
+  cursos_permitidos: cursosPermitidosLogin
 };
 
 localStorage.setItem("user_nivel_educativo", profile.nivel_educativo);
 localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesLogin));
+localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursosPermitidosLogin));
 
     // ✅ si el usuario escribió celular, lo guardamos también
     if (phone) profile.whatsapp_to = phone;
@@ -22467,6 +22583,16 @@ function adminTeacherPermsLevels_(r) {
   );
 }
 
+
+function adminTeacherPermsCourses_(r) {
+  return normalizarCursosPermitidos_(
+    r?.cursos_permitidos ||
+    r?.curso_permitido ||
+    r?.cursos ||
+    ""
+  );
+}
+
 function adminBuildTeacherPermsGroups_() {
   const map = new Map();
 
@@ -22480,7 +22606,8 @@ function adminBuildTeacherPermsGroups_() {
         map.set(teacher, {
           teacher,
           rows: [],
-          levels: []
+          levels: [],
+          courses: []
         });
       }
 
@@ -22489,6 +22616,9 @@ function adminBuildTeacherPermsGroups_() {
 
       const levels = adminTeacherPermsLevels_(r);
       group.levels = [...new Set([...group.levels, ...levels])];
+
+      const courses = adminTeacherPermsCourses_(r);
+      group.courses = [...new Set([...group.courses, ...courses])];
     });
 
   return [...map.values()]
@@ -22501,6 +22631,38 @@ function adminSetPermCheckboxes_(levels) {
   if (adminPermPre) adminPermPre.checked = set.has("PRE-ESCOLAR");
   if (adminPermPrimaria) adminPermPrimaria.checked = set.has("PRIMARIA");
   if (adminPermBachillerato) adminPermBachillerato.checked = set.has("BACHILLERATO");
+}
+
+function adminFillPermCoursesSelect_(courses) {
+  if (!adminPermCursos) return;
+
+  const clean = (courses || [])
+    .map(c => String(c || "").trim())
+    .filter(Boolean);
+
+  adminPermCursos.innerHTML = clean.map(c =>
+    `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`
+  ).join("");
+}
+
+function adminSetPermCourses_(courses) {
+  if (!adminPermCursos) return;
+
+  const set = new Set(
+    normalizarCursosPermitidos_(courses).map(normalizarCursoKey_)
+  );
+
+  [...adminPermCursos.options].forEach(opt => {
+    opt.selected = set.has(normalizarCursoKey_(opt.value));
+  });
+}
+
+function adminReadPermCourses_() {
+  if (!adminPermCursos) return [];
+
+  return [...adminPermCursos.selectedOptions]
+    .map(opt => String(opt.value || "").trim())
+    .filter(Boolean);
 }
 
 function adminReadPermCheckboxes_() {
@@ -22528,14 +22690,19 @@ function adminPaintSelectedTeacherPerms_() {
   }
 
   adminSetPermCheckboxes_(group.levels);
+  adminSetPermCourses_(group.courses);
 
   const levelsText = group.levels.length
     ? group.levels.join(" / ")
-    : "Sin permisos";
+    : "Sin permisos de nivel";
+
+  const coursesText = group.courses.length
+    ? group.courses.join(" / ")
+    : "Sin cursos específicos";
 
   if (adminPermsInfo) {
     adminPermsInfo.textContent =
-      `Dispositivos aprobados vinculados: ${group.rows.length}. Permisos actuales: ${levelsText}.`;
+      `Dispositivos aprobados vinculados: ${group.rows.length}. Niveles: ${levelsText}. Cursos específicos: ${coursesText}.`;
   }
 }
 
@@ -22552,7 +22719,11 @@ function openAdminTeacherPermsModal() {
     adminPermsInfo.textContent = "Cargando docentes aprobados…";
   }
 
+  // Limpiar los checkboxes de nivel educativo
   adminSetPermCheckboxes_([]);
+  
+  // Limpiar cursos específicos
+  adminSetPermCourses_([]);
 }
 
 function closeAdminTeacherPermsModal() {
@@ -22562,6 +22733,13 @@ function closeAdminTeacherPermsModal() {
 
 async function adminLoadTeacherPerms_() {
   const data = await gsAdminListDeviceRequests();
+
+  try {
+    const courses = await gsCoursesListCached();
+    adminFillPermCoursesSelect_(courses);
+  } catch (e) {
+    adminFillPermCoursesSelect_([]);
+  }
 
   __adminDevicesCache = Array.isArray(data?.requests)
     ? data.requests
@@ -22600,7 +22778,10 @@ async function adminSaveTeacherPerms_(clear = false) {
   }
 
   const levels = clear ? [] : adminReadPermCheckboxes_();
+  const cursos = clear ? [] : adminReadPermCourses_();
+
   const nivelValue = levels.length ? levels.join(",") : "SIN_PERMISOS";
+  const cursosValue = cursos.length ? cursos.join(",") : "";
 
   const ids = group.rows
     .map(r => String(r.id || "").trim())
@@ -22622,7 +22803,8 @@ async function adminSaveTeacherPerms_(clear = false) {
       gsAdminSetDeviceAuth(id, true, {
         allowed_name: group.teacher,
         nivel_educativo: nivelValue,
-        niveles_educativos: nivelValue
+        niveles_educativos: nivelValue,
+        cursos_permitidos: cursosValue
       })
     ));
 
@@ -22631,9 +22813,7 @@ async function adminSaveTeacherPerms_(clear = false) {
     setStatus(
       "",
       "Permisos actualizados",
-      levels.length
-        ? `${group.teacher}: ${levels.join(" / ")} ✅`
-        : `${group.teacher}: sin permisos de nivel ✅`
+      `${group.teacher}: niveles [${levels.length ? levels.join(" / ") : "sin permisos"}] · cursos [${cursos.length ? cursos.join(" / ") : "ninguno"}] ✅`
     );
   } catch (e) {
     setStatus("bad", "Error", String(e && e.message ? e.message : e));
