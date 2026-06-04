@@ -22814,8 +22814,17 @@ await Promise.all(ids.map(id =>
   })
 ));
 
-// Actualizar localStorage y profile inmediatamente
-saveNivelesYCursosDocenteLocal_(nivelValue, cursosValue);
+// ✅ Actualizar localStorage y profile inmediatamente
+if (typeof loadProfile === "function") {
+  const profile = loadProfile() || {};
+  profile.cursos_permitidos = cursosValue.split(",").map(c => c.trim()).filter(Boolean);
+  profile.niveles_educativos = nivelesValue.split(",").map(n => n.trim()).filter(Boolean);
+  profile.nivel_educativo = nivelesValue.length ? nivelesValue.join(",") : "SIN_PERMISOS";
+  localStorage.setItem("user_cursos_permitidos", JSON.stringify(profile.cursos_permitidos));
+  localStorage.setItem("user_niveles_educativos", JSON.stringify(profile.niveles_educativos));
+  localStorage.setItem("user_nivel_educativo", profile.nivel_educativo);
+  if (typeof saveProfile === "function") saveProfile(profile);
+}
 
 await adminLoadTeacherPerms_();
 
