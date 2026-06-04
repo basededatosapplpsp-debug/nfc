@@ -17056,73 +17056,21 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "")
-  .toUpperCase()
-  .trim();
+    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-let beforeCursos = [];
+    asignaturasClearCache_(deviceId);
 
-try {
-  beforeCursos = JSON.parse(
-    localStorage.getItem("user_cursos_permitidos") || "[]"
-  );
-} catch {}
+    await gsAsignaturasGet(deviceId);
 
-beforeCursos = JSON.stringify(beforeCursos);
+    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-asignaturasClearCache_(deviceId);
+    if (before === after) return false;
 
-console.log("SYNC INICIO");
-
-await gsAsignaturasGet(deviceId);
-
-console.log("SYNC FIN");
-console.log("NIVEL NUEVO:", localStorage.getItem("user_nivel_educativo"));
-console.log("CURSOS NUEVOS:", localStorage.getItem("user_cursos_permitidos"));
-
-setStatus(
-  "",
-  "SYNC",
-  localStorage.getItem("user_cursos_permitidos") || "VACIO"
-);
-
-console.log("LOCAL cursos:", localStorage.getItem("user_cursos_permitidos"));
-
-const p = loadProfile();
-console.log("PROFILE cursos:", p?.cursos_permitidos);
-
-console.log(
-  "FUNC cursos:",
-  cursosPermitidosDocenteActual_()
-);
-
-const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
-  .toUpperCase()
-  .trim();
-
-let afterCursos = [];
-
-try {
-  afterCursos = JSON.parse(
-    localStorage.getItem("user_cursos_permitidos") || "[]"
-  );
-} catch {}
-
-afterCursos = JSON.stringify(afterCursos);
-
-const nivelCambio = beforeNivel !== afterNivel;
-const cursosCambio = beforeCursos !== afterCursos;
-
-if (!nivelCambio && !cursosCambio) return false;
-
-console.log(
-  "Permisos actualizados:",
-  beforeNivel,
-  "=>",
-  afterNivel,
-  "| cursos:",
-  cursosCambio
-);
+    console.log("Permisos actualizados:", before, "=>", after);
 
     if (typeof notasLoadCourses_ === "function") {
       try { await notasLoadCourses_(); } catch {}
@@ -17132,32 +17080,9 @@ console.log(
       try { await lateLoadCourses_(); } catch {}
     }
 
-    try {
-  if (typeof initAllModalCourses_ === "function") {
-    await initAllModalCourses_();
-  }
-} catch (e) {
-  console.warn("No pude recargar modales:", e);
-}
-
-try {
-  if (typeof refreshFromSheet === "function") {
-    await refreshFromSheet({
-      silent: true,
-      useCache: false
-    });
-  }
-} catch (e) {
-  console.warn("No pude refrescar datos:", e);
-}
-
-if (typeof setStatus === "function") {
-  setStatus(
-    "",
-    "Permisos actualizados",
-    "Se actualizaron los permisos del docente."
-  );
-}
+    if (typeof setStatus === "function") {
+      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
+    }
 
     return true;
   } catch (e) {
@@ -19494,19 +19419,7 @@ function notasOpenDetallePc_(sIdx){
 
 
 async function notasLoadCourses_() {
-
-  
   const courses = await gsCoursesListCached();
-
-  console.log("LS nivel:", localStorage.getItem("user_nivel_educativo"));
-console.log("LS niveles:", localStorage.getItem("user_niveles_educativos"));
-console.log("LS cursos:", localStorage.getItem("user_cursos_permitidos"));
-
-const p = loadProfile();
-
-console.log("PROFILE nivel:", p?.nivel_educativo);
-console.log("PROFILE niveles:", p?.niveles_educativos);
-console.log("PROFILE cursos:", p?.cursos_permitidos);
 
   const nivelesDocente = nivelesDocenteActual_();
 
@@ -21720,14 +21633,14 @@ function requireLogin() {
   if (p && p.name && p.email && p.course) {
     applyPcModeUI_();
 
-if (String(p.mode || "").toLowerCase() === "pc") {
-  startDeviceAuthWatcher_(); // mantener sincronización también en PC
-  loginModal.hidden = true;
-  setPcModeHomeStatus_();
-  return p;
-}
+    if (String(p.mode || "").toLowerCase() === "pc") {
+      stopDeviceAuthWatcher_();
+      loginModal.hidden = true;
+      setPcModeHomeStatus_();
+      return p;
+    }
 
-startDeviceAuthWatcher_();
+    startDeviceAuthWatcher_();
     return p;
   }
 
