@@ -17062,21 +17062,59 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+    const beforeNivel = String(localStorage.getItem("user_nivel_educativo") || "")
       .toUpperCase()
       .trim();
 
-    asignaturasClearCache_(deviceId);
+    const beforeCursos = JSON.stringify(
+      normalizarCursosPermitidos_(localStorage.getItem("user_cursos_permitidos") || "")
+        .map(normalizarCursoKey_)
+        .sort()
+    );
 
-    await gsAsignaturasGet(deviceId);
+    if (typeof asignaturasClearCache_ === "function") {
+      asignaturasClearCache_(deviceId);
+    }
 
-    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+    const items = await gsAsignaturasGet(deviceId);
+
+    if (typeof asignaturasFillForm_ === "function") {
+      asignaturasFillForm_(items);
+    }
+
+    if (typeof asignaturasSaveCache_ === "function") {
+      asignaturasSaveCache_(deviceId, items);
+    }
+
+    const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
       .toUpperCase()
       .trim();
 
-    if (before === after) return false;
+    const afterCursosArray = normalizarCursosPermitidos_(
+      localStorage.getItem("user_cursos_permitidos") || ""
+    );
 
-    console.log("Permisos actualizados:", before, "=>", after);
+    const afterCursos = JSON.stringify(
+      afterCursosArray
+        .map(normalizarCursoKey_)
+        .sort()
+    );
+
+    const changedNivel = beforeNivel !== afterNivel;
+    const changedCursos = beforeCursos !== afterCursos;
+
+    if (!changedNivel && !changedCursos) return false;
+
+    console.log("Permisos actualizados:", {
+      nivelAntes: beforeNivel,
+      nivelAhora: afterNivel,
+      cursosAntes: beforeCursos,
+      cursosAhora: afterCursos
+    });
+
+    if (typeof initAllModalCourses_ === "function") {
+      try { initAllModalCourses_(); } catch {}
+    }
 
     if (typeof notasLoadCourses_ === "function") {
       try { await notasLoadCourses_(); } catch {}
@@ -17086,8 +17124,16 @@ async function syncTeacherPermissionsSoft_() {
       try { await lateLoadCourses_(); } catch {}
     }
 
+    if (typeof reportesRenderAsignaturas_ === "function") {
+      try { reportesRenderAsignaturas_(items); } catch {}
+    }
+
     if (typeof setStatus === "function") {
-      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
+      setStatus(
+        "",
+        "Permisos actualizados",
+        `Niveles: ${afterNivel || "SIN_PERMISOS"} · Cursos: ${afterCursosArray.length ? afterCursosArray.join(" / ") : "ninguno"}`
+      );
     }
 
     return true;
