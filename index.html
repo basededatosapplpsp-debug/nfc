@@ -27379,10 +27379,36 @@ async function validateCurrentDeviceSession_(options = {}) {
 function startDeviceAuthWatcher_() {
   if (__deviceAuthWatcherTimer) return;
 
-  __deviceAuthWatcherTimer = setInterval(() => {
-    validateCurrentDeviceSession_({ silent: true });
-    syncTeacherPermissionsSoft_();
-  }, 5000); // cada 5 segundos
+  __deviceAuthWatcherTimer = setInterval(async () => {
+    const ok = await validateCurrentDeviceSession_({ silent: true });
+    if (ok === false) return;
+
+    const changed = await syncTeacherPermissionsSoft_();
+
+    // ✅ Si cambiaron permisos, refresca SOLO las listas que dependen de cursos
+    // sin recargar toda la app ni hacer parpadeo general.
+    if (changed === true) {
+      if (typeof initAllModalCourses_ === "function") {
+        try { initAllModalCourses_(); } catch {}
+      }
+
+      if (typeof notasLoadCourses_ === "function") {
+        try { await notasLoadCourses_({ force: true }); } catch {}
+      }
+
+      if (typeof notasAlertasLoadCourses_ === "function") {
+        try { await notasAlertasLoadCourses_(); } catch {}
+      }
+
+      if (typeof lateLoadCourses_ === "function") {
+        try { await lateLoadCourses_({ force: true }); } catch {}
+      }
+
+      if (typeof reportesLoadAsignaturas_ === "function") {
+        try { await reportesLoadAsignaturas_({ force: true }); } catch {}
+      }
+    }
+  }, 5000);
 }
 
 function stopDeviceAuthWatcher_() {
