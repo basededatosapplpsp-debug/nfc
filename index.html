@@ -17072,7 +17072,13 @@ beforeCursos = JSON.stringify(beforeCursos);
 
 asignaturasClearCache_(deviceId);
 
+console.log("SYNC INICIO");
+
 await gsAsignaturasGet(deviceId);
+
+console.log("SYNC FIN");
+console.log("NIVEL NUEVO:", localStorage.getItem("user_nivel_educativo"));
+console.log("CURSOS NUEVOS:", localStorage.getItem("user_cursos_permitidos"));
 
 setStatus(
   "",
