@@ -14421,21 +14421,27 @@ function nivelesToStorageValue_(niveles) {
   return clean.length ? clean.join(",") : "SIN_PERMISOS";
 }
 
-function saveNivelesDocenteLocal_(raw) {
-  const niveles = normalizarNivelesEducativos_(raw);
-  const value = niveles.length ? niveles.join(",") : "SIN_PERMISOS";
+function saveNivelesYCursosDocenteLocal_(nivelesRaw, cursosRaw) {
+  const niveles = normalizarNivelesEducativos_(nivelesRaw);
+  const cursos = normalizarCursosPermitidos_(cursosRaw);
 
-  localStorage.setItem("user_nivel_educativo", value);
+  const nivelValue = niveles.length ? niveles.join(",") : "SIN_PERMISOS";
+
+  localStorage.setItem("user_nivel_educativo", nivelValue);
   localStorage.setItem("user_niveles_educativos", JSON.stringify(niveles));
+  localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursos));
 
   const profile = typeof loadProfile === "function" ? loadProfile() : null;
   if (profile) {
-    profile.nivel_educativo = value;
+    profile.nivel_educativo = nivelValue;
     profile.niveles_educativos = niveles;
+    profile.cursos_permitidos = cursos;
+
     if (typeof saveProfile === "function") saveProfile(profile);
+    else localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
   }
 
-  return niveles;
+  return { niveles, cursos };
 }
 
 function nivelesDocenteActual_() {
@@ -22799,16 +22805,19 @@ async function adminSaveTeacherPerms_(clear = false) {
       `Actualizando permisos de ${group.teacher}.`
     );
 
-    await Promise.all(ids.map(id =>
-      gsAdminSetDeviceAuth(id, true, {
-        allowed_name: group.teacher,
-        nivel_educativo: nivelValue,
-        niveles_educativos: nivelValue,
-        cursos_permitidos: cursosValue
-      })
-    ));
+await Promise.all(ids.map(id =>
+  gsAdminSetDeviceAuth(id, true, {
+    allowed_name: group.teacher,
+    nivel_educativo: nivelValue,
+    niveles_educativos: nivelValue,
+    cursos_permitidos: cursosValue
+  })
+));
 
-    await adminLoadTeacherPerms_();
+// Actualizar localStorage y profile inmediatamente
+saveNivelesYCursosDocenteLocal_(nivelValue, cursosValue);
+
+await adminLoadTeacherPerms_();
 
     setStatus(
       "",
