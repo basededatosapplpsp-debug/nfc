@@ -17078,14 +17078,6 @@ async function syncTeacherPermissionsSoft_() {
 
     const items = await gsAsignaturasGet(deviceId);
 
-    if (typeof asignaturasFillForm_ === "function") {
-      asignaturasFillForm_(items);
-    }
-
-    if (typeof asignaturasSaveCache_ === "function") {
-      asignaturasSaveCache_(deviceId, items);
-    }
-
     const afterNivel = String(localStorage.getItem("user_nivel_educativo") || "")
       .toUpperCase()
       .trim();
@@ -17095,9 +17087,7 @@ async function syncTeacherPermissionsSoft_() {
     );
 
     const afterCursos = JSON.stringify(
-      afterCursosArray
-        .map(normalizarCursoKey_)
-        .sort()
+      afterCursosArray.map(normalizarCursoKey_).sort()
     );
 
     const changedNivel = beforeNivel !== afterNivel;
@@ -17105,23 +17095,51 @@ async function syncTeacherPermissionsSoft_() {
 
     if (!changedNivel && !changedCursos) return false;
 
-    console.log("Permisos actualizados:", {
-      nivelAntes: beforeNivel,
-      nivelAhora: afterNivel,
-      cursosAntes: beforeCursos,
-      cursosAhora: afterCursos
-    });
+    // ✅ limpiar cachés que dependen de cursos/niveles
+    if (typeof notasAlertasLimpiarCache_ === "function") {
+      notasAlertasLimpiarCache_();
+    }
+
+    try {
+      Object.keys(localStorage).forEach(k => {
+        if (
+          k.includes("courses") ||
+          k.includes("cursos") ||
+          k.includes("asignaturas") ||
+          k.includes("notas_alertas")
+        ) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch {}
+
+    // ✅ repintar formularios/listas con permisos nuevos
+    if (typeof asignaturasFillForm_ === "function") {
+      asignaturasFillForm_(items);
+    }
+
+    if (typeof asignaturasSaveCache_ === "function") {
+      asignaturasSaveCache_(deviceId, items);
+    }
 
     if (typeof initAllModalCourses_ === "function") {
       try { initAllModalCourses_(); } catch {}
     }
 
     if (typeof notasLoadCourses_ === "function") {
-      try { await notasLoadCourses_(); } catch {}
+      try { await notasLoadCourses_({ force: true }); } catch {}
+    }
+
+    if (typeof notasAlertasLoadCourses_ === "function") {
+      try { await notasAlertasLoadCourses_(); } catch {}
     }
 
     if (typeof lateLoadCourses_ === "function") {
-      try { await lateLoadCourses_(); } catch {}
+      try { await lateLoadCourses_({ force: true }); } catch {}
+    }
+
+    if (typeof reportesLoadAsignaturas_ === "function") {
+      try { await reportesLoadAsignaturas_({ force: true }); } catch {}
     }
 
     if (typeof reportesRenderAsignaturas_ === "function") {
