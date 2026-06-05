@@ -14599,27 +14599,10 @@ async function gsAsignaturasGet(deviceId) {
   });
 
   let data = null;
-  try {
-    data = await res.json();
-  } catch {
-    throw new Error("Respuesta inválida del servidor");
-  }
+  try { data = await res.json(); }
+  catch { throw new Error("Respuesta inválida del servidor"); }
 
-  if (!data.ok) {
-    throw new Error(data.msg || data.error || "asignaturas_get_failed");
-  }
-
-  alert(
-    "RESPUESTA SERVIDOR\n\n" +
-    JSON.stringify(
-      {
-        niveles_educativos: data.niveles_educativos,
-        cursos_permitidos: data.cursos_permitidos
-      },
-      null,
-      2
-    )
-  );
+  if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
 
   const nivelesEducativos = normalizarNivelesEducativos_(
     data.niveles_educativos ||
@@ -14640,20 +14623,9 @@ async function gsAsignaturasGet(deviceId) {
     ""
   );
 
-  alert(
-    "CURSOS NORMALIZADOS\n\n" +
-    JSON.stringify(cursosPermitidos, null, 2)
-  );
-
   localStorage.setItem("user_nivel_educativo", nivelEducativo);
-  localStorage.setItem(
-    "user_niveles_educativos",
-    JSON.stringify(nivelesEducativos)
-  );
-  localStorage.setItem(
-    "user_cursos_permitidos",
-    JSON.stringify(cursosPermitidos)
-  );
+  localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
+  localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursosPermitidos));
 
   if (profile) {
     profile.nivel_educativo = nivelEducativo;
@@ -14663,18 +14635,12 @@ async function gsAsignaturasGet(deviceId) {
     if (typeof saveProfile === "function") {
       saveProfile(profile);
     } else {
-      localStorage.setItem(
-        LS_PROFILE_KEY,
-        JSON.stringify(profile)
-      );
+      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
     }
   }
 
   return Array.isArray(data.items) ? data.items : [];
 }
-
-
-
 
 async function gsAsignaturasSave(deviceId, items) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
@@ -17090,37 +17056,19 @@ async function syncTeacherPermissionsSoft_() {
   __permissionsSyncBusy = true;
 
   try {
-const beforeNivel = String(
-  localStorage.getItem("user_nivel_educativo") || ""
-).toUpperCase().trim();
+    const before = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-const beforeCursos = String(
-  localStorage.getItem("user_cursos_permitidos") || ""
-).trim();
+    asignaturasClearCache_(deviceId);
 
-asignaturasClearCache_(deviceId);
+    await gsAsignaturasGet(deviceId);
 
-await gsAsignaturasGet(deviceId);
+    const after = String(localStorage.getItem("user_nivel_educativo") || "")
+      .toUpperCase()
+      .trim();
 
-alert(
-  "ANTES:\n" +
-  beforeCursos +
-  "\n\nDESPUÉS:\n" +
-  localStorage.getItem("user_cursos_permitidos")
-);
-
-const afterNivel = String(
-  localStorage.getItem("user_nivel_educativo") || ""
-).toUpperCase().trim();
-
-const afterCursos = String(
-  localStorage.getItem("user_cursos_permitidos") || ""
-).trim();
-
-const nivelCambio = beforeNivel !== afterNivel;
-const cursosCambio = beforeCursos !== afterCursos;
-
-if (!nivelCambio && !cursosCambio) return false;
+    if (before === after) return false;
 
     console.log("Permisos actualizados:", before, "=>", after);
 
@@ -17132,20 +17080,9 @@ if (!nivelCambio && !cursosCambio) return false;
       try { await lateLoadCourses_(); } catch {}
     }
 
-    if (typeof notasAlertasLoadCourses_ === "function") {
-  try { await notasAlertasLoadCourses_(); } catch {}
-}
-
-if (typeof reportesLoadCourses_ === "function") {
-  try { await reportesLoadCourses_({ force: true }); } catch {}
-}
-
     if (typeof setStatus === "function") {
-setStatus(
-  "",
-  "Permisos actualizados",
-  "Niveles y cursos autorizados sincronizados."
-);    }
+      setStatus("", "Permisos actualizados", `Niveles autorizados: ${after || "SIN_PERMISOS"}`);
+    }
 
     return true;
   } catch (e) {
