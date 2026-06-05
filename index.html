@@ -14599,10 +14599,27 @@ async function gsAsignaturasGet(deviceId) {
   });
 
   let data = null;
-  try { data = await res.json(); }
-  catch { throw new Error("Respuesta inválida del servidor"); }
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error("Respuesta inválida del servidor");
+  }
 
-  if (!data.ok) throw new Error(data.msg || data.error || "asignaturas_get_failed");
+  if (!data.ok) {
+    throw new Error(data.msg || data.error || "asignaturas_get_failed");
+  }
+
+  alert(
+    "RESPUESTA SERVIDOR\n\n" +
+    JSON.stringify(
+      {
+        niveles_educativos: data.niveles_educativos,
+        cursos_permitidos: data.cursos_permitidos
+      },
+      null,
+      2
+    )
+  );
 
   const nivelesEducativos = normalizarNivelesEducativos_(
     data.niveles_educativos ||
@@ -14623,9 +14640,20 @@ async function gsAsignaturasGet(deviceId) {
     ""
   );
 
+  alert(
+    "CURSOS NORMALIZADOS\n\n" +
+    JSON.stringify(cursosPermitidos, null, 2)
+  );
+
   localStorage.setItem("user_nivel_educativo", nivelEducativo);
-  localStorage.setItem("user_niveles_educativos", JSON.stringify(nivelesEducativos));
-  localStorage.setItem("user_cursos_permitidos", JSON.stringify(cursosPermitidos));
+  localStorage.setItem(
+    "user_niveles_educativos",
+    JSON.stringify(nivelesEducativos)
+  );
+  localStorage.setItem(
+    "user_cursos_permitidos",
+    JSON.stringify(cursosPermitidos)
+  );
 
   if (profile) {
     profile.nivel_educativo = nivelEducativo;
@@ -14635,12 +14663,18 @@ async function gsAsignaturasGet(deviceId) {
     if (typeof saveProfile === "function") {
       saveProfile(profile);
     } else {
-      localStorage.setItem(LS_PROFILE_KEY, JSON.stringify(profile));
+      localStorage.setItem(
+        LS_PROFILE_KEY,
+        JSON.stringify(profile)
+      );
     }
   }
 
   return Array.isArray(data.items) ? data.items : [];
 }
+
+
+
 
 async function gsAsignaturasSave(deviceId, items) {
   const profile = typeof loadProfile === "function" ? loadProfile() : {};
@@ -17067,6 +17101,13 @@ const beforeCursos = String(
 asignaturasClearCache_(deviceId);
 
 await gsAsignaturasGet(deviceId);
+
+alert(
+  "ANTES:\n" +
+  beforeCursos +
+  "\n\nDESPUÉS:\n" +
+  localStorage.getItem("user_cursos_permitidos")
+);
 
 const afterNivel = String(
   localStorage.getItem("user_nivel_educativo") || ""
