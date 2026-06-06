@@ -4913,9 +4913,9 @@ h1,h2,
     display: none !important;
   }
 
-  #notasStudentsModal .notas-bottom-actions{
-    display: none !important;
-  }
+ #notasStudentsModal .notas-bottom-actions{
+    display: flex !important;
+}
 
   /* FIX botón Atrás */
 #notasStudentsModal #btnNotasStudentsBack{
@@ -7436,9 +7436,9 @@ body[data-theme="light"] #parqueResult .parque-badge{
           <span class="badge badge-late" id="lateCount">Entradas tardes: 0</span>
           <span class="badge badge-neutral" id="earlyExitCount">Salidas antes: 0</span>
 
-<button id="btnExport" class="btn btn-ghost summary-download-btn" title="Descargar Excel" aria-label="Descargar Excel">
-  <i class="fas fa-download" aria-hidden="true"></i>
-</button>
+          <button id="btnExport" class="btn btn-ghost summary-download-btn" title="Descargar Excel" aria-label="Descargar Excel">
+            <i class="fa-solid fa-download"></i>
+          </button>
         </div>
       </div>
 
