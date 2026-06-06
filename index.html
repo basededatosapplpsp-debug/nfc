@@ -22747,6 +22747,10 @@ function closeAdminTeacherPermsModal() {
 }
 
 async function adminLoadTeacherPerms_() {
+  // Mantener selección actual si existe
+  const previouslySelected =
+    String(adminPermsTeacherSelect?.value || "").trim();
+
   const data = await gsAdminListDeviceRequests();
 
   try {
@@ -22765,10 +22769,14 @@ async function adminLoadTeacherPerms_() {
   if (!adminPermsTeacherSelect) return;
 
   if (!__adminTeacherPermsGroups.length) {
-    adminPermsTeacherSelect.innerHTML = `<option value="">No hay docentes aprobados</option>`;
+    adminPermsTeacherSelect.innerHTML =
+      `<option value="">No hay docentes aprobados</option>`;
+
     adminSetPermCheckboxes_([]);
+
     if (adminPermsInfo) {
-      adminPermsInfo.textContent = "No hay docentes aprobados para asignar permisos.";
+      adminPermsInfo.textContent =
+        "No hay docentes aprobados para asignar permisos.";
     }
     return;
   }
@@ -22776,11 +22784,22 @@ async function adminLoadTeacherPerms_() {
   adminPermsTeacherSelect.innerHTML = `
     <option value="">Selecciona docente</option>
     ${__adminTeacherPermsGroups.map(g => `
-      <option value="${escapeHtml(g.teacher)}">${escapeHtml(g.teacher)}</option>
+      <option value="${escapeHtml(g.teacher)}">
+        ${escapeHtml(g.teacher)}
+      </option>
     `).join("")}
   `;
 
-  adminPermsTeacherSelect.value = __adminTeacherPermsGroups[0].teacher;
+  // Intentar restaurar el docente anterior
+  const stillExists = __adminTeacherPermsGroups.some(
+    g => g.teacher === previouslySelected
+  );
+
+  adminPermsTeacherSelect.value =
+    stillExists
+      ? previouslySelected
+      : __adminTeacherPermsGroups[0].teacher;
+
   adminPaintSelectedTeacherPerms_();
 }
 
@@ -22808,8 +22827,6 @@ async function adminSaveTeacherPerms_(clear = false) {
   }
 
   try {
-    const selectedTeacher = group.teacher;
-
     setLoading(
       true,
       "Guardando permisos…",
@@ -22826,12 +22843,6 @@ async function adminSaveTeacherPerms_(clear = false) {
     ));
 
     await adminLoadTeacherPerms_();
-
-    // Mantener seleccionado el mismo docente después de recargar
-    if (adminTeacherSelect) {
-      adminTeacherSelect.value = selectedTeacher;
-      adminPaintSelectedTeacherPerms_();
-    }
 
     setStatus(
       "",
