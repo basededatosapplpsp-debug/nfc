@@ -22808,6 +22808,8 @@ async function adminSaveTeacherPerms_(clear = false) {
   }
 
   try {
+    const selectedTeacher = group.teacher;
+
     setLoading(
       true,
       "Guardando permisos…",
@@ -22824,6 +22826,12 @@ async function adminSaveTeacherPerms_(clear = false) {
     ));
 
     await adminLoadTeacherPerms_();
+
+    // Mantener seleccionado el mismo docente después de recargar
+    if (adminTeacherSelect) {
+      adminTeacherSelect.value = selectedTeacher;
+      adminPaintSelectedTeacherPerms_();
+    }
 
     setStatus(
       "",
