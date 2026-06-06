@@ -4913,9 +4913,9 @@ h1,h2,
     display: none !important;
   }
 
- #notasStudentsModal .notas-bottom-actions{
-    display: flex !important;
-}
+  #notasStudentsModal .notas-bottom-actions{
+    display: none !important;
+  }
 
   /* FIX botón Atrás */
 #notasStudentsModal #btnNotasStudentsBack{
@@ -7227,6 +7227,19 @@ body[data-theme="light"] #parqueResult .parque-badge{
   display: none !important;
 }
 
+
+.notas-download-btn{
+  min-width:56px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.notas-download-btn i{
+  font-size:18px;
+}
+
+
 </style>
 </head>
 
@@ -9091,9 +9104,14 @@ body[data-theme="light"] #parqueResult .parque-badge{
 </div>
 
 <div class="notas-bottom-actions">
-  <button id="btnNotasDescargarExcel" class="btn btn-secondary" type="button">
-    Descargar Excel
-  </button>
+<button
+  id="btnNotasDescargarExcel"
+  class="btn btn-secondary notas-download-btn"
+  type="button"
+  title="Descargar Excel"
+>
+  <i class="fa-solid fa-download"></i>
+</button>
   <button id="btnNotasStudentsGuardar" class="btn btn-primary" type="button">
     Guardar planilla
   </button>
