@@ -13127,7 +13127,7 @@ function getExitVisualState_(r) {
   const t = timeToMinutes(r.time);
   const schedule = getEffectiveScheduleForTeacher_(r.teacher);
   const limit = timeToMinutes(schedule.exitOk);
-  const extraStart = timeToMinutes("16:30");
+  const extraStart = timeToMinutes("15:30");
 
   if (t == null || limit == null) return "normal";
 
