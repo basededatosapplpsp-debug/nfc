@@ -7777,19 +7777,18 @@ body[data-theme="light"] #parqueResult .parque-badge{
       </label>
     </div>
 
-    <div style="margin-top:14px; border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.04);">
-      <div class="muted small" style="margin-bottom:10px;">
-        Cursos específicos adicionales
-      </div>
+<div style="margin-top:14px; border:1px solid var(--line); border-radius:16px; padding:12px; background:rgba(255,255,255,.04);">
+  <div class="muted small" style="margin-bottom:10px;">
+    Cursos específicos adicionales
+  </div>
 
-      <select id="adminPermCursos" class="modal-input" multiple size="6">
-      </select>
+  <div id="adminPermCursos"></div>
 
-      <div class="muted small" style="margin-top:8px;">
-        Puedes seleccionar cursos puntuales aunque no pertenezcan al nivel educativo marcado.
-        Ejemplo: Bachillerato + 5°.
-      </div>
-    </div>
+  <div class="muted small" style="margin-top:8px;">
+    Puedes seleccionar cursos puntuales aunque no pertenezcan al nivel educativo marcado.
+    Ejemplo: Bachillerato + 5°.
+  </div>
+</div>
 
 
     <div id="adminPermsInfo" class="muted small" style="margin-top:10px;">
@@ -22639,9 +22638,22 @@ function adminFillPermCoursesSelect_(courses) {
     .map(c => String(c || "").trim())
     .filter(Boolean);
 
-  adminPermCursos.innerHTML = clean.map(c =>
-    `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`
-  ).join("");
+  adminPermCursos.innerHTML = clean.map(c => `
+    <label style="
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:8px 0;
+      font-weight:800;
+    ">
+      <input
+        type="checkbox"
+        class="admin-perm-course"
+        value="${escapeHtml(c)}"
+      >
+      ${escapeHtml(c)}
+    </label>
+  `).join("");
 }
 
 function adminSetPermCourses_(courses) {
@@ -22651,16 +22663,20 @@ function adminSetPermCourses_(courses) {
     normalizarCursosPermitidos_(courses).map(normalizarCursoKey_)
   );
 
-  [...adminPermCursos.options].forEach(opt => {
-    opt.selected = set.has(normalizarCursoKey_(opt.value));
-  });
+  adminPermCursos
+    .querySelectorAll(".admin-perm-course")
+    .forEach(chk => {
+      chk.checked = set.has(
+        normalizarCursoKey_(chk.value)
+      );
+    });
 }
 
 function adminReadPermCourses_() {
   if (!adminPermCursos) return [];
 
-  return [...adminPermCursos.selectedOptions]
-    .map(opt => String(opt.value || "").trim())
+  return [...adminPermCursos.querySelectorAll(".admin-perm-course:checked")]
+    .map(chk => String(chk.value || "").trim())
     .filter(Boolean);
 }
 
