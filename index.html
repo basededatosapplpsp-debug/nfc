@@ -27256,14 +27256,16 @@ async function checkLocation() {
   const { latitude, longitude, accuracy } = pos.coords;
   const dist = distanceMeters(latitude, longitude, SCHOOL_LAT, SCHOOL_LNG);
 
-  console.log({
-  userLat: latitude,
-  userLng: longitude,
-  schoolLat: SCHOOL_LAT,
-  schoolLng: SCHOOL_LNG,
-  accuracy,
-  dist
-});
+alert(
+  "UBICACIÓN:\n" +
+  "Lat: " + latitude.toFixed(6) + "\n" +
+  "Lng: " + longitude.toFixed(6) + "\n\n" +
+  "COLEGIO:\n" +
+  "Lat: " + SCHOOL_LAT + "\n" +
+  "Lng: " + SCHOOL_LNG + "\n\n" +
+  "Precisión: " + Math.round(accuracy) + " m\n" +
+  "Distancia: " + Math.round(dist) + " m"
+);
 
   distEl.textContent = `${Math.round(dist)} m`;
   accEl.textContent = `${Math.round(accuracy)} m`;
