@@ -27256,6 +27256,15 @@ async function checkLocation() {
   const { latitude, longitude, accuracy } = pos.coords;
   const dist = distanceMeters(latitude, longitude, SCHOOL_LAT, SCHOOL_LNG);
 
+  console.log({
+  userLat: latitude,
+  userLng: longitude,
+  schoolLat: SCHOOL_LAT,
+  schoolLng: SCHOOL_LNG,
+  accuracy,
+  dist
+});
+
   distEl.textContent = `${Math.round(dist)} m`;
   accEl.textContent = `${Math.round(accuracy)} m`;
   coordsEl.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
