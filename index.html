@@ -12130,6 +12130,73 @@ function showSuccessCheck(message = "¡Registro guardado!", ms = 3200, opts = {}
   }, duration);
 }
 
+function mostrarImagenRegistroExitoso_(){
+
+  const existe = document.getElementById("registroImagenOverlay");
+
+  if (existe) {
+    existe.remove();
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "registroImagenOverlay";
+
+  overlay.innerHTML = `
+    <button id="cerrarRegistroImagen"
+      style="
+        position:absolute;
+        top:18px;
+        right:18px;
+        width:45px;
+        height:45px;
+        border-radius:50%;
+        border:none;
+        background:rgba(0,0,0,.55);
+        color:white;
+        font-size:28px;
+        font-weight:900;
+        cursor:pointer;
+        z-index:2;
+      ">
+      ×
+    </button>
+
+    <img 
+      src="imagen_registro_exitoso.png"
+      alt="Registro exitoso"
+      style="
+        width:100vw;
+        height:100vh;
+        object-fit:cover;
+        display:block;
+      "
+    >
+  `;
+
+  Object.assign(overlay.style,{
+    position:"fixed",
+    inset:"0",
+    width:"100vw",
+    height:"100vh",
+    background:"#000",
+    zIndex:"999999",
+    display:"flex",
+    alignItems:"center",
+    justifyContent:"center"
+  });
+
+
+  document.body.appendChild(overlay);
+
+
+  document
+    .getElementById("cerrarRegistroImagen")
+    .onclick = () => {
+      overlay.remove();
+    };
+
+}
+
 /**
  * Alert moderno tipo modal (Promise-based)
  * Uso: await alertPro({title, msg, okText, danger})
@@ -28650,7 +28717,11 @@ async function register(type) {
     try { setLoading(false); } catch (e) {}
 
     // ✅ mostrar chulito grande automático
-    showSuccessCheck(`${type} registrada correctamente`, 3200);
+showSuccessCheck(`${type} registrada correctamente`, 3200);
+
+setTimeout(() => {
+  mostrarImagenRegistroExitoso_();
+}, 500);
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
