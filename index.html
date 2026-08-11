@@ -1863,7 +1863,7 @@ body.is-admin #registerActions{
 .success-check{
   position: fixed;
   inset: 0;
-  z-index: 100002;
+ z-index: 999999999;
   display: grid;
   place-items: center;
   background: rgba(0,0,0,.35);
@@ -3168,6 +3168,98 @@ button[data-uni-edit] + button[data-uni-del-one]{
 
 #lateArrivalModal .behavior-levels-wrap{
   margin-top: 10px;
+}
+
+#lateArrivalModal #lateAutoBox{
+  padding: 16px 14px;
+  cursor: default;
+}
+
+#lateArrivalModal #lateAutoBox .left{
+  width: 100%;
+  align-items: flex-start;
+}
+
+#lateArrivalModal #lateAutoDot{
+  margin-top: 7px;
+}
+
+#lateArrivalModal #lateAutoBox .late-auto-copy{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#lateArrivalModal #lateAutoTitle{
+  font-size: 22px;
+  line-height: 1.15;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+#lateArrivalModal #lateAutoSub{
+  display: grid;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+#lateArrivalModal .late-auto-student{
+  color: var(--muted) !important;
+  -webkit-text-fill-color: var(--muted) !important;
+  font-size: 12px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+#lateArrivalModal .late-current-count{
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+#lateArrivalModal .late-next-report{
+  display: grid;
+  gap: 3px;
+  margin-top: 6px;
+  padding: 10px 11px;
+  border-radius: 12px;
+  border: 1px solid rgba(245,158,11,.55);
+  background: rgba(245,158,11,.15);
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text) !important;
+  line-height: 1.35;
+}
+
+#lateArrivalModal .late-next-kicker{
+  color: #fbbf24 !important;
+  -webkit-text-fill-color: #fbbf24 !important;
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+#lateArrivalModal .late-next-report strong{
+  color: #fbbf24 !important;
+  -webkit-text-fill-color: #fbbf24 !important;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+#lateArrivalModal .late-next-report.is-limit{
+  border-color: rgba(239,68,68,.5);
+  background: rgba(239,68,68,.13);
+}
+
+#lateArrivalModal .late-next-report.is-limit .late-next-kicker{
+  color: #f87171 !important;
+  -webkit-text-fill-color: #f87171 !important;
+}
+
+#lateArrivalModal .late-dot-empty{
+  background: #64748b;
+  box-shadow: 0 0 0 8px rgba(100,116,139,.15);
 }
 
 #lateArrivalModal .behavior-observation{
@@ -6606,6 +6698,83 @@ body.is-pc-mode .single-action-wrap{
 
 
 
+/* ===== NOTAS: F = 1.0 + puntos procedimentales ===== */
+#notasStudentsModal [data-nota-grade="1"]{
+  text-transform: uppercase;
+}
+
+#notasStudentsModal [data-nota-puntos="1"]{
+  text-align: center !important;
+  font-weight: 900 !important;
+}
+
+@media (min-width: 900px){
+  #notasStudentsModal #notasGrid.notas-grid.table-mode .notas-cell.notas-puntos-cell{
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    text-align: center !important;
+  }
+
+  #notasStudentsModal .notas-puntos-cell input{
+    width: 64px !important;
+    max-width: 64px !important;
+  }
+}
+
+
+/* ===== NOTAS CELULAR: spinner visible para puntos +/- ===== */
+@media (max-width: 899px){
+  #notasStudentsModal .notas-input-row.notas-puntos-row{
+    grid-template-columns: minmax(0, 1fr) 92px !important;
+  }
+
+  #notasStudentsModal .notas-puntos-spinner{
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 26px;
+    gap: 3px;
+    align-items: stretch;
+    width: 100%;
+    min-width: 0;
+  }
+
+  #notasStudentsModal .notas-puntos-spinner > input{
+    width: 100% !important;
+    min-width: 0 !important;
+    text-align: center !important;
+  }
+
+  #notasStudentsModal .notas-puntos-spinner-controls{
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 3px;
+  }
+
+  #notasStudentsModal .notas-puntos-spin-btn{
+    width: 26px;
+    min-width: 26px;
+    height: 20px;
+    min-height: 20px;
+    padding: 0;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card2) 88%, transparent);
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 950;
+    line-height: 1;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  #notasStudentsModal .notas-puntos-spin-btn:active{
+    transform: scale(.94);
+    background: color-mix(in srgb, var(--primary) 20%, var(--card2));
+  }
+}
+
 /* ===== NOTAS: modal pro crear/editar actividad ===== */
 .notas-activity-modal{
   z-index: 100000 !important;
@@ -7240,6 +7409,136 @@ body[data-theme="light"] #parqueResult .parque-badge{
 }
 
 
+
+/* =========================================================
+   LLEGADAS TARDE:
+   listado mensual ocupa todo el espacio disponible
+   ========================================================= */
+
+#lateArrivalModal:not(.late-detail-mode) .behavior-full-body{
+  overflow: hidden !important;
+}
+
+#lateArrivalModal:not(.late-detail-mode) .behavior-panel{
+  height: 100%;
+  min-height: 0;
+}
+
+#lateArrivalModal:not(.late-detail-mode) .behavior-panel-card{
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+}
+
+/* El listado comienza donde antes estaba Observación */
+#lateArrivalModal:not(.late-detail-mode) .disc-reported{
+  flex: 1 1 auto;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  margin-top: 14px !important;
+  overflow: hidden;
+}
+
+/* Este es ahora el único scroll de la pantalla principal */
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList{
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+
+  display: grid;
+  align-content: start;
+  gap: 8px;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  padding: 10px 6px 12px 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.22) transparent;
+}
+
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList::-webkit-scrollbar{
+  width: 6px;
+}
+
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.22);
+  border-radius: 999px;
+}
+
+#lateArrivalModal:not(.late-detail-mode) #lateHint{
+  flex: 0 0 auto;
+  margin-top: 8px;
+}
+
+/* Mantiene Reportar abajo y evita choque con el botón Atrás */
+#lateArrivalModal:not(.late-detail-mode) .modal-actions{
+  flex: 0 0 auto;
+
+  margin-top: 10px !important;
+  padding: 10px 0 0 72px;
+
+  border-top: 1px solid var(--line);
+}
+
+/* El botón permanece a la derecha */
+#lateArrivalModal:not(.late-detail-mode) #btnLateReport{
+  min-height: 50px;
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+
+
+/* =========================================================
+   AJUSTE TARJETAS INDIVIDUALES LLEGADAS TARDE
+   Evita que los reportes se monten entre sí
+   ========================================================= */
+
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList{
+  grid-auto-rows: minmax(74px, auto);
+}
+
+
+/* Cada tarjeta de reporte debe ocupar su propia fila */
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList > *{
+  position: relative;
+  min-height: 74px !important;
+  height: auto !important;
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+}
+
+
+/* Evita que nombres largos dañen la tarjeta */
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList .disc-name,
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList strong{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* Mantiene separación real entre tarjetas */
+#lateArrivalModal:not(.late-detail-mode) #lateReportedList{
+  row-gap: 12px !important;
+}
+
+
 </style>
 </head>
 
@@ -7263,6 +7562,11 @@ body[data-theme="light"] #parqueResult .parque-badge{
   <button id="btnAdminManual" class="menu-item" type="button" role="menuitem" hidden>Registro manual</button>
 
   <button id="btnAdminConfig" class="menu-item" type="button" role="menuitem" hidden>Configuración</button>
+
+<button id="btnCambiarImagenRegistro" class="menu-item" type="button" role="menuitem" hidden>
+  Cambiar imagen registro exitoso
+</button>
+
   <button id="btnAdminChangePin" class="menu-item" type="button" role="menuitem" hidden>Cambiar PIN</button>
 
   <button id="btnAdminApproveDevices" class="menu-item" type="button" role="menuitem" hidden>Aprobar dispositivos</button>
@@ -7345,6 +7649,13 @@ body[data-theme="light"] #parqueResult .parque-badge{
   <button id="btnInstall" class="btn btn-ghost" hidden>Instalar</button>
 </div>
 
+
+<input 
+  type="file" 
+  id="selectorImagenRegistro"
+  accept="image/*"
+  style="display:none;"
+>
 
   </header>
 
@@ -8209,27 +8520,45 @@ body[data-theme="light"] #parqueResult .parque-badge{
   </div>
 </div>
 
-    <div class="behavior-levels-wrap">
-  <label class="modal-label">Conteo automático</label>
-  <div id="lateAutoBox" class="disc-item" style="cursor:default;">
-    <div class="left">
-      <span id="lateAutoDot" class="lvl-dot lvl-1"></span>
-      <div>
-        <div id="lateAutoTitle" class="name">Selecciona un estudiante</div>
-        <div id="lateAutoSub" class="muted small">La app calculará automáticamente la próxima llegada tarde.</div>
+<div class="behavior-levels-wrap">
+  <label class="modal-label">Reporte actual</label>
+
+  <div id="lateAutoBox" class="disc-item" style="cursor:default; padding:16px 14px;">
+    <div class="left" style="width:100%; align-items:flex-start;">
+      <span id="lateAutoDot" class="lvl-dot lvl-1" style="margin-top:7px;"></span>
+
+      <div style="flex:1; min-width:0;">
+        <div
+          id="lateAutoTitle"
+          class="name"
+          style="font-size:22px; line-height:1.15; white-space:normal;"
+        >
+          Selecciona un estudiante
+        </div>
+
+        <div
+          id="lateAutoSub"
+          style="display:grid; gap:6px; margin-top:7px;"
+          aria-live="polite"
+        >
+          <span style="font-size:13px; color:var(--muted);">
+            La app mostrará el reporte actual y calculará el siguiente.
+          </span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-          <div>
-            <label class="modal-label" for="lateObservation">Observación</label>
-            <textarea
-              id="lateObservation"
-              class="modal-input behavior-observation"
-              placeholder="Ej: El estudiante llegó tarde al inicio de la jornada."
-            ></textarea>
-          </div>
+<div class="disc-reported">
+  <div class="muted small" style="margin-bottom:8px;">
+    Llegadas tarde del mes
+  </div>
+
+  <div id="lateReportedList" class="disc-reported-list">
+    <div class="muted small">Cargando...</div>
+  </div>
+</div>
 
           <div id="lateHint" class="modal-hint muted small"></div>
 
@@ -8248,12 +8577,7 @@ body[data-theme="light"] #parqueResult .parque-badge{
             <button id="btnLateReport" type="button" class="btn btn-primary">Reportar</button>
           </div>
 
-          <div class="disc-reported" style="margin-top:18px;">
-  <div class="muted small" style="margin-bottom:8px;">Llegadas tarde del mes</div>
-  <div id="lateReportedList" class="disc-reported-list">
-    <div class="muted small">Cargando...</div>
-  </div>
-</div>
+
         </div>
       </div>
     </div>
@@ -9143,9 +9467,10 @@ body[data-theme="light"] #parqueResult .parque-badge{
   Filtrar por
   <select id="notasAlertasTipo" class="modal-input">
     <option value="">Todas</option>
-    <option value="procedimental">Procedimental</option>
-    <option value="definitiva">Nota definitiva</option>
-    <option value="debe">Debe actividad</option>
+<option value="procedimental">Procedimental</option>
+<option value="reporte_periodo_actual">Reporte periodo actual</option>
+<option value="definitiva">Nota definitiva</option>
+<option value="debe">Debe actividad</option>
   </select>
 </label>
 
@@ -9619,18 +9944,36 @@ async function lateShareReachedFour_(student){
 }
 
 function lateUpdateAutoBox_(){
-  const student = String(lateStudentEl?.value || __lateCurrentStudent || "").trim();
+  const student = String(
+    lateStudentEl?.value || __lateCurrentStudent || ""
+  ).trim();
+
   const item = student ? lateFindInCache_(student) : null;
-  const current = item ? Number(item.maxTimes || 0) : 0;
-  const next = Math.min(current + 1, 4);
+  const rawCurrent = item ? Number(item.maxTimes || 0) : 0;
+
+  const current = Number.isFinite(rawCurrent)
+    ? Math.max(0, Math.min(rawCurrent, 4))
+    : 0;
+
+  const labels = [
+    "Sin reportes todavía",
+    "Primera vez",
+    "Segunda vez",
+    "Tercera vez",
+    "Cuarta vez"
+  ];
 
   if (!lateAutoTitleEl || !lateAutoSubEl || !lateAutoDotEl) return;
 
-  lateAutoDotEl.className = `lvl-dot lvl-${Math.max(1, Math.min(next, 4))}`;
-
   if (!student) {
+    lateAutoDotEl.className = "lvl-dot lvl-1";
     lateAutoTitleEl.textContent = "Selecciona un estudiante";
-    lateAutoSubEl.textContent = "La app calculará automáticamente la próxima llegada tarde.";
+
+    lateAutoSubEl.innerHTML = `
+      <span style="font-size:13px; color:var(--muted);">
+        La app mostrará el reporte actual y calculará el siguiente.
+      </span>
+    `;
 
     if (btnLateReport) {
       btnLateReport.textContent = "Reportar";
@@ -9641,9 +9984,58 @@ function lateUpdateAutoBox_(){
     return;
   }
 
+  lateAutoDotEl.className =
+    `lvl-dot lvl-${Math.max(1, current)}`;
+
+  lateAutoTitleEl.textContent = labels[current];
+
+  const countText = current === 1
+    ? "1 llegada tarde registrada este mes"
+    : `${current} llegadas tarde registradas este mes`;
+
   if (current >= 4) {
-    lateAutoTitleEl.textContent = "Ya alcanzó 4 llegadas tarde";
-    lateAutoSubEl.textContent = "Puedes reenviar el reporte para compartirlo nuevamente.";
+    lateAutoSubEl.innerHTML = `
+      <span style="
+        font-size:12px;
+        color:var(--muted);
+        word-break:break-word;
+      ">
+        ${escapeHtml(student)}
+      </span>
+
+      <span style="
+        font-size:13px;
+        font-weight:800;
+        color:var(--text);
+      ">
+        ${countText}
+      </span>
+
+      <span style="
+        display:grid;
+        gap:3px;
+        margin-top:5px;
+        padding:10px 11px;
+        border-radius:12px;
+        border:1px solid rgba(239,68,68,.50);
+        background:rgba(239,68,68,.13);
+        color:var(--text);
+      ">
+        <strong style="
+          color:#f87171;
+          -webkit-text-fill-color:#f87171;
+          font-size:11px;
+          text-transform:uppercase;
+          letter-spacing:.6px;
+        ">
+          Límite alcanzado
+        </strong>
+
+        <span style="font-size:13px;">
+          No se guardará una quinta llegada. Puedes reenviar el reporte.
+        </span>
+      </span>
+    `;
 
     if (btnLateReport) {
       btnLateReport.textContent = "Reenviar";
@@ -9654,9 +10046,57 @@ function lateUpdateAutoBox_(){
     return;
   }
 
-  const labels = ["", "Primera vez", "Segunda vez", "Tercera vez", "Cuarta vez"];
-  lateAutoTitleEl.textContent = labels[next];
-  lateAutoSubEl.textContent = `${student} tiene ${current} registrada(s) este mes. Se guardará como ${labels[next].toLowerCase()}.`;
+  const next = current + 1;
+
+  lateAutoSubEl.innerHTML = `
+    <span style="
+      font-size:12px;
+      color:var(--muted);
+      word-break:break-word;
+    ">
+      ${escapeHtml(student)}
+    </span>
+
+    <span style="
+      font-size:13px;
+      font-weight:800;
+      color:var(--text);
+    ">
+      ${countText}
+    </span>
+
+    <span style="
+      display:grid;
+      gap:3px;
+      margin-top:5px;
+      padding:10px 11px;
+      border-radius:12px;
+      border:1px solid rgba(245,158,11,.55);
+      background:rgba(245,158,11,.15);
+      color:var(--text);
+    ">
+      <strong style="
+        color:#fbbf24;
+        -webkit-text-fill-color:#fbbf24;
+        font-size:11px;
+        text-transform:uppercase;
+        letter-spacing:.6px;
+      ">
+        Próxima llegada tarde
+      </strong>
+
+      <span style="font-size:13px;">
+        Se guardará como
+        <strong style="
+          color:#fbbf24;
+          -webkit-text-fill-color:#fbbf24;
+          font-size:15px;
+        ">
+          ${labels[next]}
+        </strong>
+      </span>
+    </span>
+  `;
 
   if (btnLateReport) {
     btnLateReport.textContent = "Reportar";
@@ -11161,7 +11601,14 @@ function initQrUi_() {
 // ✅ Ejecutar cuando el DOM ya existe
 // ✅ Ejecutar cuando el DOM ya existe
 document.addEventListener("DOMContentLoaded", async () => {
+
   initQrUi_();
+
+  await cargarImagenRegistroSupabase_();
+
+  try {
+    configurarCambioImagenRegistro_();
+  } catch (e) {}
 
   // ✅ mostrar el check azul INMEDIATAMENTE al volver del reload
   try {
@@ -11459,6 +11906,22 @@ const notasPcToolbar = $("notasPcToolbar");
 let __notasColumnas = notasColumnasDefault_();
 
 let __notasEstudiantes = [];
+
+// ============================================================
+// CONTROL DE CARGAS DE PLANILLAS
+// Evita que una respuesta antigua pueda sobrescribir
+// la planilla actualmente seleccionada.
+// ============================================================
+let __notasPlanillaRequestId = 0;
+
+// ============================================================
+// IDENTIDAD DE LA PLANILLA CARGADA EN MEMORIA
+// ============================================================
+let __notasPlanillaLoadedKey = null;
+
+let __notasPlanillaSaveVersion = 0;
+
+let __notasAutoSavePlanillaKey = null;
 
 function notasColumnasDefault_(){
   return [
@@ -12130,7 +12593,12 @@ function showSuccessCheck(message = "¡Registro guardado!", ms = 3200, opts = {}
   }, duration);
 }
 
+
 function mostrarImagenRegistroExitoso_(){
+
+  if(!window.imagenRegistroActual){
+    return;
+  }
 
   const existe = document.getElementById("registroImagenOverlay");
 
@@ -12138,8 +12606,10 @@ function mostrarImagenRegistroExitoso_(){
     existe.remove();
   }
 
+
   const overlay = document.createElement("div");
   overlay.id = "registroImagenOverlay";
+
 
   overlay.innerHTML = `
     <button id="cerrarRegistroImagen"
@@ -12157,46 +12627,63 @@ function mostrarImagenRegistroExitoso_(){
         font-weight:900;
         cursor:pointer;
         z-index:2;
+        backdrop-filter:blur(4px);
       ">
       ×
     </button>
 
+
     <img 
-      src="imagen_registro_exitoso.png"
+      src="${window.imagenRegistroActual || 'imagen_registro_exitoso.png'}"
       alt="Registro exitoso"
       style="
         width:100vw;
         height:100vh;
-        object-fit:cover;
+        object-fit:contain;
         display:block;
       "
     >
   `;
 
+
   Object.assign(overlay.style,{
+
     position:"fixed",
+
     inset:"0",
+
     width:"100vw",
+
     height:"100vh",
-    background:"#000",
+
+    background:
+      "linear-gradient(135deg,#000,#151515)",
+
     zIndex:"999999",
+
     display:"flex",
+
     alignItems:"center",
+
     justifyContent:"center"
+
   });
+
 
 
   document.body.appendChild(overlay);
 
 
+
   document
     .getElementById("cerrarRegistroImagen")
     .onclick = () => {
+
       overlay.remove();
+
     };
 
 }
-
 /**
  * Alert moderno tipo modal (Promise-based)
  * Uso: await alertPro({title, msg, okText, danger})
@@ -12320,23 +12807,51 @@ function openObservationModal_({
   title = "Observación",
   sub = "Escribe la observación para guardar el reporte.",
   placeholder = "Escribe la observación...",
-  initialValue = ""
+  initialValue = "",
+  saveText = "Guardar",
+  cancelText = "Cancelar"
 } = {}) {
   return new Promise((resolve) => {
     __obsModalResolver = resolve;
 
-    if (obsModalTitle) obsModalTitle.textContent = title;
-    if (obsModalSub) obsModalSub.textContent = sub;
+    if (obsModalTitle) {
+      obsModalTitle.textContent = title;
+    }
+
+    if (obsModalSub) {
+      obsModalSub.textContent = sub;
+    }
+
     if (obsModalInput) {
       obsModalInput.value = String(initialValue || "");
       obsModalInput.placeholder = placeholder;
     }
-    if (obsModalHint) obsModalHint.textContent = "";
 
-    if (obsModal) obsModal.hidden = false;
+    if (btnObsSave) {
+      btnObsSave.textContent = String(saveText || "Guardar");
+    }
+
+    if (btnObsCancel) {
+      btnObsCancel.textContent = String(cancelText || "Cancelar");
+    }
+
+    if (obsModalHint) {
+      obsModalHint.textContent = "";
+    }
+
+    if (obsModal) {
+      obsModal.hidden = false;
+    }
 
     setTimeout(() => {
-      try { obsModalInput && obsModalInput.focus(); } catch {}
+      try {
+        if (obsModalInput) {
+          obsModalInput.focus();
+
+          const end = obsModalInput.value.length;
+          obsModalInput.setSelectionRange(end, end);
+        }
+      } catch {}
     }, 20);
   });
 }
@@ -13194,7 +13709,7 @@ function getExitVisualState_(r) {
   const t = timeToMinutes(r.time);
   const schedule = getEffectiveScheduleForTeacher_(r.teacher);
   const limit = timeToMinutes(schedule.exitOk);
-  const extraStart = timeToMinutes("15:30");
+  const extraStart = timeToMinutes("15:20");
 
   if (t == null || limit == null) return "normal";
 
@@ -18543,6 +19058,12 @@ if (btnAdminManual) btnAdminManual.hidden = !isAdminMode();
 
 if (btnAdminStudents) btnAdminStudents.hidden = !isAdminMode();
 
+const btnCambiarImagenRegistro = document.getElementById("btnCambiarImagenRegistro");
+
+if (btnCambiarImagenRegistro) {
+  btnCambiarImagenRegistro.hidden = !isAdminMode();
+}
+
 
 if (btnAdminStudents) {
   btnAdminStudents.addEventListener("click", openAdminStudentsManager_);
@@ -18617,10 +19138,58 @@ function notasSetHint_(msg){
 function notasParseNota_(v){
   const s = String(v ?? "").trim().replace(",", ".");
   if (!s) return null;
+
+  // Permite registrar F/f como falla y la toma como 1.0 en todos los cálculos.
+  if (s.toLowerCase() === "f") return 1;
+
   const n = Number(s);
   if (!Number.isFinite(n)) return null;
   if (n < 0 || n > 5) return null;
   return Math.round(n * 10) / 10;
+}
+
+
+function notasSanitizarEntradaNota_(valor){
+  const raw = String(valor ?? "");
+
+  // F/f es el único valor alfabético permitido y debe ir solo.
+  if (/^\s*[fF]\s*$/.test(raw)) {
+    return raw.includes("f") ? "f" : "F";
+  }
+
+  // Para notas numéricas solo se conservan dígitos y un único separador decimal.
+  // Se mantienen punto o coma porque la planilla ya acepta ambos formatos.
+  let limpio = raw.replace(/[^0-9.,]/g, "");
+  const primerSeparador = limpio.search(/[.,]/);
+
+  if (primerSeparador >= 0) {
+    limpio =
+      limpio.slice(0, primerSeparador + 1) +
+      limpio.slice(primerSeparador + 1).replace(/[.,]/g, "");
+  }
+
+  return limpio;
+}
+
+function notasPuntosProcedimental_(student){
+  const raw = String(student?.notas?.puntos_procedimental ?? "").trim().replace(",", ".");
+  if (!raw) return 0;
+
+  const puntos = Number(raw);
+  if (!Number.isFinite(puntos)) return 0;
+
+  return puntos;
+}
+
+function notasAjustarProcedimental_(promedioBase, student){
+  if (promedioBase === null || !Number.isFinite(Number(promedioBase))) return null;
+
+  // Cada punto equivale a una décima: +1 => +0.1, -1 => -0.1.
+  const ajuste = notasPuntosProcedimental_(student) * 0.1;
+  const total = Number(promedioBase) + ajuste;
+
+  // Mantener la escala de notas de la planilla entre 0.0 y 5.0.
+  return Math.round(Math.min(5, Math.max(0, total)) * 10) / 10;
 }
 
 function notasAvg_(arr){
@@ -18673,7 +19242,8 @@ const notaLimite = nivelCursoActual === "PRIMARIA" ? 3.3 : 3.5;
     detalles.push("Actitudinal: igual a 1");
   }
 
-  const procTotal = notasAvg_(procNotas);
+  const procBase = notasAvg_(procNotas);
+  const procTotal = notasAjustarProcedimental_(procBase, student);
   const cogTotal = notasAvg_(cogNotas);
 
   const definitiva =
@@ -18885,20 +19455,23 @@ function notasColumnasOrdenadas_(){
 
 
 function notasPromedioComponente_(student, componente){
+  const comp = String(componente || "").trim().toLowerCase();
   const cols = notasColumnasOrdenadas_().filter(c =>
-    String(c.componente || "").trim().toLowerCase() === componente
+    String(c.componente || "").trim().toLowerCase() === comp
   );
 
   const vals = cols
-    .map(col => String(student.notas?.[String(col.orden)] ?? "").trim())
-    .filter(v => v !== "")
-    .map(v => Number(v.replace(",", ".")))
-    .filter(n => Number.isFinite(n));
+    .map(col => notasParseNota_(student.notas?.[String(col.orden)]))
+    .filter(n => n !== null);
 
   if (!vals.length) return "—";
 
   const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-  return Number(avg.toFixed(1));
+  const base = Math.round(avg * 10) / 10;
+
+  return comp === "procedimental"
+    ? notasAjustarProcedimental_(base, student)
+    : base;
 }
 
 function notasColumnasPorComponente_(componente){
@@ -19136,6 +19709,11 @@ function notasRenderGrid_(){
         </div>
       `).join("")}
 
+      <div class="notas-cell notas-puntos-cell">
+        Puntos ±<br>
+        <span class="muted small">1 = 0,1</span>
+      </div>
+
       <div class="notas-cell notas-total-cell">
         Total Proc.<br>
         <span class="muted small notas-total-percent">40%</span>
@@ -19204,10 +19782,14 @@ function notasRenderGrid_(){
               const key = String(col.orden);
               return `
                 <div class="notas-cell">
-                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
                 </div>
               `;
             }).join("")}
+
+            <div class="notas-cell notas-puntos-cell">
+              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="puntos_procedimental" data-nota-puntos="1" type="number" step="1" value="${escapeHtml(student.notas?.puntos_procedimental ?? "")}" placeholder="±" title="Cada punto suma o resta 0,1 al promedio procedimental" />
+            </div>
 
             <div class="notas-cell notas-total-cell ${alertaProcClass}">
               <strong>${promProcNum.toFixed(1)}</strong>
@@ -19217,7 +19799,7 @@ function notasRenderGrid_(){
               const key = String(col.orden);
               return `
                 <div class="notas-cell">
-                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.[key] ?? "")}" placeholder="${escapeHtml(col.nombre || key)}" />
                 </div>
               `;
             }).join("")}
@@ -19227,7 +19809,7 @@ function notasRenderGrid_(){
             </div>
 
             <div class="notas-cell">
-              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
+              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" placeholder="Actitudinal" />
             </div>
           </div>
 
@@ -19268,10 +19850,21 @@ function notasRenderGrid_(){
               return `
                 <div class="notas-input-row">
                   <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>
-                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
                 </div>
               `;
             }).join("")}
+
+            <div class="notas-input-row notas-puntos-row">
+              <label>Puntos ± <span class="notas-mobile-pill">1 punto = 0,1</span></label>
+              <div class="notas-puntos-spinner">
+                <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="puntos_procedimental" data-nota-puntos="1" type="number" step="1" inputmode="numeric" value="${escapeHtml(student.notas?.puntos_procedimental ?? "")}" placeholder="0" title="Usa las flechas para sumar o restar puntos" />
+                <div class="notas-puntos-spinner-controls" aria-label="Ajustar puntos">
+                  <button class="notas-puntos-spin-btn" type="button" data-nota-puntos-step="1" data-nota-input="${sIdx}" aria-label="Subir un punto" title="Subir un punto">▲</button>
+                  <button class="notas-puntos-spin-btn" type="button" data-nota-puntos-step="-1" data-nota-input="${sIdx}" aria-label="Bajar un punto" title="Bajar un punto">▼</button>
+                </div>
+              </div>
+            </div>
 
             <div class="notas-input-row notas-total-row ${alertaProcClass}">
               <label>Total Procedimental <span class="notas-mobile-pill">40%</span></label>
@@ -19283,7 +19876,7 @@ function notasRenderGrid_(){
               return `
                 <div class="notas-input-row">
                   <label class="notas-col-editable" data-nota-col-edit="${__notasColumnas.findIndex(c => c.orden === col.orden)}" title="${escapeHtml(col.nombre || key)}">${escapeHtml(col.nombre || key)}</label>
-                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
+                  <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="${key}" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.[key] ?? "")}" />
                 </div>
               `;
             }).join("")}
@@ -19295,7 +19888,7 @@ function notasRenderGrid_(){
 
             <div class="notas-input-row">
               <label>Actitudinal <span class="notas-mobile-pill">20%</span></label>
-              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="number" min="0" max="5" step="0.1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
+              <input class="modal-input" data-nota-input="${sIdx}" data-nota-key="actitudinal" type="text" autocomplete="off" data-nota-grade="1" value="${escapeHtml(student.notas?.actitudinal ?? "")}" />
             </div>
           </div>
 
@@ -19308,7 +19901,7 @@ function notasRenderGrid_(){
               ${notasFormatoDetallesAgrupadosHtml_(calc.detalles)}
             </div>
             <button class="btn btn-secondary notas-share-student-btn" type="button" data-nota-share="${sIdx}">
-              Compartir reporte
+              Compartir notas
             </button>
           ` : ""}
         ` : ""}
@@ -19348,6 +19941,12 @@ function notasRenderGrid_(){
     input.addEventListener("input", () => {
       const sIdx = Number(input.dataset.notaInput);
       const key = String(input.dataset.notaKey || "");
+
+      if (input.dataset.notaGrade === "1") {
+        const limpio = notasSanitizarEntradaNota_(input.value);
+        if (input.value !== limpio) input.value = limpio;
+      }
+
       if (!__notasEstudiantes[sIdx]) return;
       if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
       __notasEstudiantes[sIdx].notas[key] = input.value;
@@ -19355,11 +19954,47 @@ function notasRenderGrid_(){
     });
     input.addEventListener("change", () => { notasProgramarAutoGuardado_(); });
     input.addEventListener("blur", () => {
+      if (input.dataset.notaGrade === "1") {
+        const raw = String(input.value || "").trim();
+        if (raw.toLowerCase() === "f") {
+          input.value = "F";
+          const sIdx = Number(input.dataset.notaInput);
+          const key = String(input.dataset.notaKey || "");
+          if (__notasEstudiantes[sIdx]) {
+            if (!__notasEstudiantes[sIdx].notas) __notasEstudiantes[sIdx].notas = {};
+            __notasEstudiantes[sIdx].notas[key] = "F";
+          }
+        }
+      }
+
       setTimeout(() => {
         const active = document.activeElement;
         if (active && active.matches("#notasStudentsModal [data-nota-input]")) return;
         notasRenderGrid_();
       }, 180);
+    });
+  });
+
+  notasGridEl.querySelectorAll("[data-nota-puntos-step]").forEach(btn => {
+    btn.addEventListener("pointerdown", (e) => { e.stopPropagation(); });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const sIdx = Number(btn.dataset.notaInput);
+      const paso = Number(btn.dataset.notaPuntosStep || 0);
+      const student = __notasEstudiantes[sIdx];
+      if (!student || !Number.isFinite(paso) || paso === 0) return;
+
+      if (!student.notas) student.notas = {};
+
+      const actualRaw = String(student.notas.puntos_procedimental ?? "").trim().replace(",", ".");
+      const actualNum = Number(actualRaw);
+      const actual = Number.isFinite(actualNum) ? Math.trunc(actualNum) : 0;
+      student.notas.puntos_procedimental = String(actual + paso);
+
+      notasProgramarAutoGuardado_();
+      notasRenderGrid_();
     });
   });
 
@@ -19393,17 +20028,10 @@ function notasRenderGrid_(){
       const periodo = String(notasPeriodoEl?.value || "1").trim();
       const estudianteVista = notasNombreVista_(student.estudiante);
 
-      const msg = `Reporte académico\n\n` +
-                  `Estudiante: ${estudianteVista}\n` +
-                  `Curso: ${curso}\n` +
-                  `Asignatura: ${asignatura}\n` +
-                  `Periodo: ${periodo}\n` +
-                  `Definitiva: ${calc.definitiva}\n` +
-                  `Estado: ${calc.estado}\n\n` +
-                  `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
+      const msg = notasConstruirMensajeNotasActualesEstudiante_(student);
 
       if (navigator.share) {
-        await navigator.share({ title: "Reporte académico", text: msg });
+        await navigator.share({ title: "Notas actuales", text: msg });
         return;
       }
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
@@ -19441,15 +20069,7 @@ function notasOpenDetallePc_(sIdx){
     });
   }
 
-  const msg =
-    `Reporte académico\n\n` +
-    `Estudiante: ${estudianteVista}\n` +
-    `Curso: ${curso}\n` +
-    `Asignatura: ${asignatura}\n` +
-    `Periodo: ${periodo}\n` +
-    `Definitiva: ${calc.definitiva}\n` +
-    `Estado: ${calc.estado}\n\n` +
-    `Detalles:\n${notasFormatoDetallesAgrupadosTexto_(calc.detalles)}`;
+  const msg = notasConstruirMensajeNotasActualesEstudiante_(student);
 
   modal.innerHTML = `
     <div class="modal-card notas-pc-detail-card">
@@ -19473,7 +20093,7 @@ function notasOpenDetallePc_(sIdx){
 
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" id="btnNotasPcDetalleCompartir">
-          Compartir reporte
+          Compartir notas
         </button>
       </div>
     </div>
@@ -19488,7 +20108,7 @@ function notasOpenDetallePc_(sIdx){
   document.getElementById("btnNotasPcDetalleCompartir")?.addEventListener("click", async () => {
     if (navigator.share) {
       await navigator.share({
-        title: "Reporte académico",
+        title: "Notas actuales",
         text: msg
       });
       return;
@@ -19658,7 +20278,7 @@ if (actions) {
     btnNotasCompartirDebe.type = "button";
     btnNotasCompartirDebe.id = "btnNotasCompartirDebe";
     btnNotasCompartirDebe.className = "btn notas-share-all-btn";
-    btnNotasCompartirDebe.title = "Compartir todos los estudiantes que deben notas";
+    btnNotasCompartirDebe.title = "Compartir las notas actuales de la planilla";
     btnNotasCompartirDebe.innerHTML = `<i class="fa-solid fa-share-nodes"></i>`;
     btnNotasCompartirDebe.addEventListener("click", notasCompartirDebeTodos_);
   }
@@ -19884,31 +20504,125 @@ async function notasIdbDelete_(storeName, id){
   });
 }
 
-function notasBuildSavePayload_(){
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = String(notasAsignaturaEl?.value || "").trim();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
+function notasBuildSavePayload_() {
+    const curso = String(notasCursoEl?.value || "").trim();
+    const asignatura = String(notasAsignaturaEl?.value || "").trim();
+    const periodo = String(notasPeriodoEl?.value || "1").trim();
 
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const teacher = String(profile?.name || teacherNameEl?.value || "").trim();
-  const email = String(profile?.email || "").trim().toLowerCase();
-  const deviceId = typeof getDeviceId === "function" ? getDeviceId() : "";
+    // ============================================================
+    // PROTECCIÓN CRÍTICA DE IDENTIDAD DE PLANILLA
+    // ============================================================
 
-  if (!curso || !asignatura || !__notasEstudiantes.length) return null;
+    const profileActual =
+        typeof loadProfile === "function" ? loadProfile() : null;
 
-  return {
-    action: "notas_planilla_save",
-    curso,
-    asignatura,
-    periodo,
-    year: new Date().getFullYear(),
-    columnas: __notasColumnas,
-    estudiantes: __notasEstudiantes,
-    teacher,
-    email,
-    device_id: deviceId,
-    key: GS_API_KEY
-  };
+    const emailActual = String(
+        profileActual?.email || ""
+    ).trim().toLowerCase();
+
+    const planillaActualKey = notasPlanillaCacheKey_(
+        curso,
+        asignatura,
+        periodo,
+        emailActual
+    );
+
+    if (
+        !__notasPlanillaLoadedKey ||
+        __notasPlanillaLoadedKey !== planillaActualKey
+    ) {
+        console.warn(
+            "Guardado bloqueado: la memoria no corresponde a la planilla seleccionada.",
+            {
+                planillaCargada: __notasPlanillaLoadedKey,
+                planillaActual: planillaActualKey,
+                curso,
+                asignatura,
+                periodo
+            }
+        );
+
+        notasSetHint_(
+            "Guardado bloqueado: la planilla todavía no está cargada de forma segura."
+        );
+
+        return null;
+    }
+
+    // ============================================================
+    // PERFIL
+    // ============================================================
+
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
+
+    const teacher = String(
+        profile?.name ||
+        teacherNameEl?.value ||
+        ""
+    ).trim();
+
+    const email = String(
+        profile?.email || ""
+    ).trim().toLowerCase();
+
+    const deviceId =
+        typeof getDeviceId === "function"
+            ? getDeviceId()
+            : "";
+
+    if (
+        !curso ||
+        !asignatura ||
+        !__notasEstudiantes.length
+    ) {
+        return null;
+    }
+
+    // ============================================================
+    // PROTECCIÓN DE VERSIÓN
+    // ============================================================
+    // La versión corresponde EXCLUSIVAMENTE a esta planilla.
+    // Nunca usamos una versión de otra asignatura o curso.
+    // ============================================================
+
+    const saveVersionRaw =
+        Number(__notasPlanillaSaveVersion);
+
+    const saveVersion =
+        Number.isFinite(saveVersionRaw) &&
+        saveVersionRaw >= 0
+            ? saveVersionRaw
+            : 0;
+
+    return {
+        action: "notas_planilla_save",
+
+        curso,
+        asignatura,
+        periodo,
+
+        year:
+            new Date().getFullYear(),
+
+        columnas:
+            __notasColumnas,
+
+        estudiantes:
+            __notasEstudiantes,
+
+        teacher,
+        email,
+        device_id: deviceId,
+
+        // Protección contra guardados atrasados
+        save_version: saveVersion,
+
+        key:
+            GS_API_KEY
+    };
 }
 
 function notasPayloadCacheKey_(payload){
@@ -19920,322 +20634,1437 @@ function notasPayloadCacheKey_(payload){
   );
 }
 
-async function notasGuardarLocalSeguro_(payload, { pending = true } = {}){
-  if (!payload) return null;
+async function notasGuardarLocalSeguro_(payload, { pending = true } = {}) {
+    if (!payload) return null;
 
-  const cacheKey = notasPayloadCacheKey_(payload);
-  const now = Date.now();
+    const cacheKey = notasPayloadCacheKey_(payload);
+    const now = Date.now();
 
-  const localValue = {
-    columnas: payload.columnas,
-    estudiantes: payload.estudiantes,
-    offline_meta: {
-      ts: now,
-      pending: !!pending
-    }
-  };
+    const saveVersion =
+        Number.isFinite(Number(payload.save_version))
+            ? Number(payload.save_version)
+            : 0;
 
-  // Mantiene tu cache actual
-  notasPlanillaCacheWrite_(cacheKey, localValue);
-
-  // Copia fuerte en IndexedDB
-  await notasIdbPut_(NOTAS_IDB_PLANILLAS, {
-    id: cacheKey,
-    ts: now,
-    value: localValue
-  });
-
-  // Cola de sincronización
-  if (pending) {
-    await notasIdbPut_(NOTAS_IDB_QUEUE, {
-      id: cacheKey,
-      ts: now,
-      attempts: 0,
-      payload
-    });
-  }
-
-  try {
-    notasSaveLastSelection_();
-  } catch {}
-
-  return cacheKey;
-}
-
-async function notasEnviarPayloadSupabase_(payload){
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if (!data.ok) {
-    throw new Error(data.msg || data.error || "notas_planilla_save_failed");
-  }
-
-  return data;
-}
-
-async function notasSyncPendientes_({ silent = true } = {}){
-  if (__notasSyncRunning) return;
-  if (!navigator.onLine) return;
-
-  __notasSyncRunning = true;
-
-  try {
-    const items = await notasIdbGetAll_(NOTAS_IDB_QUEUE);
-
-    for (const item of items) {
-      try {
-        const payload = item.payload;
-        await notasEnviarPayloadSupabase_(payload);
-
-        const cacheKey = notasPayloadCacheKey_(payload);
-
-        await notasGuardarLocalSeguro_(payload, { pending: false });
-        await notasIdbDelete_(NOTAS_IDB_QUEUE, item.id);
-
-        if (!silent) {
-          notasSetHint_("Notas sincronizadas con Supabase ✅");
-        }
-
-        if (notasAlertasModal && !notasAlertasModal.hidden) {
-          notasAlertasLimpiarCache_();
-          notasAlertasBuscar_({ silent: true, useCache: false });
-        }
-      } catch (e) {
-await notasIdbPut_(NOTAS_IDB_QUEUE, {
-  ...item,
-  attempts: Number(item.attempts || 0) + 1,
-  lastError: String(e?.message || e),
-  lastAttempt: Date.now()
-});
-      }
-    }
-  } finally {
-    __notasSyncRunning = false;
-  }
-}
-
-function notasProgramarAutoGuardado_(){
-  clearTimeout(__notasAutoSaveTimer);
-
-  __notasAutoSaveTimer = setTimeout(async () => {
-    try {
-      const payload = notasBuildSavePayload_();
-      if (!payload) return;
-
-      const currentHash = JSON.stringify({
-        curso: payload.curso,
-        asignatura: payload.asignatura,
-        periodo: payload.periodo,
+    const localValue = {
         columnas: payload.columnas,
-        estudiantes: payload.estudiantes
-      });
+        estudiantes: payload.estudiantes,
 
-      if (currentHash === __notasLastAutoSaveHash) return;
-      __notasLastAutoSaveHash = currentHash;
+        // Versión de ESTA planilla
+        save_version: saveVersion,
 
-      await notasGuardarLocalSeguro_(payload, { pending: true });
+        offline_meta: {
+            ts: now,
+            pending: !!pending
+        }
+    };
 
-      if (navigator.onLine) {
-        notasSyncPendientes_({ silent: true });
-        notasSetHint_("Autoguardado local ✅ Sincronizando…");
-      } else {
-        notasSetHint_("Autoguardado local ✅ Pendiente por sincronizar.");
-      }
-    } catch (e) {
-      console.warn("Autoguardado notas falló:", e);
+    // Mantiene tu cache actual
+    notasPlanillaCacheWrite_(cacheKey, localValue);
+
+    // Copia fuerte en IndexedDB
+    await notasIdbPut_(NOTAS_IDB_PLANILLAS, {
+        id: cacheKey,
+        ts: now,
+        value: localValue
+    });
+
+    // Cola de sincronización
+    if (pending) {
+        await notasIdbPut_(NOTAS_IDB_QUEUE, {
+            id: cacheKey,
+            ts: now,
+            attempts: 0,
+            payload
+        });
     }
-  }, 900);
+
+    try {
+        notasSaveLastSelection_();
+    } catch {}
+
+    return cacheKey;
 }
 
+async function notasEnviarPayloadSupabase_(payload) {
+    const res = await fetch(GS_WEBAPP_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (!data.ok) {
+        const error = new Error(
+            data.msg ||
+            data.error ||
+            "notas_planilla_save_failed"
+        );
+
+        error.status = res.status;
+        error.data = data;
+
+        throw error;
+    }
+
+    return data;
+}
+
+async function notasSyncPendientes_({ silent = true } = {}) {
+
+    if (__notasSyncRunning) return;
+    if (!navigator.onLine) return;
+
+    __notasSyncRunning = true;
+
+    try {
+
+        const items =
+            await notasIdbGetAll_(
+                NOTAS_IDB_QUEUE
+            );
+
+        for (const item of items) {
+
+            try {
+
+                const payload = item?.payload;
+
+                // ====================================================
+                // PASO 1.13 — VALIDACIÓN DEL PAYLOAD DE LA COLA
+                // ====================================================
+                // Una entrada de IndexedDB puede sobrevivir al cambio
+                // de asignatura, cierre de la aplicación, reconexión,
+                // etc.
+                //
+                // No debemos enviar datos incompletos a Supabase.
+                // ====================================================
+
+                if (
+                    !payload ||
+                    typeof payload !== "object"
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización inválido."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR IDENTIDAD BÁSICA
+                // ====================================================
+
+                const cursoPayload =
+                    String(
+                        payload.curso || ""
+                    ).trim();
+
+                const asignaturaPayload =
+                    String(
+                        payload.asignatura || ""
+                    ).trim();
+
+                const periodoPayload =
+                    String(
+                        payload.periodo || ""
+                    ).trim();
+
+                const emailPayload =
+                    String(
+                        payload.email || ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    !cursoPayload ||
+                    !asignaturaPayload ||
+                    !periodoPayload ||
+                    !emailPayload
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin identidad completa de planilla."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR ESTUDIANTES
+                // ====================================================
+
+                if (
+                    !Array.isArray(
+                        payload.estudiantes
+                    )
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin estudiantes válidos."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR COLUMNAS
+                // ====================================================
+
+                if (
+                    !Array.isArray(
+                        payload.columnas
+                    )
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin columnas válidas."
+                    );
+                }
+
+                // ====================================================
+                // IDENTIDAD DE LA ENTRADA DE COLA
+                // ====================================================
+
+                const payloadKey =
+                    notasPlanillaCacheKey_(
+                        cursoPayload,
+                        asignaturaPayload,
+                        periodoPayload,
+                        emailPayload
+                    );
+
+
+
+
+                    // ====================================================
+// PROTECCIÓN CONTRA PAYLOAD CON VERSIÓN ATRASADA
+// ====================================================
+
+const payloadVersion =
+    Number(payload.save_version);
+
+if (
+    Number.isFinite(payloadVersion) &&
+    payloadVersion >= 0
+) {
+
+    const cached =
+        notasPlanillaCacheRead_(
+            payloadKey
+        );
+
+    const localVersion =
+        Number(
+            cached?.value?.save_version
+        );
+
+    if (
+        Number.isFinite(localVersion) &&
+        localVersion > payloadVersion
+    ) {
+
+        console.warn(
+            "Payload offline descartado por versión antigua.",
+            {
+                payloadKey,
+                payloadVersion,
+                localVersion,
+                curso: cursoPayload,
+                asignatura: asignaturaPayload,
+                periodo: periodoPayload
+            }
+        );
+
+        await notasIdbDelete_(
+            NOTAS_IDB_QUEUE,
+            item.id
+        );
+
+        continue;
+    }
+}
+
+                // ====================================================
+                // PROTECCIÓN CONTRA PAYLOAD VACÍO
+                // ====================================================
+                // Si existe una planilla con estudiantes, no debemos
+                // permitir que una entrada completamente vacía sea
+                // enviada como si fuera una actualización legítima.
+                //
+                // IMPORTANTE:
+                // No bloqueamos estudiantes.length === 0 de forma
+                // absoluta porque una planilla realmente podría
+                // quedar sin estudiantes.
+                // ====================================================
+
+                const tieneEstudiantes =
+                    payload.estudiantes.length > 0;
+
+                const tieneNotas =
+                    payload.estudiantes.some(
+                        estudiante =>
+                            estudiante &&
+                            estudiante.notas &&
+                            typeof estudiante.notas === "object" &&
+                            Object.keys(
+                                estudiante.notas
+                            ).length > 0
+                    );
+
+                const tieneColumnas =
+                    payload.columnas.length > 0;
+
+                if (
+                    !tieneEstudiantes &&
+                    !tieneColumnas &&
+                    !tieneNotas
+                ) {
+
+                    throw new Error(
+                        "Payload rechazado: planilla completamente vacía."
+                    );
+                }
+
+                // ====================================================
+                // LOG DE SEGURIDAD
+                // ====================================================
+
+                console.log(
+                    "Sincronizando planilla pendiente:",
+                    {
+                        payloadKey,
+                        curso: cursoPayload,
+                        asignatura: asignaturaPayload,
+                        periodo: periodoPayload,
+                        estudiantes:
+                            payload.estudiantes.length,
+                        columnas:
+                            payload.columnas.length,
+                        tieneNotas
+                    }
+                );
+
+                // ====================================================
+                // ENVIAR A SUPABASE
+                // ====================================================
+
+                await notasEnviarPayloadSupabase_(
+                    payload
+                );
+
+                // ====================================================
+                // SOLO SI SUPABASE CONFIRMÓ EL ENVÍO:
+                // marcar como no pendiente
+                // ====================================================
+
+                const cacheKey =
+                    notasPayloadCacheKey_(
+                        payload
+                    );
+
+                await notasGuardarLocalSeguro_(
+                    payload,
+                    {
+                        pending: false
+                    }
+                );
+
+                await notasIdbDelete_(
+                    NOTAS_IDB_QUEUE,
+                    item.id
+                );
+
+                if (!silent) {
+
+                    notasSetHint_(
+                        "Notas sincronizadas con Supabase ✅"
+                    );
+                }
+
+                if (
+                    notasAlertasModal &&
+                    !notasAlertasModal.hidden
+                ) {
+
+                    notasAlertasLimpiarCache_();
+
+                    notasAlertasBuscar_({
+                        silent: true,
+                        useCache: false
+                    });
+                }
+
+            } catch (e) {
+
+                // ====================================================
+                // EL ELEMENTO NO SE BORRA
+                // ====================================================
+                // Si falla, permanece en la cola para poder intentar
+                // nuevamente.
+                // ====================================================
+
+                await notasIdbPut_(
+                    NOTAS_IDB_QUEUE,
+                    {
+                        ...item,
+
+                        attempts:
+                            Number(
+                                item.attempts || 0
+                            ) + 1,
+
+                        lastError:
+                            String(
+                                e?.message || e
+                            ),
+
+                        lastAttempt:
+                            Date.now()
+                    }
+                );
+            }
+        }
+
+    } finally {
+
+        __notasSyncRunning = false;
+    }
+}
+
+function notasProgramarAutoGuardado_() {
+
+    clearTimeout(__notasAutoSaveTimer);
+
+    // ============================================================
+    // IDENTIDAD DE LA PLANILLA AL PROGRAMAR EL AUTOGUARDADO
+    // ============================================================
+    // Capturamos la planilla que realmente estaba activa cuando
+    // se produjo la modificación.
+    // ============================================================
+
+    const cursoProgramado =
+        String(notasCursoEl?.value || "").trim();
+
+    const asignaturaProgramada =
+        String(notasAsignaturaEl?.value || "").trim();
+
+    const periodoProgramado =
+        String(notasPeriodoEl?.value || "1").trim();
+
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
+
+    const emailProgramado =
+        String(profile?.email || "")
+            .trim()
+            .toLowerCase();
+
+    const planillaProgramadaKey =
+        notasPlanillaCacheKey_(
+            cursoProgramado,
+            asignaturaProgramada,
+            periodoProgramado,
+            emailProgramado
+        );
+
+    // Registrar la identidad del autoguardado programado.
+    __notasAutoSavePlanillaKey =
+        planillaProgramadaKey;
+
+    // ============================================================
+    // ESPERAR 900 ms
+    // ============================================================
+
+    __notasAutoSaveTimer = setTimeout(async () => {
+
+        try {
+
+            // ====================================================
+            // PROTECCIÓN 1
+            // ====================================================
+            // Si otra modificación volvió a programar el
+            // autoguardado, este callback ya no es válido.
+            // ====================================================
+
+            if (
+                __notasAutoSavePlanillaKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado descartado: existe una programación más reciente."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // OBTENER SELECCIÓN ACTUAL
+            // ====================================================
+
+            const cursoActual =
+                String(
+                    notasCursoEl?.value || ""
+                ).trim();
+
+            const asignaturaActual =
+                String(
+                    notasAsignaturaEl?.value || ""
+                ).trim();
+
+            const periodoActual =
+                String(
+                    notasPeriodoEl?.value || "1"
+                ).trim();
+
+            const profileActual =
+                typeof loadProfile === "function"
+                    ? loadProfile()
+                    : {};
+
+            const emailActual =
+                String(
+                    profileActual?.email || ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const planillaActualKey =
+                notasPlanillaCacheKey_(
+                    cursoActual,
+                    asignaturaActual,
+                    periodoActual,
+                    emailActual
+                );
+
+            // ====================================================
+            // PROTECCIÓN 2
+            // ====================================================
+            // La selección no puede haber cambiado.
+            // ====================================================
+
+            if (
+                planillaActualKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado descartado: la planilla seleccionada cambió.",
+                    {
+                        planillaProgramadaKey,
+                        planillaActualKey
+                    }
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // PROTECCIÓN 3
+            // ====================================================
+            // La memoria debe pertenecer EXACTAMENTE a la
+            // planilla que se está intentando guardar.
+            // ====================================================
+
+            if (
+                !__notasPlanillaLoadedKey ||
+                __notasPlanillaLoadedKey !==
+                    planillaActualKey
+            ) {
+
+                console.warn(
+                    "Autoguardado bloqueado: la memoria no corresponde a la planilla actual.",
+                    {
+                        planillaCargada:
+                            __notasPlanillaLoadedKey,
+
+                        planillaActual:
+                            planillaActualKey
+                    }
+                );
+
+                notasSetHint_(
+                    "Autoguardado bloqueado: la planilla todavía se está cargando."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // CONSTRUIR PAYLOAD
+            // ====================================================
+
+            const payload =
+                notasBuildSavePayload_();
+
+            // ====================================================
+            // PROTECCIÓN 4
+            // ====================================================
+            // notasBuildSavePayload_() también tiene su propia
+            // protección de identidad.
+            // ====================================================
+
+            if (!payload) {
+                return;
+            }
+
+            // ====================================================
+            // PROTECCIÓN 5
+            // ====================================================
+            // Confirmar nuevamente que el payload pertenece a la
+            // misma planilla que acabamos de validar.
+            // ====================================================
+
+            const payloadKey =
+                notasPlanillaCacheKey_(
+                    String(
+                        payload.curso || ""
+                    ).trim(),
+
+                    String(
+                        payload.asignatura || ""
+                    ).trim(),
+
+                    String(
+                        payload.periodo || "1"
+                    ).trim(),
+
+                    String(
+                        payload.email || emailActual
+                    )
+                        .trim()
+                        .toLowerCase()
+                );
+
+            if (
+                payloadKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado bloqueado: identidad del payload diferente a la planilla programada.",
+                    {
+                        planillaProgramadaKey,
+                        payloadKey
+                    }
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // HASH ACTUAL
+            // ====================================================
+
+            const currentHash =
+                JSON.stringify({
+                    curso:
+                        payload.curso,
+
+                    asignatura:
+                        payload.asignatura,
+
+                    periodo:
+                        payload.periodo,
+
+                    columnas:
+                        payload.columnas,
+
+                    estudiantes:
+                        payload.estudiantes
+                });
+
+            // ====================================================
+            // EVITAR GUARDADOS REPETIDOS
+            // ====================================================
+
+            if (
+                currentHash ===
+                __notasLastAutoSaveHash
+            ) {
+                return;
+            }
+
+            // ====================================================
+            // GUARDAR LOCALMENTE
+            // ====================================================
+            // IMPORTANTE:
+            // NO actualizamos __notasLastAutoSaveHash todavía.
+            // Primero debemos comprobar que el guardado local
+            // terminó correctamente.
+            // ====================================================
+
+            await notasGuardarLocalSeguro_(
+                payload,
+                {
+                    pending: true
+                }
+            );
+
+            // ====================================================
+            // PROTECCIÓN 6
+            // ====================================================
+            // Después del await el usuario pudo haber cambiado
+            // nuevamente de planilla.
+            //
+            // En ese caso NO sincronizamos este payload.
+            // ====================================================
+
+            const planillaDespuesDelGuardado =
+                notasPlanillaCacheKey_(
+                    String(
+                        notasCursoEl?.value || ""
+                    ).trim(),
+
+                    String(
+                        notasAsignaturaEl?.value || ""
+                    ).trim(),
+
+                    String(
+                        notasPeriodoEl?.value || "1"
+                    ).trim(),
+
+                    String(
+                        (
+                            typeof loadProfile === "function"
+                                ? loadProfile()
+                                : {}
+                        )?.email || ""
+                    )
+                        .trim()
+                        .toLowerCase()
+                );
+
+            if (
+                planillaDespuesDelGuardado !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Sincronización omitida: la planilla cambió durante el guardado local."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // AHORA SÍ REGISTRAMOS EL HASH COMO GUARDADO
+            // ====================================================
+
+            __notasLastAutoSaveHash =
+                currentHash;
+
+            // ====================================================
+            // SINCRONIZACIÓN
+            // ====================================================
+
+            if (navigator.onLine) {
+
+                await notasSyncPendientes_({
+                    silent: true
+                });
+
+                notasSetHint_(
+                    "Autoguardado local ✅ Sincronizado."
+                );
+
+            } else {
+
+                notasSetHint_(
+                    "Autoguardado local ✅ Pendiente por sincronizar."
+                );
+            }
+
+        } catch (e) {
+
+            console.warn(
+                "Autoguardado notas falló:",
+                e
+            );
+        }
+
+    }, 900);
+}
 
 
 function notasTryOpenFromLastCache_(){
+
   const last = notasReadLastSelection_();
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const email = String(profile?.email || "").trim().toLowerCase();
 
-  const curso = String(last.curso || "").trim();
-  const asignatura = String(last.asignatura || "").trim();
-  const periodo = String(last.periodo || "1").trim();
+  const profile =
+    typeof loadProfile === "function"
+      ? loadProfile()
+      : {};
 
-  if (!curso || !asignatura || !email) return false;
+  const email = String(
+    profile?.email || ""
+  ).trim().toLowerCase();
 
-  if (notasCursoEl) notasCursoEl.value = curso;
-  if (notasAsignaturaEl) notasAsignaturaEl.value = asignatura;
-  if (notasPeriodoEl) notasPeriodoEl.value = periodo;
+  const curso =
+    String(last.curso || "").trim();
 
-  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-  const cached = notasPlanillaCacheRead_(cacheKey);
+  const asignatura =
+    String(last.asignatura || "").trim();
 
-  if (!cached?.value) return false;
+  const periodo =
+    String(last.periodo || "1").trim();
+
+  if (!curso || !asignatura || !email) {
+    return false;
+  }
+
+  // ============================================================
+  // RESTAURAR LA ÚLTIMA SELECCIÓN
+  // ============================================================
+
+  if (notasCursoEl) {
+    notasCursoEl.value = curso;
+  }
+
+  if (notasAsignaturaEl) {
+    notasAsignaturaEl.value = asignatura;
+  }
+
+  if (notasPeriodoEl) {
+    notasPeriodoEl.value = periodo;
+  }
+
+  // ============================================================
+  // IDENTIDAD EXACTA DE ESTA PLANILLA
+  // ============================================================
+
+  const cacheKey = notasPlanillaCacheKey_(
+    curso,
+    asignatura,
+    periodo,
+    email
+  );
+
+  const cached =
+    notasPlanillaCacheRead_(cacheKey);
+
+  if (!cached?.value) {
+    return false;
+  }
+
+  // ============================================================
+  // PROTECCIÓN
+  // ============================================================
+  // Esta carga inicial solamente puede aplicarse porque el
+  // cache corresponde exactamente a la selección restaurada.
+  // ============================================================
 
   notasOpenPcSheet_();
-  notasAplicarPlanillaCache_(cached.value);
+
+  const aplicada =
+    notasAplicarPlanillaCache_(cached.value);
+
+  if (!aplicada) {
+    return false;
+  }
+
+
+  __notasPlanillaSaveVersion =
+    Number.isFinite(Number(cached.value?.save_version))
+        ? Number(cached.value.save_version)
+        : 0;
+  // ============================================================
+  // REGISTRAR IDENTIDAD DE LOS DATOS EN MEMORIA
+  // ============================================================
+
+  __notasPlanillaLoadedKey = cacheKey;
+
   notasSetSubtitulo_();
 
   return true;
 }
 
+async function notasAbrirPlanillaActual_(opts = {}) {
 
+    const silent = opts?.silent === true;
+    const useCache = opts?.useCache !== false;
 
-async function notasAbrirPlanillaActual_(opts = {}){
-  const silent = opts?.silent === true;
-  const useCache = opts?.useCache !== false;
+    // ============================================================
+    // IDENTIFICADOR ÚNICO DE ESTA CARGA
+    // ============================================================
+    // Cada nueva solicitud invalida automáticamente cualquier
+    // solicitud anterior que todavía esté esperando respuesta.
+    // ============================================================
+    const requestId = ++__notasPlanillaRequestId;
 
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = notasEnsureAsignatura_();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
+    const curso = String(
+        notasCursoEl?.value || ""
+    ).trim();
 
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const email = String(profile?.email || "").trim().toLowerCase();
+    const asignatura = notasEnsureAsignatura_();
 
-  notasSetSubtitulo_();
+    const periodo = String(
+        notasPeriodoEl?.value || "1"
+    ).trim();
 
-  if (!curso) {
-    __notasEstudiantes = [];
-    notasRenderGrid_();
-    return notasSetHint_("Selecciona un curso.");
-  }
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
 
-  if (!asignatura) {
-    __notasEstudiantes = [];
-    notasRenderGrid_();
-    return notasSetHint_("Selecciona una asignatura.");
-  }
+    const email = String(
+        profile?.email || ""
+    ).trim().toLowerCase();
 
-  if (!email) return notasSetHint_("No encontré el correo del docente.");
+    notasSetSubtitulo_();
 
-  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-const cached = useCache ? notasPlanillaCacheRead_(cacheKey) : null;
+    // ============================================================
+    // VALIDACIONES BÁSICAS
+    // ============================================================
 
-if (cached?.value) {
-  notasAplicarPlanillaCache_(cached.value);
-} else if (useCache) {
-  const idbCached = await notasIdbGet_(NOTAS_IDB_PLANILLAS, cacheKey);
-  if (idbCached?.value) {
-    notasAplicarPlanillaCache_(idbCached.value);
-  }
-}
+    if (!curso) {
 
-if (!navigator.onLine) {
-  const students = await gsCourseStudentsCached(curso);
+        __notasEstudiantes = [];
 
- if (Array.isArray(students) && students.length) {
+        notasRenderGrid_();
 
-  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
-
-  __notasEstudiantes = students.map(name => ({
-    estudiante: String(name || "").trim(),
-    notas: {}
-  })).filter(x => x.estudiante);
-
-    notasRenderColumnas_();
-    notasRenderGrid_();
-
-    notasSetHint_("Planilla abierta en modo offline ✅ Estudiantes cargados desde este curso.");
-  } else {
-    __notasEstudiantes = [];
-    notasRenderColumnas_();
-    notasRenderGrid_();
-
-    notasSetHint_("Sin internet y sin estudiantes guardados para este curso.");
-  }
-
-  return;
-}
-
-  try {
-    if (!silent) {
-      setLoading(true, "Cargando…", "Abriendo planilla de notas.");
+        return notasSetHint_(
+            "Selecciona un curso."
+        );
     }
 
-    const res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "notas_planilla_get",
+    if (!asignatura) {
+
+        __notasEstudiantes = [];
+
+        notasRenderGrid_();
+
+        return notasSetHint_(
+            "Selecciona una asignatura."
+        );
+    }
+
+    if (!email) {
+        return notasSetHint_(
+            "No encontré el correo del docente."
+        );
+    }
+
+    // ============================================================
+    // IDENTIDAD EXACTA DE ESTA PLANILLA
+    // ============================================================
+
+    const cacheKey = notasPlanillaCacheKey_(
         curso,
         asignatura,
         periodo,
-        year: new Date().getFullYear(),
-        email,
-        key: GS_API_KEY
-      })
-    });
+        email
+    );
 
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_get_failed");
+    // ============================================================
+    // INDICA SI ESTA PLANILLA YA FUE CARGADA DESDE CACHE
+    // ============================================================
+    // Si existe una copia de ESTA misma planilla, jamás debemos
+    // reemplazarla por una planilla nueva/vacía solo porque estamos
+    // offline.
+    // ============================================================
 
-    if (data.exists) {
-      __notasColumnas = (data.columnas || []).map((c, idx) => ({
-        orden: Number(c.orden || idx + 1),
-        nombre: String(c.nombre || `Actividad ${idx + 1}`),
-        porcentaje: Number(c.porcentaje || 0),
-        componente: String(c.componente || "procedimental").trim().toLowerCase()
-      }));
+    let planillaCargadaDesdeCache = false;
 
-      __notasEstudiantes = (data.estudiantes || []).map(r => ({
-        estudiante: String(r.estudiante || "").trim(),
-        notas: r.notas || {}
-      })).filter(x => x.estudiante);
+    // ============================================================
+    // CACHE LOCAL SEGURO
+    // ============================================================
+    // El cache solamente puede aplicarse si esta carga sigue siendo
+    // la solicitud vigente.
+    // ============================================================
 
-      notasPlanillaCacheWrite_(cacheKey, {
-        columnas: __notasColumnas,
-        estudiantes: __notasEstudiantes
-      });
+    if (useCache) {
 
-      notasRenderColumnas_();
-      notasRenderGrid_();
-      notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
-      return;
+        const cached =
+            notasPlanillaCacheRead_(cacheKey);
+
+        // --------------------------------------------------------
+        // LOCALSTORAGE
+        // --------------------------------------------------------
+
+        if (cached?.value) {
+
+            // La selección pudo cambiar mientras se procesaba
+            // esta carga.
+            if (
+                requestId !==
+                __notasPlanillaRequestId
+            ) {
+                return;
+            }
+
+            notasAplicarPlanillaCache_(
+                cached.value
+            );
+
+            // Esta planilla ya tiene datos propios.
+            planillaCargadaDesdeCache = true;
+
+            // Registrar exactamente qué planilla está en memoria.
+            __notasPlanillaLoadedKey = cacheKey;
+
+        } else {
+
+            // ----------------------------------------------------
+            // INDEXEDDB
+            // ----------------------------------------------------
+
+            const idbCached =
+                await notasIdbGet_(
+                    NOTAS_IDB_PLANILLAS,
+                    cacheKey
+                );
+
+            // ====================================================
+            // PROTECCIÓN CONTRA CACHE INDEXEDDB ATRASADO
+            // ====================================================
+
+            if (
+                requestId !==
+                __notasPlanillaRequestId
+            ) {
+
+                console.warn(
+                    "Cache IndexedDB descartado por estar desactualizado.",
+                    {
+                        requestId,
+                        requestActual:
+                            __notasPlanillaRequestId,
+                        curso,
+                        asignatura,
+                        periodo
+                    }
+                );
+
+                return;
+            }
+
+            if (idbCached?.value) {
+
+                notasAplicarPlanillaCache_(
+                    idbCached.value
+                );
+
+                // Esta planilla ya tiene datos propios.
+                planillaCargadaDesdeCache = true;
+
+                // Registrar exactamente qué planilla está en memoria.
+                __notasPlanillaLoadedKey = cacheKey;
+            }
+        }
     }
 
-    const students = await gsCourseStudentsCached(curso);
+    // ============================================================
+    // MODO OFFLINE
+    // ============================================================
 
-    __notasColumnas = notasColumnasDefault_();
-    __notasEstudiantes = (students || []).map(name => ({
-      estudiante: String(name || "").trim(),
-      notas: {}
-    })).filter(x => x.estudiante);
+    if (!navigator.onLine) {
 
-    notasPlanillaCacheWrite_(cacheKey, {
-      columnas: __notasColumnas,
-      estudiantes: __notasEstudiantes
-    });
+        // ========================================================
+        // PROTECCIÓN CRÍTICA OFFLINE
+        // ========================================================
+        // Si ya cargamos una copia de ESTA misma planilla desde
+        // localStorage o IndexedDB, NO podemos reemplazarla por
+        // estudiantes con notas vacías.
+        // ========================================================
 
-    notasRenderColumnas_();
-    notasRenderGrid_();
-    notasSetHint_("Planilla nueva. Guarda para conservar las notas.");
-} catch (e) {
-  const students = await gsCourseStudentsCached(curso);
+        if (planillaCargadaDesdeCache) {
 
-if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+            notasRenderColumnas_();
+            notasRenderGrid_();
 
-  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
+            notasSetHint_(
+                "Planilla cargada desde guardado local seguro ✅"
+            );
 
-  __notasEstudiantes = students.map(name => ({
-    estudiante: String(name || "").trim(),
-    notas: {}
-  })).filter(x => x.estudiante);
+            return;
+        }
 
-    notasRenderColumnas_();
-    notasRenderGrid_();
+        // ========================================================
+        // IMPORTANTE:
+        // Si no tenemos una copia segura de esta planilla,
+        // podemos mostrar estudiantes del curso para permitir
+        // trabajo offline, PERO esa memoria todavía queda
+        // identificada como esta planilla.
+        //
+        // La protección de guardado impedirá guardar si la
+        // identidad no está confirmada.
+        // ========================================================
 
-    notasSetHint_("Sin respuesta del servidor. Planilla nueva abierta con estudiantes locales ✅");
-  } else if (__notasEstudiantes.length) {
-    notasRenderColumnas_();
-    notasRenderGrid_();
+        const students =
+            await gsCourseStudentsCached(curso);
 
-    notasSetHint_("Sin conexión o sin respuesta del servidor. Planilla abierta desde guardado local ✅");
-  } else {
-    notasSetHint_(String(e?.message || e));
-  }
-} finally {
-    if (!silent) setLoading(false);
-  }
+        if (
+            Array.isArray(students) &&
+            students.length
+        ) {
+
+            __notasColumnas =
+                notasColumnasDefault_();
+
+            __notasEstudiantes =
+                students
+                    .map(name => ({
+                        estudiante:
+                            String(
+                                name || ""
+                            ).trim(),
+                        notas: {}
+                    }))
+                    .filter(
+                        x => x.estudiante
+                    );
+
+            // Esta memoria corresponde a la selección actual,
+            // pero NO proviene de una planilla existente.
+            __notasPlanillaLoadedKey =
+                cacheKey;
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Planilla abierta en modo offline ✅ Estudiantes cargados desde este curso."
+            );
+
+        } else {
+
+            __notasEstudiantes = [];
+
+            __notasColumnas =
+                notasColumnasDefault_();
+
+            // No consideramos esta memoria como una planilla
+            // segura para guardar.
+            __notasPlanillaLoadedKey = null;
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Sin internet y sin estudiantes guardados para este curso."
+            );
+        }
+
+        return;
+    }
+
+    // ============================================================
+    // CONSULTA AL SERVIDOR
+    // ============================================================
+
+    try {
+
+        if (!silent) {
+
+            setLoading(
+                true,
+                "Cargando…",
+                "Abriendo planilla de notas."
+            );
+        }
+
+        const res = await fetch(
+            GS_WEBAPP_URL,
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    action: "notas_planilla_get",
+                    curso,
+                    asignatura,
+                    periodo,
+                    year: new Date().getFullYear(),
+                    email,
+                    key: GS_API_KEY
+                })
+            }
+        );
+
+        const data =
+            await res.json();
+
+        // ========================================================
+        // PROTECCIÓN CONTRA RESPUESTAS ATRASADAS
+        // ========================================================
+        // Si mientras esperábamos esta respuesta el usuario cambió
+        // de curso, asignatura o periodo, esta solicitud ya no es
+        // la solicitud vigente.
+        //
+        // En ese caso:
+        // - NO aplicamos estudiantes.
+        // - NO aplicamos columnas.
+        // - NO escribimos cache.
+        // - NO renderizamos.
+        // - NO mostramos sus datos.
+        // ========================================================
+
+        if (
+            requestId !==
+            __notasPlanillaRequestId
+        ) {
+
+            console.warn(
+                "Carga de planilla descartada por estar desactualizada.",
+                {
+                    requestId,
+                    requestActual:
+                        __notasPlanillaRequestId,
+                    curso,
+                    asignatura,
+                    periodo
+                }
+            );
+
+            return;
+        }
+
+        if (!data.ok) {
+
+            throw new Error(
+                data.msg ||
+                data.error ||
+                "notas_planilla_get_failed"
+            );
+        }
+
+        // ========================================================
+        // PLANILLA EXISTENTE
+        // ========================================================
+
+        if (data.exists) {
+
+            __notasColumnas =
+                (data.columnas || [])
+                    .map((c, idx) => ({
+                        orden:
+                            Number(
+                                c.orden ||
+                                idx + 1
+                            ),
+
+                        nombre:
+                            String(
+                                c.nombre ||
+                                `Actividad ${idx + 1}`
+                            ),
+
+                        porcentaje:
+                            Number(
+                                c.porcentaje ||
+                                0
+                            ),
+
+                        componente:
+                            String(
+                                c.componente ||
+                                "procedimental"
+                            )
+                                .trim()
+                                .toLowerCase()
+                    }));
+
+            __notasEstudiantes =
+                (data.estudiantes || [])
+                    .map(r => ({
+                        estudiante:
+                            String(
+                                r.estudiante ||
+                                ""
+                            ).trim(),
+
+                        notas:
+                            r.notas || {}
+                    }))
+                    .filter(
+                        x => x.estudiante
+                    );
+
+
+
+                    // ============================================================
+// RESTAURAR VERSIÓN REAL DE ESTA PLANILLA
+// ============================================================
+
+__notasPlanillaSaveVersion =
+    Number.isFinite(Number(data.save_version))
+        ? Number(data.save_version)
+        : 0;
+            // ====================================================
+            // ESTA ES LA PLANILLA REAL DEL SERVIDOR
+            // ====================================================
+
+            __notasPlanillaLoadedKey =
+                cacheKey;
+
+            // ====================================================
+            // GUARDAR COPIA LOCAL
+            // ====================================================
+
+            notasPlanillaCacheWrite_(
+                cacheKey,
+                {
+                    columnas:
+                        __notasColumnas,
+
+                    estudiantes:
+                        __notasEstudiantes
+                }
+            );
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                `Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // PLANILLA NUEVA
+        // ========================================================
+        // IMPORTANTE:
+        // Solo llegamos aquí porque el servidor respondió
+        // explícitamente que data.exists === false.
+        //
+        // Eso es diferente a un error de red.
+        // ========================================================
+
+        const students =
+            await gsCourseStudentsCached(curso);
+
+        __notasColumnas =
+            notasColumnasDefault_();
+
+        __notasEstudiantes =
+            (students || [])
+                .map(name => ({
+                    estudiante:
+                        String(
+                            name || ""
+                        ).trim(),
+
+                    notas: {}
+                }))
+                .filter(
+                    x => x.estudiante
+                );
+
+        // Esta memoria corresponde a la planilla seleccionada,
+        // aunque todavía no exista guardada en Supabase.
+        __notasPlanillaLoadedKey =
+            cacheKey;
+
+        notasPlanillaCacheWrite_(
+            cacheKey,
+            {
+                columnas:
+                    __notasColumnas,
+
+                estudiantes:
+                    __notasEstudiantes
+            }
+        );
+
+        notasRenderColumnas_();
+        notasRenderGrid_();
+
+        notasSetHint_(
+            "Planilla nueva. Guarda para conservar las notas."
+        );
+
+    } catch (e) {
+
+        // ========================================================
+        // PASO 1.10 — PROTECCIÓN CRÍTICA DEL CATCH
+        // ========================================================
+        // Un error de red, servidor o consulta NO significa que
+        // la planilla existente esté vacía.
+        //
+        // NUNCA creamos aquí una planilla default encima de una
+        // planilla existente.
+        // ========================================================
+
+        if (
+            requestId !==
+            __notasPlanillaRequestId
+        ) {
+
+            console.warn(
+                "Error de una carga antigua descartado.",
+                {
+                    requestId,
+                    requestActual:
+                        __notasPlanillaRequestId,
+                    curso,
+                    asignatura,
+                    periodo
+                }
+            );
+
+            return;
+        }
+
+        const planillaActualKeyCatch =
+            notasPlanillaCacheKey_(
+                curso,
+                asignatura,
+                periodo,
+                email
+            );
+
+        // ========================================================
+        // SI LA MEMORIA CORRESPONDE A ESTA PLANILLA
+        // ========================================================
+
+        if (
+            __notasPlanillaLoadedKey &&
+            __notasPlanillaLoadedKey ===
+                planillaActualKeyCatch &&
+            Array.isArray(
+                __notasEstudiantes
+            ) &&
+            __notasEstudiantes.length
+        ) {
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Sin conexión o sin respuesta del servidor. Planilla conservada desde guardado local ✅"
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // SI NO TENEMOS UNA PLANILLA SEGURA
+        // ========================================================
+        // No reutilizamos datos de otra asignatura.
+        // No fabricamos estudiantes.
+        // No ponemos notas vacías para después guardarlas.
+        // ========================================================
+
+        __notasPlanillaLoadedKey = null;
+
+        __notasEstudiantes = [];
+
+        __notasColumnas =
+            notasColumnasDefault_();
+
+        notasRenderColumnas_();
+        notasRenderGrid_();
+
+        notasSetHint_(
+            "No fue posible cargar esta planilla. Por seguridad no se realizará ningún guardado."
+        );
+
+    } finally {
+
+        if (!silent) {
+            setLoading(false);
+        }
+    }
 }
 
 const NOTAS_LAST_SELECTION_KEY = "notas_last_selection_v1";
@@ -20322,46 +22151,151 @@ async function notasCargarPlanillaGuardada_(){
 }
 
 
-async function notasCompartirDebeTodos_(){
+function notasFormatoValorActual_(valor){
+  const nota = notasParseNota_(valor);
+  return nota === null ? null : Number(nota).toFixed(1);
+}
+
+function notasNotasActualesComponente_(student, componente){
+  return notasColumnasPorComponente_(componente)
+    .map(col => {
+      const valor = notasFormatoValorActual_(student?.notas?.[String(col.orden)]);
+      if (valor === null) return null;
+
+      return {
+        nombre: String(col.nombre || `Actividad ${col.orden}`).trim(),
+        valor
+      };
+    })
+    .filter(Boolean);
+}
+
+function notasTieneNotasActuales_(student){
+  return notasNotasActualesComponente_(student, "procedimental").length > 0 ||
+         notasNotasActualesComponente_(student, "cognitivo").length > 0 ||
+         notasFormatoValorActual_(student?.notas?.actitudinal) !== null;
+}
+
+function notasConstruirBloqueNotasActuales_(student, incluirContexto = false){
   const curso = String(notasCursoEl?.value || "").trim();
   const asignatura = String(notasAsignaturaEl?.value || "").trim();
   const periodo = String(notasPeriodoEl?.value || "1").trim();
+  const estudianteVista = notasNombreVista_(student?.estudiante);
+  const calc = notasCalcStudent_(student || {});
 
+  const procedimentales = notasNotasActualesComponente_(student, "procedimental");
+  const cognitivos = notasNotasActualesComponente_(student, "cognitivo");
+  const actitudinal = notasFormatoValorActual_(student?.notas?.actitudinal);
+
+  const lineas = [`Estudiante: ${estudianteVista || "—"}`];
+
+  if (incluirContexto) {
+    lineas.push(
+      `Curso: ${curso || "—"}`,
+      `Asignatura: ${asignatura || "—"}`,
+      `Periodo: ${periodo || "—"}`
+    );
+  }
+
+  if (procedimentales.length) {
+    lineas.push("", "Procedimental (40%):");
+    procedimentales.forEach(item => lineas.push(`• ${item.nombre}: ${item.valor}`));
+
+    const puntosProc = notasPuntosProcedimental_(student);
+    if (puntosProc !== 0) {
+      const signo = puntosProc > 0 ? "+" : "";
+      lineas.push(`Puntos procedimentales: ${signo}${puntosProc} (${signo}${(puntosProc * 0.1).toFixed(1)} en la nota)`);
+    }
+
+    if (calc.procTotal !== "—") {
+      lineas.push(`Promedio procedimental: ${Number(calc.procTotal).toFixed(1)}`);
+    }
+  }
+
+  if (cognitivos.length) {
+    lineas.push("", "Cognitivo (40%):");
+    cognitivos.forEach(item => lineas.push(`• ${item.nombre}: ${item.valor}`));
+    if (calc.cogTotal !== "—") {
+      lineas.push(`Promedio cognitivo: ${Number(calc.cogTotal).toFixed(1)}`);
+    }
+  }
+
+  if (actitudinal !== null) {
+    lineas.push("", `Actitudinal (20%): ${actitudinal}`);
+  }
+
+  if (calc.definitiva !== "—") {
+    lineas.push("", `Definitiva actual: ${Number(calc.definitiva).toFixed(1)}`);
+  }
+
+  if (!procedimentales.length && !cognitivos.length && actitudinal === null) {
+    lineas.push("", "Sin notas registradas actualmente.");
+  }
+
+  return lineas.join("\n");
+}
+
+function notasConstruirMensajeNotasActualesEstudiante_(student){
+  return `Notas actuales\n\n${notasConstruirBloqueNotasActuales_(student, true)}`;
+}
+
+async function notasCompartirDebeTodos_(){
   if (!__notasEstudiantes.length) {
     return notasSetHint_("No hay estudiantes cargados para compartir.");
   }
 
-  const pendientes = __notasEstudiantes
-    .map(student => {
-      const calc = notasCalcStudent_(student);
-      return { student, calc };
-    })
-    .filter(x => String(x.calc.estado || "").trim() === "DEBE_NOTAS");
+  const estudiantes = __notasEstudiantes
+    .filter(notasTieneNotasActuales_)
+    .slice()
+    .sort((a,b)=>notasNombreVista_(a.estudiante).localeCompare(notasNombreVista_(b.estudiante), "es", {sensitivity:"base"}));
 
-  if (!pendientes.length) {
-    return notasSetHint_("No hay estudiantes que deban notas en esta planilla.");
+  if (!estudiantes.length) {
+    return notasSetHint_("No hay notas registradas actualmente para compartir.");
   }
 
-  const msg =
-    `Reporte de estudiantes que deben notas\n\n` +
-    `Curso: ${curso || "—"}\n` +
-    `Asignatura: ${asignatura || "—"}\n` +
-    `Periodo: ${periodo || "—"}\n\n` +
-    pendientes.map((x, idx) =>
-      `${idx + 1}. ${x.student.estudiante}\n` +
-      `Definitiva: ${x.calc.definitiva ?? "—"}\n` +
-      `Detalles:\n${notasFormatoDetallesAgrupados_(x.calc.detalles)}`
-    ).join("\n\n");
+  let modal = document.getElementById("notasCompartirEstudianteModal");
 
-  if (navigator.share) {
-    await navigator.share({
-      title: "Reporte de estudiantes que deben notas",
-      text: msg
-    });
-    return;
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "notasCompartirEstudianteModal";
+    modal.className = "modal-backdrop";
+    document.body.appendChild(modal);
   }
 
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  modal.innerHTML = `
+    <div class="modal-card">
+      <h2 style="margin:0 0 8px">Compartir notas</h2>
+      <p class="muted small">Seleccione el estudiante que desea enviar por WhatsApp.</p>
+      <select id="notasCompartirEstudianteSelect" class="modal-input">
+        ${estudiantes.map((s,i)=>`<option value="${i}">${escapeHtml(notasNombreVista_(s.estudiante))}</option>`).join("")}
+      </select>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="notasCompartirCancelar">Cancelar</button>
+        <button class="btn btn-secondary" id="notasCompartirEnviar">Compartir notas</button>
+      </div>
+    </div>
+  `;
+
+  modal.hidden = false;
+
+  const cerrar = ()=>{ modal.hidden = true; };
+  document.getElementById("notasCompartirCancelar")?.addEventListener("click", cerrar);
+
+  document.getElementById("notasCompartirEnviar")?.addEventListener("click", async ()=>{
+    const idx = Number(document.getElementById("notasCompartirEstudianteSelect")?.value || 0);
+    const student = estudiantes[idx];
+    if (!student) return;
+
+    const msg = notasConstruirMensajeNotasActualesEstudiante_(student);
+    cerrar();
+
+    if (navigator.share) {
+      await navigator.share({ title:"Notas actuales", text:msg });
+      return;
+    }
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+  });
 }
 
 function notasExcelSafe_(v){
@@ -20395,6 +22329,7 @@ function notasDescargarExcel_(){
   const headers = [
     "Estudiante",
     ...procCols.map(c => c.nombre || `Actividad ${c.orden}`),
+    "Puntos +/- (1 punto = 0,1)",
     "Total Procedimental 40%",
     ...cogCols.map(c => c.nombre || `Cognitivo ${c.orden}`),
     "Total Cognitivo 40%",
@@ -20417,6 +22352,7 @@ function notasDescargarExcel_(){
       return [
         notasNombreVista_(student.estudiante),
         ...procCols.map(c => student.notas?.[String(c.orden)] ?? ""),
+        student.notas?.puntos_procedimental ?? "",
         calc.procTotal ?? "—",
         ...cogCols.map(c => student.notas?.[String(c.orden)] ?? ""),
         calc.cogTotal ?? "—",
@@ -20512,6 +22448,16 @@ setStatus("warn", "Sincronizando…", "Enviando planilla a Supabase.");
 
 const data = await notasEnviarPayloadSupabase_(payload);
 
+
+// ============================================================
+// ACTUALIZAR VERSIÓN LOCAL CON LA VERSIÓN CONFIRMADA
+// POR SUPABASE
+// ============================================================
+
+if (Number.isFinite(Number(data.save_version))) {
+    __notasPlanillaSaveVersion = Number(data.save_version);
+}
+
     // 3) Si subió bien, marca como sincronizada
     await notasGuardarLocalSeguro_(payload, { pending: false });
     await notasIdbDelete_(NOTAS_IDB_QUEUE, notasPayloadCacheKey_(payload));
@@ -20521,10 +22467,37 @@ const data = await notasEnviarPayloadSupabase_(payload);
     }
 
     notasSetHint_(data.msg || "Planilla guardada y sincronizada ✅");
-  } catch (e) {
-    // Aunque falle Supabase, NO se pierde el trabajo
-    notasSetHint_("Planilla guardada localmente ✅ Pendiente por sincronizar.");
-  } finally {
+ } catch (e) {
+
+    // ============================================================
+    // BLOQUEO DE SEGURIDAD DEL BACKEND
+    // ============================================================
+    // Un 409 significa que la planilla cambió en Supabase.
+    // NO debemos presentar esto como un simple problema de conexión.
+    // ============================================================
+
+    if (
+        e?.status === 409 ||
+        e?.response?.status === 409 ||
+        String(e?.message || "").includes("versión desactualizada") ||
+        String(e?.message || "").includes("version")
+    ) {
+
+        notasSetHint_(
+            "Guardado bloqueado: la planilla fue modificada. Recarga la planilla antes de guardar."
+        );
+
+        return;
+    }
+
+    // ============================================================
+    // ERROR NORMAL DE CONEXIÓN
+    // ============================================================
+
+    notasSetHint_(
+        "Planilla guardada localmente ✅ Pendiente por sincronizar."
+    );
+} finally {
     setLoading(false);
   }
 }
@@ -20788,6 +22761,52 @@ function notasAlertasHint_(msg){
 const NOTAS_ALERTAS_COURSES_CACHE = "notas_alertas_courses_cache_v1";
 const NOTAS_ALERTAS_DATA_CACHE = "notas_alertas_data_cache_v1";
 
+
+const NOTAS_ALERTAS_FILTROS_CACHE = "notas_alertas_filtros_cache_v1";
+
+
+function notasAlertasGuardarFiltros_(){
+  try {
+    localStorage.setItem(
+      NOTAS_ALERTAS_FILTROS_CACHE,
+      JSON.stringify({
+        curso: notasAlertasCursoEl?.value || "",
+        asignatura: notasAlertasAsignaturaEl?.value || "",
+        tipo: notasAlertasTipoEl?.value || "",
+        periodo: notasAlertasPeriodoEl?.value || ""
+      })
+    );
+  } catch {}
+}
+
+
+function notasAlertasRestaurarFiltros_(){
+  try {
+    const data = JSON.parse(
+      localStorage.getItem(NOTAS_ALERTAS_FILTROS_CACHE) || "null"
+    );
+
+    if (!data) return;
+
+    if (notasAlertasCursoEl) {
+      notasAlertasCursoEl.value = data.curso || "";
+    }
+
+    if (notasAlertasAsignaturaEl) {
+      notasAlertasAsignaturaEl.value = data.asignatura || "";
+    }
+
+    if (notasAlertasTipoEl) {
+      notasAlertasTipoEl.value = data.tipo || "";
+    }
+
+    if (notasAlertasPeriodoEl) {
+      notasAlertasPeriodoEl.value = data.periodo || "";
+    }
+
+  } catch {}
+}
+
 function notasCacheRead_(key){
   try {
     return JSON.parse(localStorage.getItem(key) || "null");
@@ -20936,9 +22955,28 @@ function notasAlertasFiltrarPorTipo_(items){
     const cogTotal = notasAlertasNum_(item.cog_total);
 
     switch(tipo){
-      case "procedimental":
-        return procTotal !== null && procTotal < 3.5;
-      case "cognitivo":
+case "procedimental":
+  return procTotal !== null && procTotal < 3.5;
+
+case "reporte_periodo_actual": {
+  const partes = String(item.detalles || "")
+    .split(";")
+    .map(x => x.trim())
+    .filter(Boolean);
+
+  return partes.some(parte => {
+    const texto = parte.toLowerCase();
+
+    return texto.startsWith("procedimental") &&
+           (
+             texto.includes("vacía") ||
+             texto.includes("vacia") ||
+             texto.includes("igual a 1")
+           );
+  });
+}
+
+case "cognitivo":
         return cogTotal !== null && cogTotal < 3.5;
       case "definitiva":
         return definitiva !== null && definitiva < 3.5;
@@ -21173,11 +23211,29 @@ function notasAlertasDetallesPorFiltroTexto_(a){
   const detallesRaw = String(a.detalles || "");
   const partes = detallesRaw.split(";").map(x => x.trim()).filter(Boolean);
 
-  if (tipo === "procedimental") {
-    return `Nota procedimental: ${notasAlertasFmtNota_(a.proc_total)}`;
-  }
+if (tipo === "procedimental") {
+  return `Nota procedimental: ${notasAlertasFmtNota_(a.proc_total)}`;
+}
 
-  if (tipo === "cognitivo") {
+if (tipo === "reporte_periodo_actual") {
+  const pendientesProcedimentales = partes.filter(parte => {
+    const texto = parte.toLowerCase();
+
+    return texto.startsWith("procedimental") &&
+           (
+             texto.includes("vacía") ||
+             texto.includes("vacia") ||
+             texto.includes("igual a 1")
+           );
+  });
+
+  return pendientesProcedimentales.length
+    ? `Actividades procedimentales pendientes:
+${notasFormatoDetallesAgrupadosTexto_(pendientesProcedimentales.join("; "))}`
+    : "Actividades procedimentales pendientes: —";
+}
+
+if (tipo === "cognitivo") {
     return `Nota cognitiva: ${notasAlertasFmtNota_(a.cog_total)}`;
   }
 
@@ -21215,7 +23271,7 @@ function notasAlertasDetallesPorFiltroHtml_(a){
   .replace(/\*/g, "");
 
       html = html.replace(
-        /^(Nota procedimental:|Nota cognitiva:|Nota definitiva:|Actividades pendientes:|Notas bajas:|Detalles:)/,
+        /^(Nota procedimental:|Nota cognitiva:|Nota definitiva:|Actividades procedimentales pendientes:|Actividades pendientes:|Notas bajas:|Detalles:)/,
         `<strong class="notas-detalle-grupo">$1</strong>`
       );
 
@@ -21352,9 +23408,21 @@ async function notasAlertasBuscar_(opts = {}){
 
   if (useCache) {
     const cached = notasCacheRead_(cacheKey);
-    if (cached?.value) {
-      notasAlertasAplicarItems_(cached.value);
-    }
+ if (cached?.value) {
+
+  // La selección pudo cambiar mientras se procesaba la carga.
+  if (requestId !== __notasPlanillaRequestId) {
+    return;
+  }
+
+  notasAplicarPlanillaCache_(cached.value);
+
+  // Esta planilla ya tiene datos propios.
+  // NO debe ser reemplazada por una planilla vacía.
+  planillaCargadaDesdeCache = true;
+
+  __notasPlanillaLoadedKey = cacheKey;
+}
   }
 
   try {
@@ -21384,7 +23452,7 @@ async function notasAlertasBuscar_(opts = {}){
   } finally {
     if (!silent) setLoading(false);
   }
-}
+}  
 
 async function notasAlertasOpen_(){
   if (!notasAlertasModal) return;
@@ -21393,7 +23461,9 @@ async function notasAlertasOpen_(){
   notasAlertasHint_("Cargando alertas…");
 
   try {
-    await notasAlertasLoadCourses_();
+   await notasAlertasLoadCourses_();
+
+notasAlertasRestaurarFiltros_();
 
     // Muestra cache de inmediato si existe, y luego actualiza desde Supabase.
     await notasAlertasBuscar_({
@@ -21479,14 +23549,20 @@ notasAlertasCursoEl?.addEventListener("change", async () => {
     notasAlertasAsignaturaEl.value = "";
   }
 
+  notasAlertasGuardarFiltros_();
+
   await notasAlertasBuscar_();
 });
 
 notasAlertasTipoEl?.addEventListener("change", async () => {
+  notasAlertasGuardarFiltros_();
+
   await notasAlertasBuscar_();
 });
 
 notasAlertasAsignaturaEl?.addEventListener("change", async () => {
+  notasAlertasGuardarFiltros_();
+
   await notasAlertasBuscar_();
 });
 
@@ -21494,6 +23570,14 @@ btnNotasAlertasCerrar?.addEventListener("click", () => {
   if (notasAlertasModal) notasAlertasModal.hidden = true;
   mantenerMenuNotasAbierto_();
 });
+
+
+notasAlertasPeriodoEl?.addEventListener("change", async () => {
+  notasAlertasGuardarFiltros_();
+
+  await notasAlertasBuscar_();
+});
+
 
 btnNotasAlertasCompartir?.addEventListener("click", notasAlertasCompartir_);
 
@@ -22484,27 +24568,68 @@ if (btnAdminViewAssist) {
     openAdminAssistModal();
 setLoading(true, "Cargando…", "Leyendo docentes del mes seleccionado.");
 
-// ✅ AQUI VA ESTO:
+// ✅ Cargar meses reales para el modal Ver asistencias
 if (adminMonthSelect) {
-  const months = await gsAdminListMonths();
 
-adminMonthSelect.innerHTML = (months.length ? months : [{ key: "", label: "(Sin meses)" }])
-  .map(m => {
-    const year = String(m.key || "").split("-")[0] || "";
-    const label = year ? `${formatMonthLabel(m.key)}` : String(m.label || "");
-    return `<option value="${escapeHtml(m.key)}">${escapeHtml(label)}</option>`;
-  })
-  .join("");
+  let months = [];
 
-// ✅ por defecto: mes actual
-const currentMonth = monthKeyFromDate(new Date());
-const hasCurrentMonth = (months || []).some(m => String(m.key || "").trim() === currentMonth);
+  try {
+    months = await gsAdminListMonths();
+  } catch (e) {
+    months = [];
+  }
 
-if (hasCurrentMonth) {
-  adminMonthSelect.value = currentMonth;
-} else if ((months || []).length) {
-  adminMonthSelect.value = String(months[0].key || "").trim();
-}
+  // ✅ asegurar siempre el mes actual
+  const currentMonth = monthKeyFromDate(new Date());
+
+  const existsCurrent = (months || []).some(
+    m => String(m.key || "").trim() === currentMonth
+  );
+
+  if (!existsCurrent) {
+    months.unshift({
+      key: currentMonth,
+      label: formatMonthLabel(currentMonth)
+    });
+  }
+
+  // ✅ quitar duplicados
+  const seen = new Set();
+
+  months = months.filter(m => {
+    const key = String(m.key || "").trim();
+
+    if (!key || seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
+
+  // ✅ ordenar más reciente primero
+  months.sort((a,b) =>
+    String(b.key || "").localeCompare(String(a.key || ""))
+  );
+
+  adminMonthSelect.innerHTML = months
+    .map(m => {
+
+      const key = String(m.key || "").trim();
+
+      return `
+        <option value="${escapeHtml(key)}">
+          ${escapeHtml(formatMonthLabel(key))}
+        </option>
+      `;
+
+    })
+    .join("");
+
+  // ✅ seleccionar julio (mes actual)
+  if (months.some(m => String(m.key) === currentMonth)) {
+    adminMonthSelect.value = currentMonth;
+  } else if (months.length) {
+    adminMonthSelect.value = months[0].key;
+  }
 }
 
 // y después:
@@ -27323,17 +29448,6 @@ async function checkLocation() {
   const { latitude, longitude, accuracy } = pos.coords;
   const dist = distanceMeters(latitude, longitude, SCHOOL_LAT, SCHOOL_LNG);
 
-alert(
-  "UBICACIÓN:\n" +
-  "Lat: " + latitude.toFixed(6) + "\n" +
-  "Lng: " + longitude.toFixed(6) + "\n\n" +
-  "COLEGIO:\n" +
-  "Lat: " + SCHOOL_LAT + "\n" +
-  "Lng: " + SCHOOL_LNG + "\n\n" +
-  "Precisión: " + Math.round(accuracy) + " m\n" +
-  "Distancia: " + Math.round(dist) + " m"
-);
-
   distEl.textContent = `${Math.round(dist)} m`;
   accEl.textContent = `${Math.round(accuracy)} m`;
   coordsEl.textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
@@ -28717,11 +30831,11 @@ async function register(type) {
     try { setLoading(false); } catch (e) {}
 
     // ✅ mostrar chulito grande automático
-showSuccessCheck(`${type} registrada correctamente`, 3200);
+  showSuccessCheck(`${type} registrada correctamente`, 3200);
 
 setTimeout(() => {
   mostrarImagenRegistroExitoso_();
-}, 500);
+}, 3400);
 
   // ✅ sincronización automática más segura
 setTimeout(() => {
@@ -29727,28 +31841,74 @@ if (btnLateReport) {
     if (__lateSaving) return;
 
     const profile = loadProfile();
-    const teacher = String((profile && profile.name) || teacherNameEl.value || "").trim();
-    const email = String(profile?.email || "").trim().toLowerCase();
 
-    const course = String(lateCourseEl && lateCourseEl.value || "").trim();
-    const student = String(lateStudentEl && lateStudentEl.value || "").trim();
-    const observation = String(lateObservationEl && lateObservationEl.value || "").trim();
+    const teacher = String(
+      (profile && profile.name) || teacherNameEl.value || ""
+    ).trim();
+
+    const email = String(
+      profile?.email || ""
+    ).trim().toLowerCase();
+
+    const course = String(
+      (lateCourseEl && lateCourseEl.value) || ""
+    ).trim();
+
+    const student = String(
+      (lateStudentEl && lateStudentEl.value) || ""
+    ).trim();
 
     const item = lateFindInCache_(student);
     const current = item ? Number(item.maxTimes || 0) : 0;
 
-    if (!teacher) return lateSetHint_("Falta el docente.");
 
-    if (!course || course === "__ALL__") {
-      return lateSetHint_("Selecciona un curso específico para reportar.");
+    if (!teacher) {
+      return lateSetHint_("Falta el docente.");
     }
 
-    if (!student) return lateSetHint_("Selecciona o escribe el estudiante.");
 
-   if (current >= 4) {
-  await lateShareReachedFour_(student);
-  return;
-}
+    if (!course || course === "__ALL__") {
+      return lateSetHint_(
+        "Selecciona un curso específico para reportar."
+      );
+    }
+
+
+    if (!student) {
+      return lateSetHint_(
+        "Selecciona o escribe el estudiante."
+      );
+    }
+
+
+    if (current >= 4) {
+      await lateShareReachedFour_(student);
+      return;
+    }
+
+
+    /*
+      NUEVO:
+      La observación ahora sale en el modal.
+      Cancelar = no guarda nada.
+      Aceptar = continúa el proceso normal.
+    */
+
+    const observation = await openObservationModal_({
+      title: "Observación de llegada tarde",
+      sub: `${student} • ${course}`,
+      placeholder:
+        "Ej: El estudiante llegó tarde al inicio de la jornada.",
+      initialValue: "",
+      saveText: "Aceptar",
+      cancelText: "Cancelar"
+    });
+
+
+    if (observation === null) {
+      return;
+    }
+
 
     const submitKey = [
       lateMonthKey_(),
@@ -29758,21 +31918,38 @@ if (btnLateReport) {
       observation
     ].join("|");
 
+
     const now = Date.now();
 
-    if (__lateLastSubmitKey === submitKey && now - __lateLastSubmitAt < 8000) {
-      return lateSetHint_("Este reporte ya se está guardando. Espera un momento.");
+
+    if (
+      __lateLastSubmitKey === submitKey &&
+      now - __lateLastSubmitAt < 8000
+    ) {
+      return lateSetHint_(
+        "Este reporte ya se está guardando. Espera un momento."
+      );
     }
 
+
     __lateSaving = true;
+
     __lateLastSubmitKey = submitKey;
     __lateLastSubmitAt = now;
+
 
     btnLateReport.disabled = true;
     btnLateReport.textContent = "Guardando...";
 
+
     try {
-      setLoading(true, "Guardando", "Registrando llegada tarde.");
+
+      setLoading(
+        true,
+        "Guardando",
+        "Registrando llegada tarde."
+      );
+
 
       const resp = await gsLateArrivalReport({
         teacher,
@@ -29783,50 +31960,113 @@ if (btnLateReport) {
         observation
       });
 
+
       if (Array.isArray(resp.list)) {
+
         __lateCacheList = resp.list;
+
       } else {
+
         await lateRefreshList_();
+
       }
 
-      try {
-  __latePollToken = await gsLateArrivalChangesToken();
-} catch {}
 
-lateSaveCacheToStorage_();
+      try {
+
+        __latePollToken =
+          await gsLateArrivalChangesToken();
+
+      } catch {}
+
+
+      lateSaveCacheToStorage_();
+
 
       lateRenderReportedList_();
+
       lateUpdateAutoBox_();
+
       lateRenderDetail_(student);
 
-      if (lateObservationEl) lateObservationEl.value = "";
 
-lateSuccessToast_(Number(resp.times || 0));
 
-      if (resp && resp.justReported && String(resp.wa_msg || "").trim()) {
-        const msg = String(resp.wa_msg || "").trim();
+      lateSuccessToast_(
+        Number(resp.times || 0)
+      );
 
-        if (typeof confirmAndShareReport_ === "function") {
+
+
+      if (
+        resp &&
+        resp.justReported &&
+        String(resp.wa_msg || "").trim()
+      ) {
+
+        const msg =
+          String(resp.wa_msg || "").trim();
+
+
+        if (
+          typeof confirmAndShareReport_ === "function"
+        ) {
+
           await confirmAndShareReport_({
             student,
             msg,
-            title: "Compartir reporte (Llegadas tarde)"
+            title:
+              "Compartir reporte (Llegadas tarde)"
           });
+
+
         } else if (navigator.share) {
-          await navigator.share({ text: msg });
+
+
+          await navigator.share({
+            text: msg
+          });
+
+
         } else {
-          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank");
+
+
+          window.open(
+            `https://wa.me/?text=${encodeURIComponent(msg)}`,
+            "_blank"
+          );
+
+
         }
+
       }
 
+
     } catch (e) {
-      lateSetHint_(String(e && e.message ? e.message : e));
+
+
+      lateSetHint_(
+        String(
+          e && e.message
+            ? e.message
+            : e
+        )
+      );
+
+
     } finally {
+
+
       __lateSaving = false;
+
       btnLateReport.disabled = false;
+
       btnLateReport.textContent = "Reportar";
+
       setLoading(false);
+
+
     }
+
   });
 }
 }
@@ -30011,8 +32251,660 @@ select.addEventListener("change", function(){
   runFooterPromo();
 })();
 
+async function cargarImagenRegistroSupabase_(){
+
+  try {
+
+    const res = await fetch(
+      GS_WEBAPP_URL,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "get_imagen_registro",
+          key: GS_API_KEY
+        })
+      }
+    );
 
 
+    const r = await res.json()
+      .catch(() => null);
+
+
+    if(!r || !r.ok){
+      console.warn(
+        "No se pudo cargar imagen registro:",
+        r?.msg
+      );
+      return;
+    }
+
+
+if(r.activo && r.url){
+
+  window.imagenRegistroActual = r.url;
+
+}else{
+
+  window.imagenRegistroActual = "";
+
+}
+
+
+  } catch(e){
+
+    console.warn(
+      "Error cargando imagen registro:",
+      e
+    );
+
+  }
+
+}
+
+
+function configurarCambioImagenRegistro_(){
+
+  const boton = document.getElementById(
+    "btnCambiarImagenRegistro"
+  );
+
+
+  const selector = document.getElementById(
+    "selectorImagenRegistro"
+  );
+
+
+  if(!boton || !selector) return;
+
+
+  if(!isAdminMode()){
+
+    boton.style.display = "none";
+
+    return;
+
+  }
+
+
+
+  boton.onclick = () => {
+
+    mostrarModalImagenRegistro_();
+
+  };
+
+
+
+  selector.onchange = async () => {
+
+
+    const archivo = selector.files[0];
+
+
+    if(!archivo) return;
+
+
+    try {
+
+
+      const reader = new FileReader();
+
+
+      reader.onload = async () => {
+
+
+        const res = await fetch(
+          GS_WEBAPP_URL,
+          {
+
+            method:"POST",
+
+            body:JSON.stringify({
+
+              action:
+              "upload_imagen_registro",
+
+              key:
+              GS_API_KEY,
+
+              imagen:
+              reader.result,
+
+              nombre:
+              archivo.name
+
+            })
+
+          }
+        );
+
+
+
+        const r =
+        await res.json()
+        .catch(()=>null);
+
+
+
+        if(!r || !r.ok){
+
+          throw new Error(
+            r?.msg ||
+            "No se pudo subir imagen"
+          );
+
+        }
+
+
+
+        if(r.url){
+
+          window.imagenRegistroActual =
+          r.url;
+
+        }
+
+
+
+        showSuccessCheck(
+          "Imagen actualizada correctamente",
+          2500
+        );
+
+
+      };
+
+
+      reader.readAsDataURL(
+        archivo
+      );
+
+
+    }catch(e){
+
+
+      console.error(e);
+
+
+      alert(
+        "No se pudo actualizar la imagen"
+      );
+
+
+    }
+
+
+  };
+
+
+}
+
+
+async function mostrarModalImagenRegistro_(){
+
+  const existe =
+  document.getElementById(
+    "modalImagenRegistro"
+  );
+
+
+  if(existe){
+    existe.remove();
+  }
+
+
+  let activoActual = false;
+
+
+  try {
+
+    const res = await fetch(
+      GS_WEBAPP_URL,
+      {
+        method:"POST",
+        body:JSON.stringify({
+
+          action:
+          "get_imagen_registro",
+
+          key:
+          GS_API_KEY
+
+        })
+      }
+    );
+
+
+    const r =
+    await res.json();
+
+
+    if(r.ok){
+
+      activoActual =
+      Boolean(r.activo);
+
+    }
+
+
+  }catch(e){
+
+    console.warn(
+      "No se pudo consultar estado imagen",
+      e
+    );
+
+  }
+
+
+
+  const modal =
+  document.createElement("div");
+
+
+  modal.id =
+  "modalImagenRegistro";
+
+
+  modal.innerHTML = `
+
+  <div class="imagen-config-card">
+
+
+      <div class="imagen-config-header">
+
+        <div class="imagen-config-icon">
+          🖼️
+        </div>
+
+        <div>
+          <h3>
+          Imagen de registro
+          </h3>
+
+          <p>
+          Personaliza la pantalla después de registrar asistencia
+          </p>
+        </div>
+
+      </div>
+
+
+
+      <button id="btnSeleccionarImagenRegistro"
+      class="imagen-config-btn primary">
+        📤 Cambiar imagen
+      </button>
+
+
+
+      <button id="btnEstadoImagenRegistro"
+      class="imagen-config-btn">
+        ${
+          activoActual
+          ?
+          "⚪ Desactivar imagen"
+          :
+          "🟢 Activar imagen"
+        }
+      </button>
+
+
+
+      <button id="btnCerrarModalImagen"
+      class="imagen-config-btn danger">
+        ✕ Cerrar
+      </button>
+
+
+  </div>
+
+  `;
+
+
+
+  Object.assign(modal.style,{
+
+    position:"fixed",
+    inset:"0",
+    background:"rgba(0,0,0,.65)",
+    backdropFilter:"blur(8px)",
+    zIndex:"500000",
+    display:"flex",
+    alignItems:"center",
+    justifyContent:"center"
+
+  });
+
+
+
+  document.body.appendChild(modal);
+
+
+
+  const style =
+  document.createElement("style");
+
+
+  style.textContent = `
+
+  .imagen-config-card{
+
+    width:360px;
+
+    background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f1f3f8
+    );
+
+    border-radius:24px;
+
+    padding:28px;
+
+    box-shadow:
+    0 25px 80px rgba(0,0,0,.45);
+
+    animation:
+    modalEntrada .25s ease;
+
+  }
+
+
+  @keyframes modalEntrada{
+
+    from{
+      transform:scale(.9);
+      opacity:0;
+    }
+
+    to{
+      transform:scale(1);
+      opacity:1;
+    }
+
+  }
+
+
+
+  .imagen-config-header{
+
+    display:flex;
+
+    gap:15px;
+
+    align-items:center;
+
+    margin-bottom:25px;
+
+  }
+
+
+  .imagen-config-icon{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:18px;
+
+    background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #4f46e5
+    );
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:28px;
+
+  }
+
+
+  .imagen-config-header h3{
+
+    margin:0;
+
+    color:#111827;
+
+    font-size:20px;
+
+  }
+
+
+  .imagen-config-header p{
+
+    margin:5px 0 0;
+
+    font-size:13px;
+
+    color:#6b7280;
+
+  }
+
+
+
+  .imagen-config-btn{
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:14px;
+
+    margin-top:12px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:700;
+
+    background:#e5e7eb;
+
+    color:#111827;
+
+    transition:.2s;
+
+  }
+
+
+  .imagen-config-btn:hover{
+
+    transform:translateY(-2px);
+
+  }
+
+
+
+  .imagen-config-btn.primary{
+
+    background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+    color:white;
+
+  }
+
+
+
+  .imagen-config-btn.danger{
+
+    background:#fee2e2;
+
+    color:#b91c1c;
+
+  }
+
+
+  `;
+
+
+  document.head.appendChild(style);
+
+
+
+
+  document
+  .getElementById(
+    "btnSeleccionarImagenRegistro"
+  )
+  .onclick = () => {
+
+    document
+    .getElementById(
+      "selectorImagenRegistro"
+    )
+    .click();
+
+  };
+
+
+
+  document
+  .getElementById(
+    "btnEstadoImagenRegistro"
+  )
+  .onclick = () => {
+
+    cambiarEstadoImagenRegistro_(
+      !activoActual
+    );
+
+  };
+
+
+
+  document
+  .getElementById(
+    "btnCerrarModalImagen"
+  )
+  .onclick = () => {
+
+    modal.remove();
+
+  };
+
+}
+
+
+
+async function cambiarEstadoImagenRegistro_(estado){
+
+  try {
+
+
+    const res = await fetch(
+      GS_WEBAPP_URL,
+      {
+        method:"POST",
+
+        body:JSON.stringify({
+
+          action:
+          "toggle_imagen_registro",
+
+          key:
+          GS_API_KEY,
+
+          activo:
+          estado
+
+        })
+      }
+    );
+
+
+    const r =
+    await res.json();
+
+
+
+    if(!r.ok){
+
+      throw new Error(
+        r.msg ||
+        "Error actualizando estado"
+      );
+
+    }
+
+
+
+    // Actualiza botón antes de cerrar
+    const botonEstado =
+    document.getElementById(
+      "btnEstadoImagenRegistro"
+    );
+
+
+    if(botonEstado){
+
+      botonEstado.textContent =
+      estado
+        ?
+        "⚪ Desactivar imagen"
+        :
+        "🟢 Activar imagen";
+
+    }
+
+
+
+    // Mensaje de éxito
+    showSuccessCheck(
+      estado
+        ?
+        "Imagen activada"
+        :
+        "Imagen desactivada",
+      2500
+    );
+
+
+
+    // Cerrar modal después de actualizar
+    setTimeout(()=>{
+
+      document
+      .getElementById(
+        "modalImagenRegistro"
+      )
+      ?.remove();
+
+    },300);
+
+
+
+  }catch(e){
+
+
+    console.error(
+      "Error cambiando estado imagen:",
+      e
+    );
+
+
+    alert(
+      "No se pudo cambiar el estado"
+    );
+
+  }
+
+}
 
 </script>
 
