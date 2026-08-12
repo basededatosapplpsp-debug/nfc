@@ -8973,7 +8973,7 @@ body[data-theme="light"] #parqueResult .parque-badge{
 
    <label class="modal-label" for="reportesViewerCourseFilter">Curso / grado</label>
 <select id="reportesViewerCourseFilter" class="modal-input">
-  <option value="">Todos los cursos</option>
+  <option value="">Selecciona un grado</option>
 </select>
 
 <label class="modal-label" for="reportesViewerSubjectFilter">Asignatura</label>
@@ -17743,8 +17743,16 @@ async function reportesLoadCourses_(opts = {}) {
 }
 
 async function reportesLoadStudentsForCourse_(course, opts = {}) {
-  const force = !!opts.force;
+  // ============================================================
+  // OPTIMIZACIÓN REPORTES:
+  // NO consultar course_students (roster completo).
+  // La lista de estudiantes del combo sale EXCLUSIVAMENTE de los
+  // reportes del mes/tipo actualmente cargados y del grado elegido.
+  // Así no se descargan cientos de estudiantes que nunca fueron
+  // reportados.
+  // ============================================================
   const courseClean = String(course || "").trim();
+  const courseKey = reportesNormalizeCourseKey_(courseClean);
 
   if (!courseClean) {
     __reportesStudents = [];
@@ -17752,32 +17760,25 @@ async function reportesLoadStudentsForCourse_(course, opts = {}) {
     return [];
   }
 
-  if (!force) {
-    const cached = reportesGetStudentsCached_(courseClean);
-    if (Array.isArray(cached) && cached.length) {
-      __reportesStudents = cached;
-      reportesRenderStudents_(cached);
-      return cached;
-    }
+  let items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
+
+  // Si todavía no tenemos los reportes en memoria, intenta caché.
+  if (!items.length) {
+    const cachedReportes = reportesReadCache_();
+    if (Array.isArray(cachedReportes)) items = cachedReportes;
   }
 
-  const resp = await gsCourseStudents_(courseClean);
+  const students = [...new Set(
+    items
+      .filter(item => reportesNormalizeCourse_(reportesGetItemCourse_(item)) === courseKey)
+      .map(reportesGetItemStudentName_)
+      .map(x => String(x || "").trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }));
 
-  const students =
-    faltasPickArray_(resp, ["students", "items", "list"]) ||
-    (Array.isArray(resp) ? resp : null);
-
-  if (!resp || resp.ok === false || !Array.isArray(students)) {
-    throw new Error(String((resp && (resp.msg || resp.error)) || "No pude cargar estudiantes."));
-  }
-
-  const cleanStudents = students
-    .map(x => String(x || "").trim())
-    .filter(Boolean);
-
-  reportesSetStudentsCached_(courseClean, cleanStudents);
-  reportesRenderStudents_(cleanStudents);
-  return cleanStudents;
+  reportesSetStudentsCached_(courseClean, students);
+  reportesRenderStudents_(students);
+  return students;
 }
 
 function reportesAddActividadItem_(actividad = "", nota = "") {
@@ -17903,10 +17904,6 @@ function reportesBuildCourseFilter_(items) {
 
   let html = "";
 
-  if (isAdmin) {
-    html += `<option value="">Todos los cursos</option>`;
-  }
-
   html += courses.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 
   reportesViewerCourseFilterEl.innerHTML = html || `<option value="">Sin cursos</option>`;
@@ -17915,8 +17912,6 @@ function reportesBuildCourseFilter_(items) {
     reportesViewerCourseFilterEl.value = profileCourse;
   } else if (!isAdmin && courses.length) {
     reportesViewerCourseFilterEl.value = courses[0];
-  } else if (isAdmin) {
-    reportesViewerCourseFilterEl.value = "";
   }
 }
 
@@ -17925,10 +17920,8 @@ function reportesBuildSubjectFilter_(items) {
 
   const current = String(reportesViewerSubjectFilterEl.value || "").trim();
   const selectedCourse = reportesNormalizeCourse_(reportesViewerCourseFilterEl?.value || "");
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
   const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
-
-  const courseToUse = selectedCourse || (!isAdmin ? profileCourse : "");
+  const courseToUse = selectedCourse || profileCourse;
 
   const baseItems = Array.isArray(items) ? items : [];
 
@@ -18036,10 +18029,6 @@ function reportesBuildCourseFilter_(items) {
 
   let html = "";
 
-  if (isAdmin) {
-    html += `<option value="">Todos los cursos</option>`;
-  }
-
   html += courses
     .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
     .join("");
@@ -18050,8 +18039,6 @@ function reportesBuildCourseFilter_(items) {
     reportesViewerCourseFilterEl.value = profileCourse;
   } else if (!isAdmin && courses.length) {
     reportesViewerCourseFilterEl.value = courses[0];
-  } else if (isAdmin) {
-    reportesViewerCourseFilterEl.value = "";
   }
 }
 
@@ -18059,10 +18046,8 @@ function reportesGetFilteredViewerItems_() {
   const items = Array.isArray(__reportesLastItems) ? __reportesLastItems : [];
   const selectedCourse = reportesNormalizeCourse_(reportesViewerCourseFilterEl?.value || "");
   const selectedSubject = String(reportesViewerSubjectFilterEl?.value || "").trim().toLowerCase();
-  const isAdmin = typeof isAdminMode === "function" ? isAdminMode() : false;
   const profileCourse = reportesNormalizeCourse_(reportesGetProfileCourse_());
-
-  const courseToUse = selectedCourse || (!isAdmin ? profileCourse : "");
+  const courseToUse = selectedCourse || profileCourse;
 
   return items.filter(item => {
     const itemCourse = reportesNormalizeCourse_(reportesGetItemCourse_(item));
@@ -18304,13 +18289,13 @@ async function openReportePendientes_() {
       ""
     ).trim();
 
-    const cachedStudents = preferredCourse ? reportesGetStudentsCached_(preferredCourse) : null;
-    const hasStudentsCache = Array.isArray(cachedStudents) && cachedStudents.length > 0;
     const hasAsignaturasCache = Array.isArray(__reportesAsignaturas) && __reportesAsignaturas.length > 0;
     const cachedReportes = typeof reportesReadCache_ === "function" ? reportesReadCache_() : null;
     const hasReportesCache = Array.isArray(cachedReportes) && cachedReportes.length > 0;
 
-    const shouldShowLoader = !hasCoursesCache || !hasStudentsCache || !hasAsignaturasCache || !hasReportesCache;
+    // Ya no se considera necesaria una caché de TODOS los estudiantes.
+    // Los estudiantes se derivan únicamente de los reportes cargados.
+    const shouldShowLoader = !hasCoursesCache || !hasAsignaturasCache || !hasReportesCache;
 
     if (shouldShowLoader) {
       setLoading(true, "Cargando…", "Cargando cursos y estudiantes.");
@@ -18327,7 +18312,6 @@ async function openReportePendientes_() {
 
     if (reportesCourseEl && course) {
       reportesCourseEl.value = course;
-      await reportesLoadStudentsForCourse_(course);
     }
 
     if (reportesStudentEl) reportesStudentEl.value = "";
@@ -18338,13 +18322,21 @@ async function openReportePendientes_() {
     if (reportesAsignaturaEl) reportesAsignaturaEl.value = "";
     reportesResetActividades_();
 
-    if (Array.isArray(cachedReportes) && cachedReportes.length) {
-      reportesRenderList_(cachedReportes);
-      reportesSetHint_("Reporte listo ✅ (desde caché)");
+    let reportesIniciales = cachedReportes;
+    if (Array.isArray(reportesIniciales) && reportesIniciales.length) {
+      reportesRenderList_(reportesIniciales);
     } else {
-      await reportesLoadList_({ force: true });
-      reportesSetHint_("Reporte listo ✅");
+      reportesIniciales = await reportesLoadList_({ force: true });
     }
+
+    // SOLO estudiantes que aparecen en los reportes del grado seleccionado.
+    if (course) {
+      await reportesLoadStudentsForCourse_(course);
+    }
+
+    reportesSetHint_(Array.isArray(cachedReportes) && cachedReportes.length
+      ? "Reporte listo ✅ (desde caché)"
+      : "Reporte listo ✅");
 
   } catch (e) {
     reportesSetHint_(String(e && e.message ? e.message : e));
@@ -18487,11 +18479,11 @@ if (btnActualizarReportesCache) {
 
       if (reportesCourseEl && course) {
         reportesCourseEl.value = course;
-        await reportesLoadStudentsForCourse_(course, { force: true });
       }
 
       await reportesLoadAsignaturas_({ force: true });
       await reportesLoadList_({ force: true });
+      if (course) await reportesLoadStudentsForCourse_(course, { force: true });
 
       if (reportesStudentEl) reportesStudentEl.value = "";
       if (reportesStudentSelectEl) reportesStudentSelectEl.value = "";
@@ -26564,46 +26556,26 @@ async function gsCourseStudentsCached(course) {
 let __prewarmCoursesRunning = false;
 
 async function prewarmCoursesAndStudents_() {
-  if (__prewarmCoursesRunning) return;
+  // ============================================================
+  // OPTIMIZACIÓN:
+  // Ya NO precarga estudiantes de ningún grado al iniciar.
+  // Los estudiantes se consultan únicamente cuando un módulo los
+  // necesita explícitamente. Reportes, además, usa solo estudiantes
+  // que ya tienen reportes en el mes seleccionado.
+  // ============================================================
   if (!navigator.onLine) return;
 
-  __prewarmCoursesRunning = true;
-
   try {
-    console.log("🔥 Preload offline completo: cursos + todos los estudiantes…");
-
+    // Mantiene disponible la lista de grados/cursos para los combos,
+    // pero NO descarga el roster de estudiantes de cada grado.
     const courses = await gsCoursesList();
-    if (!Array.isArray(courses) || !courses.length) return;
-
-    cacheSet_(LS_COURSES_CACHE, courses);
-    console.log("✅ Cursos cacheados:", courses.length);
-
-    for (const course of courses) {
-      const c = String(course || "").trim();
-      if (!c) continue;
-
-      try {
-        const students = await gsCourseStudents(c);
-
-        if (Array.isArray(students) && students.length) {
-          cacheSet_(LS_STUDENTS_CACHE_PREFIX + c, students);
-          console.log("✅ Estudiantes cacheados:", c, students.length);
-        } else {
-          console.warn("⚠️ Curso sin estudiantes:", c);
-        }
-      } catch (e) {
-        console.warn("⚠️ No se pudo cachear estudiantes de:", c, e);
-      }
+    if (Array.isArray(courses) && courses.length) {
+      cacheSet_(LS_COURSES_CACHE, courses);
     }
-
-    console.log("✅ Preload offline completo terminado.");
   } catch (e) {
-    console.warn("⚠️ Preload offline completo falló:", e);
-  } finally {
-    __prewarmCoursesRunning = false;
+    console.warn("⚠️ No se pudo actualizar cache de cursos:", e);
   }
 }
-
 
 async function gsCoursesList() {
   const res = await fetch(GS_WEBAPP_URL, {
