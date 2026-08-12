@@ -11907,6 +11907,22 @@ let __notasColumnas = notasColumnasDefault_();
 
 let __notasEstudiantes = [];
 
+// ============================================================
+// CONTROL DE CARGAS DE PLANILLAS
+// Evita que una respuesta antigua pueda sobrescribir
+// la planilla actualmente seleccionada.
+// ============================================================
+let __notasPlanillaRequestId = 0;
+
+// ============================================================
+// IDENTIDAD DE LA PLANILLA CARGADA EN MEMORIA
+// ============================================================
+let __notasPlanillaLoadedKey = null;
+
+let __notasPlanillaSaveVersion = 0;
+
+let __notasAutoSavePlanillaKey = null;
+
 function notasColumnasDefault_(){
   return [
     { orden: 1, nombre: "Tarea 1", porcentaje: 0, componente: "procedimental" },
@@ -19986,13 +20002,80 @@ function notasRenderGrid_(){
     el.addEventListener("dblclick", () => { notasEditarColumna_(Number(el.dataset.notaColEdit)); });
   });
 
+  // ============================================================
+  // ✅ ABRIR GESTOR DE ESTUDIANTE: MANTENER PRESIONADO (LONG PRESS)
+  // ============================================================
+  // Antes se abría con doble clic. Ahora se abre manteniendo
+  // presionado el nombre del estudiante (funciona igual con mouse
+  // y con touch gracias a Pointer Events). La función que se llama
+  // y sus parámetros no cambian: solo cambia el "gatillo".
+  // ============================================================
   notasGridEl.querySelectorAll("[data-nota-student-manager]").forEach(el => {
-    el.addEventListener("dblclick", (e) => {
-      e.preventDefault(); e.stopPropagation();
+    const NOTA_LONG_PRESS_MS = 550;
+    const NOTA_LONG_PRESS_MOVE_TOLERANCE = 12;
+
+    let notaLongPressTimer = null;
+    let notaLongPressStartX = 0;
+    let notaLongPressStartY = 0;
+    let notaLongPressFired = false;
+
+    const notaLimpiarLongPress_ = () => {
+      if (notaLongPressTimer) {
+        clearTimeout(notaLongPressTimer);
+        notaLongPressTimer = null;
+      }
+    };
+
+    const notaAbrirManagerDesdeElemento_ = () => {
       const sIdx = Number(el.dataset.notaStudentManager);
       const student = __notasEstudiantes[sIdx];
       if (!student) return;
       openNotasStudentModal_(student.estudiante, sIdx);
+    };
+
+    // Evita el menú contextual / selección de texto del navegador
+    // al mantener presionado, sobre todo en móvil.
+    el.style.touchAction = "manipulation";
+    el.style.webkitUserSelect = "none";
+    el.style.userSelect = "none";
+
+    el.addEventListener("pointerdown", (e) => {
+      if (typeof e.button === "number" && e.button !== 0) return; // solo botón principal / touch
+      notaLongPressFired = false;
+      notaLongPressStartX = e.clientX;
+      notaLongPressStartY = e.clientY;
+      notaLimpiarLongPress_();
+      notaLongPressTimer = setTimeout(() => {
+        notaLongPressFired = true;
+        notaAbrirManagerDesdeElemento_();
+      }, NOTA_LONG_PRESS_MS);
+    });
+
+    el.addEventListener("pointermove", (e) => {
+      if (!notaLongPressTimer) return;
+      const dx = Math.abs(e.clientX - notaLongPressStartX);
+      const dy = Math.abs(e.clientY - notaLongPressStartY);
+      if (dx > NOTA_LONG_PRESS_MOVE_TOLERANCE || dy > NOTA_LONG_PRESS_MOVE_TOLERANCE) {
+        notaLimpiarLongPress_();
+      }
+    });
+
+    ["pointerup", "pointercancel", "pointerleave"].forEach(evt => {
+      el.addEventListener(evt, notaLimpiarLongPress_);
+    });
+
+    el.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+    });
+
+    el.addEventListener("click", (e) => {
+      // Si el modal ya se abrió por mantener presionado, evita que
+      // el clic al soltar dispare alguna otra acción.
+      if (notaLongPressFired) {
+        e.preventDefault();
+        e.stopPropagation();
+        notaLongPressFired = false;
+      }
     });
   });
 
@@ -20367,7 +20450,7 @@ function notasAplicarPlanillaCache_(cachedValue){
   }
 
   if (Array.isArray(cachedValue.estudiantes)) {
-    __notasEstudiantes = cachedValue.estudiantes;
+    __notasEstudiantes = notasDedupEstudiantes_(cachedValue.estudiantes);
   }
 
   notasRenderColumnas_();
@@ -20392,6 +20475,93 @@ const NOTAS_IDB_QUEUE = "sync_queue";
 let __notasSyncRunning = false;
 let __notasAutoSaveTimer = null;
 let __notasLastAutoSaveHash = "";
+
+// ================================================================
+// ✅ FIX: identidad (curso/asignatura/periodo) de la planilla que
+// está actualmente abierta en los combos, capturada ANTES de que
+// el usuario cambie de selección. Un evento "change" de <select>
+// dispara con el valor NUEVO ya puesto en el elemento, así que la
+// única forma confiable de saber cuál era la asignatura/curso
+// ANTERIOR es guardarla de antemano (al enfocar/tocar el combo).
+// Se usa para poder guardar de inmediato la nota recién escrita
+// en la planilla que se está abandonando, en vez de perderla.
+// ================================================================
+let __notasPrevSel = { curso: "", asignatura: "", periodo: "1" };
+
+function notasSnapshotPrevSel_() {
+    __notasPrevSel = {
+        curso: String(notasCursoEl?.value || "").trim(),
+        asignatura: String(notasAsignaturaEl?.value || "").trim(),
+        periodo: String(notasPeriodoEl?.value || "1").trim()
+    };
+}
+
+// Captura inicial + cada vez que el usuario interactúa con un combo
+// (antes de que el valor cambie), para que siempre tengamos a mano
+// cuál era la selección anterior.
+notasSnapshotPrevSel_();
+[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+    if (!el) return;
+    el.addEventListener("focus", notasSnapshotPrevSel_);
+    el.addEventListener("mousedown", notasSnapshotPrevSel_);
+    el.addEventListener("keydown", notasSnapshotPrevSel_);
+});
+
+// ================================================================
+// ✅ FIX: guardado FORZADO e INMEDIATO (sin esperar el debounce de
+// 900ms) de cualquier cambio pendiente, usando una identidad
+// explícita de planilla (curso/asignatura/periodo). Se usa justo
+// antes de que el usuario abandone la planilla actual (cambio de
+// curso/asignatura/periodo), para que una nota recién escrita que
+// todavía no se había sincronizado NO se pierda.
+// ================================================================
+async function notasFlushGuardadoPendiente_(identidad) {
+
+    // Si no hay ningún autoguardado programado, no hay nada
+    // pendiente que forzar.
+    if (!__notasAutoSaveTimer) return false;
+
+    clearTimeout(__notasAutoSaveTimer);
+    __notasAutoSaveTimer = null;
+
+    const curso = String(identidad?.curso || "").trim();
+    const asignatura = String(identidad?.asignatura || "").trim();
+
+    if (!curso || !asignatura) return false;
+
+    // notasBuildSavePayload_ ya valida internamente que la memoria
+    // (__notasEstudiantes/__notasColumnas) corresponda EXACTAMENTE
+    // a esta identidad (__notasPlanillaLoadedKey). Si el usuario ya
+    // cambió de planilla y la memoria fue reemplazada, esto
+    // devuelve null y no se guarda nada incorrecto.
+    const payload = notasBuildSavePayload_(identidad);
+    if (!payload) return false;
+
+    const currentHash = JSON.stringify({
+        curso: payload.curso,
+        asignatura: payload.asignatura,
+        periodo: payload.periodo,
+        columnas: payload.columnas,
+        estudiantes: payload.estudiantes
+    });
+
+    // Si ya está guardado (no hay cambios reales), no repetimos.
+    if (currentHash === __notasLastAutoSaveHash) return false;
+
+    await notasGuardarLocalSeguro_(payload, { pending: true });
+    __notasLastAutoSaveHash = currentHash;
+
+    console.log(
+        "🟢 GUARDADO FORZADO ANTES DE CAMBIAR DE PLANILLA:",
+        { curso: payload.curso, asignatura: payload.asignatura, periodo: payload.periodo }
+    );
+
+    if (navigator.onLine) {
+        notasSyncPendientes_({ silent: true }).catch(() => {});
+    }
+
+    return true;
+}
 
 function notasIdbOpen_(){
   return new Promise((resolve, reject) => {
@@ -20488,31 +20658,135 @@ async function notasIdbDelete_(storeName, id){
   });
 }
 
-function notasBuildSavePayload_(){
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = String(notasAsignaturaEl?.value || "").trim();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
+function notasBuildSavePayload_(identidad) {
+    // ============================================================
+    // ✅ FIX: permitir pasar una identidad explícita (curso/
+    // asignatura/periodo) en lugar de leer siempre el valor ACTUAL
+    // de los combos. Esto es indispensable para poder guardar de
+    // forma segura los cambios de una planilla que el usuario ya
+    // abandonó (por ejemplo, cambió de asignatura en el combo)
+    // sin arriesgarnos a mezclar datos de la planilla nueva.
+    // Si no se pasa nada, el comportamiento es EXACTAMENTE el
+    // mismo que antes (lee los combos actuales).
+    // ============================================================
+    const curso = String((identidad?.curso ?? notasCursoEl?.value) || "").trim();
+    const asignatura = String((identidad?.asignatura ?? notasAsignaturaEl?.value) || "").trim();
+    const periodo = String((identidad?.periodo ?? notasPeriodoEl?.value) || "1").trim();
 
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const teacher = String(profile?.name || teacherNameEl?.value || "").trim();
-  const email = String(profile?.email || "").trim().toLowerCase();
-  const deviceId = typeof getDeviceId === "function" ? getDeviceId() : "";
+    // ============================================================
+    // PROTECCIÓN CRÍTICA DE IDENTIDAD DE PLANILLA
+    // ============================================================
 
-  if (!curso || !asignatura || !__notasEstudiantes.length) return null;
+    const profileActual =
+        typeof loadProfile === "function" ? loadProfile() : null;
 
-  return {
-    action: "notas_planilla_save",
-    curso,
-    asignatura,
-    periodo,
-    year: new Date().getFullYear(),
-    columnas: __notasColumnas,
-    estudiantes: __notasEstudiantes,
-    teacher,
-    email,
-    device_id: deviceId,
-    key: GS_API_KEY
-  };
+    const emailActual = String(
+        profileActual?.email || ""
+    ).trim().toLowerCase();
+
+    const planillaActualKey = notasPlanillaCacheKey_(
+        curso,
+        asignatura,
+        periodo,
+        emailActual
+    );
+
+    if (
+        !__notasPlanillaLoadedKey ||
+        __notasPlanillaLoadedKey !== planillaActualKey
+    ) {
+        console.warn(
+            "Guardado bloqueado: la memoria no corresponde a la planilla seleccionada.",
+            {
+                planillaCargada: __notasPlanillaLoadedKey,
+                planillaActual: planillaActualKey,
+                curso,
+                asignatura,
+                periodo
+            }
+        );
+
+        notasSetHint_(
+            "Guardado bloqueado: la planilla todavía no está cargada de forma segura."
+        );
+
+        return null;
+    }
+
+    // ============================================================
+    // PERFIL
+    // ============================================================
+
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
+
+    const teacher = String(
+        profile?.name ||
+        teacherNameEl?.value ||
+        ""
+    ).trim();
+
+    const email = String(
+        profile?.email || ""
+    ).trim().toLowerCase();
+
+    const deviceId =
+        typeof getDeviceId === "function"
+            ? getDeviceId()
+            : "";
+
+    if (
+        !curso ||
+        !asignatura ||
+        !__notasEstudiantes.length
+    ) {
+        return null;
+    }
+
+    // ============================================================
+    // PROTECCIÓN DE VERSIÓN
+    // ============================================================
+    // La versión corresponde EXCLUSIVAMENTE a esta planilla.
+    // Nunca usamos una versión de otra asignatura o curso.
+    // ============================================================
+
+    const saveVersionRaw =
+        Number(__notasPlanillaSaveVersion);
+
+    const saveVersion =
+        Number.isFinite(saveVersionRaw) &&
+        saveVersionRaw >= 0
+            ? saveVersionRaw
+            : 0;
+
+    return {
+        action: "notas_planilla_save",
+
+        curso,
+        asignatura,
+        periodo,
+
+        year:
+            new Date().getFullYear(),
+
+        columnas:
+            __notasColumnas,
+
+        estudiantes:
+            __notasEstudiantes,
+
+        teacher,
+        email,
+        device_id: deviceId,
+
+        // Protección contra guardados atrasados
+        save_version: saveVersion,
+
+        key:
+            GS_API_KEY
+    };
 }
 
 function notasPayloadCacheKey_(payload){
@@ -20523,323 +20797,1690 @@ function notasPayloadCacheKey_(payload){
     payload.email
   );
 }
+async function notasGuardarLocalSeguro_(payload, { pending = true } = {}) {
+    if (!payload) return null;
 
-async function notasGuardarLocalSeguro_(payload, { pending = true } = {}){
-  if (!payload) return null;
+    const cacheKey = notasPayloadCacheKey_(payload);
+    const now = Date.now();
 
-  const cacheKey = notasPayloadCacheKey_(payload);
-  const now = Date.now();
+    const saveVersion =
+        Number.isFinite(Number(payload.save_version))
+            ? Number(payload.save_version)
+            : 0;
 
-  const localValue = {
-    columnas: payload.columnas,
-    estudiantes: payload.estudiantes,
-    offline_meta: {
-      ts: now,
-      pending: !!pending
-    }
-  };
-
-  // Mantiene tu cache actual
-  notasPlanillaCacheWrite_(cacheKey, localValue);
-
-  // Copia fuerte en IndexedDB
-  await notasIdbPut_(NOTAS_IDB_PLANILLAS, {
-    id: cacheKey,
-    ts: now,
-    value: localValue
-  });
-
-  // Cola de sincronización
-  if (pending) {
-    await notasIdbPut_(NOTAS_IDB_QUEUE, {
-      id: cacheKey,
-      ts: now,
-      attempts: 0,
-      payload
-    });
-  }
-
-  try {
-    notasSaveLastSelection_();
-  } catch {}
-
-  return cacheKey;
-}
-
-async function notasEnviarPayloadSupabase_(payload){
-  const res = await fetch(GS_WEBAPP_URL, {
-    method: "POST",
-    body: JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if (!data.ok) {
-    throw new Error(data.msg || data.error || "notas_planilla_save_failed");
-  }
-
-  return data;
-}
-
-async function notasSyncPendientes_({ silent = true } = {}){
-  if (__notasSyncRunning) return;
-  if (!navigator.onLine) return;
-
-  __notasSyncRunning = true;
-
-  try {
-    const items = await notasIdbGetAll_(NOTAS_IDB_QUEUE);
-
-    for (const item of items) {
-      try {
-        const payload = item.payload;
-        await notasEnviarPayloadSupabase_(payload);
-
-        const cacheKey = notasPayloadCacheKey_(payload);
-
-        await notasGuardarLocalSeguro_(payload, { pending: false });
-        await notasIdbDelete_(NOTAS_IDB_QUEUE, item.id);
-
-        if (!silent) {
-          notasSetHint_("Notas sincronizadas con Supabase ✅");
-        }
-
-        if (notasAlertasModal && !notasAlertasModal.hidden) {
-          notasAlertasLimpiarCache_();
-          notasAlertasBuscar_({ silent: true, useCache: false });
-        }
-      } catch (e) {
-await notasIdbPut_(NOTAS_IDB_QUEUE, {
-  ...item,
-  attempts: Number(item.attempts || 0) + 1,
-  lastError: String(e?.message || e),
-  lastAttempt: Date.now()
-});
-      }
-    }
-  } finally {
-    __notasSyncRunning = false;
-  }
-}
-
-function notasProgramarAutoGuardado_(){
-  clearTimeout(__notasAutoSaveTimer);
-
-  __notasAutoSaveTimer = setTimeout(async () => {
-    try {
-      const payload = notasBuildSavePayload_();
-      if (!payload) return;
-
-      const currentHash = JSON.stringify({
-        curso: payload.curso,
-        asignatura: payload.asignatura,
-        periodo: payload.periodo,
+    const localValue = {
         columnas: payload.columnas,
-        estudiantes: payload.estudiantes
-      });
+        estudiantes: payload.estudiantes,
 
-      if (currentHash === __notasLastAutoSaveHash) return;
-      __notasLastAutoSaveHash = currentHash;
+        // Versión de ESTA planilla
+        save_version: saveVersion,
 
-      await notasGuardarLocalSeguro_(payload, { pending: true });
+        offline_meta: {
+            ts: now,
+            pending: !!pending
+        }
+    };
 
-      if (navigator.onLine) {
-        notasSyncPendientes_({ silent: true });
-        notasSetHint_("Autoguardado local ✅ Sincronizando…");
-      } else {
-        notasSetHint_("Autoguardado local ✅ Pendiente por sincronizar.");
-      }
-    } catch (e) {
-      console.warn("Autoguardado notas falló:", e);
+    // ============================================================
+    // CACHE LOCAL
+    // ============================================================
+
+    notasPlanillaCacheWrite_(
+        cacheKey,
+        localValue
+    );
+
+    // ============================================================
+    // INDEXEDDB — COPIA LOCAL
+    // ============================================================
+
+    await notasIdbPut_(
+        NOTAS_IDB_PLANILLAS,
+        {
+            id: cacheKey,
+            ts: now,
+            value: localValue
+        }
+    );
+
+    // ============================================================
+    // COLA DE SINCRONIZACIÓN
+    // ============================================================
+
+    if (pending) {
+
+        // --------------------------------------------------------
+        // IMPORTANTE:
+        // Siempre reemplazamos la entrada anterior de ESTA
+        // planilla por el payload más reciente.
+        //
+        // Así nunca quedan varias versiones pendientes de la
+        // misma planilla esperando ser enviadas.
+        // --------------------------------------------------------
+
+        await notasIdbPut_(
+            NOTAS_IDB_QUEUE,
+            {
+                id: cacheKey,
+                ts: now,
+                attempts: 0,
+                payload: {
+                    ...payload,
+                    save_version: saveVersion
+                }
+            }
+        );
+
+        console.log(
+            "🟡 COLA NOTAS ACTUALIZADA:",
+            {
+                cacheKey,
+                save_version: saveVersion,
+                curso: payload.curso,
+                asignatura: payload.asignatura,
+                periodo: payload.periodo
+            }
+        );
+
+    } else {
+
+        console.log(
+            "🟢 PLANILLA MARCADA COMO SINCRONIZADA:",
+            {
+                cacheKey,
+                save_version: saveVersion,
+                curso: payload.curso,
+                asignatura: payload.asignatura,
+                periodo: payload.periodo
+            }
+        );
     }
-  }, 900);
+
+    try {
+        notasSaveLastSelection_();
+    } catch {}
+
+    return cacheKey;
 }
 
+async function notasEnviarPayloadSupabase_(payload) {
+
+    console.group("📝 NOTAS → ENVÍO A SUPABASE");
+
+    console.log("PAYLOAD:", {
+        curso: payload?.curso,
+        asignatura: payload?.asignatura,
+        periodo: payload?.periodo,
+        year: payload?.year,
+        save_version: payload?.save_version,
+        columnas: payload?.columnas?.length,
+        estudiantes: payload?.estudiantes?.length
+    });
+
+    console.log("COLUMNAS:", payload?.columnas);
+    console.log("ESTUDIANTES:", payload?.estudiantes);
+
+    try {
+
+        const res = await fetch(GS_WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        console.log("HTTP STATUS:", res.status);
+
+        const texto = await res.text();
+
+        console.log("RESPUESTA RAW:", texto);
+
+        let data;
+
+        try {
+            data = JSON.parse(texto);
+        } catch (parseError) {
+
+            console.error(
+                "❌ RESPUESTA NO ES JSON:",
+                parseError
+            );
+
+            throw new Error(
+                "Respuesta inválida del servidor."
+            );
+        }
+
+        console.log("RESPUESTA JSON:", data);
+
+        if (!data.ok) {
+
+            const error = new Error(
+                data.msg ||
+                data.error ||
+                "notas_planilla_save_failed"
+            );
+
+            error.status = res.status;
+            error.data = data;
+
+            console.error(
+                "❌ SUPABASE RECHAZÓ EL GUARDADO:",
+                {
+                    status: res.status,
+                    data
+                }
+            );
+
+            throw error;
+        }
+
+        console.log(
+            "✅ SUPABASE CONFIRMÓ:",
+            {
+                planilla_id: data.planilla_id,
+                save_version: data.save_version,
+                total_estudiantes:
+                    data.total_estudiantes
+            }
+        );
+
+        console.groupEnd();
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            "❌ ERROR EN ENVÍO:",
+            error
+        );
+
+        console.groupEnd();
+
+        throw error;
+    }
+}
+
+async function notasSyncPendientes_({ silent = true } = {}) {
+
+    if (__notasSyncRunning) return;
+    if (!navigator.onLine) return;
+
+    __notasSyncRunning = true;
+
+    try {
+
+        const items =
+            await notasIdbGetAll_(
+                NOTAS_IDB_QUEUE
+            );
+
+        for (const item of items) {
+
+            try {
+
+                const payload = item?.payload;
+
+                // ====================================================
+                // PASO 1.13 — VALIDACIÓN DEL PAYLOAD DE LA COLA
+                // ====================================================
+                // Una entrada de IndexedDB puede sobrevivir al cambio
+                // de asignatura, cierre de la aplicación, reconexión,
+                // etc.
+                //
+                // No debemos enviar datos incompletos a Supabase.
+                // ====================================================
+
+                if (
+                    !payload ||
+                    typeof payload !== "object"
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización inválido."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR IDENTIDAD BÁSICA
+                // ====================================================
+
+                const cursoPayload =
+                    String(
+                        payload.curso || ""
+                    ).trim();
+
+                const asignaturaPayload =
+                    String(
+                        payload.asignatura || ""
+                    ).trim();
+
+                const periodoPayload =
+                    String(
+                        payload.periodo || ""
+                    ).trim();
+
+                const emailPayload =
+                    String(
+                        payload.email || ""
+                    )
+                        .trim()
+                        .toLowerCase();
+
+                if (
+                    !cursoPayload ||
+                    !asignaturaPayload ||
+                    !periodoPayload ||
+                    !emailPayload
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin identidad completa de planilla."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR ESTUDIANTES
+                // ====================================================
+
+                if (
+                    !Array.isArray(
+                        payload.estudiantes
+                    )
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin estudiantes válidos."
+                    );
+                }
+
+                // ====================================================
+                // VALIDAR COLUMNAS
+                // ====================================================
+
+                if (
+                    !Array.isArray(
+                        payload.columnas
+                    )
+                ) {
+
+                    throw new Error(
+                        "Payload de sincronización sin columnas válidas."
+                    );
+                }
+
+                // ====================================================
+                // IDENTIDAD DE LA ENTRADA DE COLA
+                // ====================================================
+
+                const payloadKey =
+                    notasPlanillaCacheKey_(
+                        cursoPayload,
+                        asignaturaPayload,
+                        periodoPayload,
+                        emailPayload
+                    );
+
+
+
+
+                    // ====================================================
+// PROTECCIÓN CONTRA PAYLOAD CON VERSIÓN ATRASADA
+// ====================================================
+
+const payloadVersion =
+    Number(payload.save_version);
+
+if (
+    Number.isFinite(payloadVersion) &&
+    payloadVersion >= 0
+) {
+
+    const cached =
+        notasPlanillaCacheRead_(
+            payloadKey
+        );
+
+    const localVersion =
+        Number(
+            cached?.value?.save_version
+        );
+
+    if (
+        Number.isFinite(localVersion) &&
+        localVersion > payloadVersion
+    ) {
+
+        console.warn(
+            "Payload offline descartado por versión antigua.",
+            {
+                payloadKey,
+                payloadVersion,
+                localVersion,
+                curso: cursoPayload,
+                asignatura: asignaturaPayload,
+                periodo: periodoPayload
+            }
+        );
+
+        await notasIdbDelete_(
+            NOTAS_IDB_QUEUE,
+            item.id
+        );
+
+        continue;
+    }
+}
+
+                // ====================================================
+                // PROTECCIÓN CONTRA PAYLOAD VACÍO
+                // ====================================================
+                // Si existe una planilla con estudiantes, no debemos
+                // permitir que una entrada completamente vacía sea
+                // enviada como si fuera una actualización legítima.
+                //
+                // IMPORTANTE:
+                // No bloqueamos estudiantes.length === 0 de forma
+                // absoluta porque una planilla realmente podría
+                // quedar sin estudiantes.
+                // ====================================================
+
+                const tieneEstudiantes =
+                    payload.estudiantes.length > 0;
+
+                const tieneNotas =
+                    payload.estudiantes.some(
+                        estudiante =>
+                            estudiante &&
+                            estudiante.notas &&
+                            typeof estudiante.notas === "object" &&
+                            Object.keys(
+                                estudiante.notas
+                            ).length > 0
+                    );
+
+                const tieneColumnas =
+                    payload.columnas.length > 0;
+
+                if (
+                    !tieneEstudiantes &&
+                    !tieneColumnas &&
+                    !tieneNotas
+                ) {
+
+                    throw new Error(
+                        "Payload rechazado: planilla completamente vacía."
+                    );
+                }
+
+                // ====================================================
+                // LOG DE SEGURIDAD
+                // ====================================================
+
+                console.log(
+                    "Sincronizando planilla pendiente:",
+                    {
+                        payloadKey,
+                        curso: cursoPayload,
+                        asignatura: asignaturaPayload,
+                        periodo: periodoPayload,
+                        estudiantes:
+                            payload.estudiantes.length,
+                        columnas:
+                            payload.columnas.length,
+                        tieneNotas
+                    }
+                );
+
+                // ====================================================
+                // ENVIAR A SUPABASE
+                // ====================================================
+
+                await notasEnviarPayloadSupabase_(
+                    payload
+                );
+
+                // ====================================================
+                // SOLO SI SUPABASE CONFIRMÓ EL ENVÍO:
+                // marcar como no pendiente
+                // ====================================================
+
+                const cacheKey =
+                    notasPayloadCacheKey_(
+                        payload
+                    );
+
+                await notasGuardarLocalSeguro_(
+                    payload,
+                    {
+                        pending: false
+                    }
+                );
+
+                await notasIdbDelete_(
+                    NOTAS_IDB_QUEUE,
+                    item.id
+                );
+
+                if (!silent) {
+
+                    notasSetHint_(
+                        "Notas sincronizadas con Supabase ✅"
+                    );
+                }
+
+                if (
+                    notasAlertasModal &&
+                    !notasAlertasModal.hidden
+                ) {
+
+                    notasAlertasLimpiarCache_();
+
+                    notasAlertasBuscar_({
+                        silent: true,
+                        useCache: false
+                    });
+                }
+
+  } catch (e) {
+
+    console.error(
+        "❌ ERROR SINCRONIZANDO PLANILLA PENDIENTE",
+        {
+            error: e,
+            mensaje: e?.message,
+            status: e?.status,
+            data: e?.data,
+            itemId: item?.id,
+            payload: item?.payload
+        }
+    );
+
+    await notasIdbPut_(
+        NOTAS_IDB_QUEUE,
+        {
+            ...item,
+
+            attempts:
+                Number(
+                    item.attempts || 0
+                ) + 1,
+
+            lastError:
+                String(
+                    e?.message || e
+                ),
+
+            lastAttempt:
+                Date.now()
+        }
+    );
+}
+        }
+
+    } finally {
+
+        __notasSyncRunning = false;
+    }
+}
+
+function notasProgramarAutoGuardado_() {
+
+    clearTimeout(__notasAutoSaveTimer);
+
+    // ============================================================
+    // IDENTIDAD DE LA PLANILLA AL PROGRAMAR EL AUTOGUARDADO
+    // ============================================================
+    // Capturamos la planilla que realmente estaba activa cuando
+    // se produjo la modificación.
+    // ============================================================
+
+    const cursoProgramado =
+        String(notasCursoEl?.value || "").trim();
+
+    const asignaturaProgramada =
+        String(notasAsignaturaEl?.value || "").trim();
+
+    const periodoProgramado =
+        String(notasPeriodoEl?.value || "1").trim();
+
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
+
+    const emailProgramado =
+        String(profile?.email || "")
+            .trim()
+            .toLowerCase();
+
+    const planillaProgramadaKey =
+        notasPlanillaCacheKey_(
+            cursoProgramado,
+            asignaturaProgramada,
+            periodoProgramado,
+            emailProgramado
+        );
+
+    // Registrar la identidad del autoguardado programado.
+    __notasAutoSavePlanillaKey =
+        planillaProgramadaKey;
+
+    // ============================================================
+    // ESPERAR 900 ms
+    // ============================================================
+
+    __notasAutoSaveTimer = setTimeout(async () => {
+
+        try {
+
+            // ====================================================
+            // PROTECCIÓN 1
+            // ====================================================
+            // Si otra modificación volvió a programar el
+            // autoguardado, este callback ya no es válido.
+            // ====================================================
+
+            if (
+                __notasAutoSavePlanillaKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado descartado: existe una programación más reciente."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // OBTENER SELECCIÓN ACTUAL
+            // ====================================================
+
+            const cursoActual =
+                String(
+                    notasCursoEl?.value || ""
+                ).trim();
+
+            const asignaturaActual =
+                String(
+                    notasAsignaturaEl?.value || ""
+                ).trim();
+
+            const periodoActual =
+                String(
+                    notasPeriodoEl?.value || "1"
+                ).trim();
+
+            const profileActual =
+                typeof loadProfile === "function"
+                    ? loadProfile()
+                    : {};
+
+            const emailActual =
+                String(
+                    profileActual?.email || ""
+                )
+                    .trim()
+                    .toLowerCase();
+
+            const planillaActualKey =
+                notasPlanillaCacheKey_(
+                    cursoActual,
+                    asignaturaActual,
+                    periodoActual,
+                    emailActual
+                );
+
+            // ====================================================
+            // PROTECCIÓN 2
+            // ====================================================
+            // La selección no puede haber cambiado.
+            // ====================================================
+
+            if (
+                planillaActualKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado descartado: la planilla seleccionada cambió.",
+                    {
+                        planillaProgramadaKey,
+                        planillaActualKey
+                    }
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // PROTECCIÓN 3
+            // ====================================================
+            // La memoria debe pertenecer EXACTAMENTE a la
+            // planilla que se está intentando guardar.
+            // ====================================================
+
+            if (
+                !__notasPlanillaLoadedKey ||
+                __notasPlanillaLoadedKey !==
+                    planillaActualKey
+            ) {
+
+                console.warn(
+                    "Autoguardado bloqueado: la memoria no corresponde a la planilla actual.",
+                    {
+                        planillaCargada:
+                            __notasPlanillaLoadedKey,
+
+                        planillaActual:
+                            planillaActualKey
+                    }
+                );
+
+                notasSetHint_(
+                    "Autoguardado bloqueado: la planilla todavía se está cargando."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // CONSTRUIR PAYLOAD
+            // ====================================================
+
+            const payload =
+                notasBuildSavePayload_();
+
+            // ====================================================
+            // PROTECCIÓN 4
+            // ====================================================
+            // notasBuildSavePayload_() también tiene su propia
+            // protección de identidad.
+            // ====================================================
+
+            if (!payload) {
+                return;
+            }
+
+            // ====================================================
+            // PROTECCIÓN 5
+            // ====================================================
+            // Confirmar nuevamente que el payload pertenece a la
+            // misma planilla que acabamos de validar.
+            // ====================================================
+
+            const payloadKey =
+                notasPlanillaCacheKey_(
+                    String(
+                        payload.curso || ""
+                    ).trim(),
+
+                    String(
+                        payload.asignatura || ""
+                    ).trim(),
+
+                    String(
+                        payload.periodo || "1"
+                    ).trim(),
+
+                    String(
+                        payload.email || emailActual
+                    )
+                        .trim()
+                        .toLowerCase()
+                );
+
+            if (
+                payloadKey !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Autoguardado bloqueado: identidad del payload diferente a la planilla programada.",
+                    {
+                        planillaProgramadaKey,
+                        payloadKey
+                    }
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // HASH ACTUAL
+            // ====================================================
+
+            const currentHash =
+                JSON.stringify({
+                    curso:
+                        payload.curso,
+
+                    asignatura:
+                        payload.asignatura,
+
+                    periodo:
+                        payload.periodo,
+
+                    columnas:
+                        payload.columnas,
+
+                    estudiantes:
+                        payload.estudiantes
+                });
+
+            // ====================================================
+            // EVITAR GUARDADOS REPETIDOS
+            // ====================================================
+
+            if (
+                currentHash ===
+                __notasLastAutoSaveHash
+            ) {
+                return;
+            }
+
+            // ====================================================
+            // GUARDAR LOCALMENTE
+            // ====================================================
+            // IMPORTANTE:
+            // NO actualizamos __notasLastAutoSaveHash todavía.
+            // Primero debemos comprobar que el guardado local
+            // terminó correctamente.
+            // ====================================================
+
+            await notasGuardarLocalSeguro_(
+                payload,
+                {
+                    pending: true
+                }
+            );
+
+            // ====================================================
+            // PROTECCIÓN 6
+            // ====================================================
+            // Después del await el usuario pudo haber cambiado
+            // nuevamente de planilla.
+            //
+            // En ese caso NO sincronizamos este payload.
+            // ====================================================
+
+            const planillaDespuesDelGuardado =
+                notasPlanillaCacheKey_(
+                    String(
+                        notasCursoEl?.value || ""
+                    ).trim(),
+
+                    String(
+                        notasAsignaturaEl?.value || ""
+                    ).trim(),
+
+                    String(
+                        notasPeriodoEl?.value || "1"
+                    ).trim(),
+
+                    String(
+                        (
+                            typeof loadProfile === "function"
+                                ? loadProfile()
+                                : {}
+                        )?.email || ""
+                    )
+                        .trim()
+                        .toLowerCase()
+                );
+
+            if (
+                planillaDespuesDelGuardado !==
+                planillaProgramadaKey
+            ) {
+
+                console.warn(
+                    "Sincronización omitida: la planilla cambió durante el guardado local."
+                );
+
+                return;
+            }
+
+            // ====================================================
+            // AHORA SÍ REGISTRAMOS EL HASH COMO GUARDADO
+            // ====================================================
+
+            __notasLastAutoSaveHash =
+                currentHash;
+
+            // ====================================================
+            // SINCRONIZACIÓN
+            // ====================================================
+
+            if (navigator.onLine) {
+
+                await notasSyncPendientes_({
+                    silent: true
+                });
+
+                notasSetHint_(
+                    "Autoguardado local ✅ Sincronizado."
+                );
+
+            } else {
+
+                notasSetHint_(
+                    "Autoguardado local ✅ Pendiente por sincronizar."
+                );
+            }
+
+        } catch (e) {
+
+            console.warn(
+                "Autoguardado notas falló:",
+                e
+            );
+        }
+
+    }, 900);
+}
 
 
 function notasTryOpenFromLastCache_(){
+
   const last = notasReadLastSelection_();
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const email = String(profile?.email || "").trim().toLowerCase();
 
-  const curso = String(last.curso || "").trim();
-  const asignatura = String(last.asignatura || "").trim();
-  const periodo = String(last.periodo || "1").trim();
+  const profile =
+    typeof loadProfile === "function"
+      ? loadProfile()
+      : {};
 
-  if (!curso || !asignatura || !email) return false;
+  const email = String(
+    profile?.email || ""
+  ).trim().toLowerCase();
 
-  if (notasCursoEl) notasCursoEl.value = curso;
-  if (notasAsignaturaEl) notasAsignaturaEl.value = asignatura;
-  if (notasPeriodoEl) notasPeriodoEl.value = periodo;
+  const curso =
+    String(last.curso || "").trim();
 
-  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-  const cached = notasPlanillaCacheRead_(cacheKey);
+  const asignatura =
+    String(last.asignatura || "").trim();
 
-  if (!cached?.value) return false;
+  const periodo =
+    String(last.periodo || "1").trim();
+
+  if (!curso || !asignatura || !email) {
+    return false;
+  }
+
+  // ============================================================
+  // RESTAURAR LA ÚLTIMA SELECCIÓN
+  // ============================================================
+
+  if (notasCursoEl) {
+    notasCursoEl.value = curso;
+  }
+
+  if (notasAsignaturaEl) {
+    notasAsignaturaEl.value = asignatura;
+  }
+
+  if (notasPeriodoEl) {
+    notasPeriodoEl.value = periodo;
+  }
+
+  // ============================================================
+  // IDENTIDAD EXACTA DE ESTA PLANILLA
+  // ============================================================
+
+  const cacheKey = notasPlanillaCacheKey_(
+    curso,
+    asignatura,
+    periodo,
+    email
+  );
+
+  const cached =
+    notasPlanillaCacheRead_(cacheKey);
+
+  if (!cached?.value) {
+    return false;
+  }
+
+  // ============================================================
+  // PROTECCIÓN
+  // ============================================================
+  // Esta carga inicial solamente puede aplicarse porque el
+  // cache corresponde exactamente a la selección restaurada.
+  // ============================================================
 
   notasOpenPcSheet_();
-  notasAplicarPlanillaCache_(cached.value);
+
+  const aplicada =
+    notasAplicarPlanillaCache_(cached.value);
+
+  if (!aplicada) {
+    return false;
+  }
+
+
+  __notasPlanillaSaveVersion =
+    Number.isFinite(Number(cached.value?.save_version))
+        ? Number(cached.value.save_version)
+        : 0;
+  // ============================================================
+  // REGISTRAR IDENTIDAD DE LOS DATOS EN MEMORIA
+  // ============================================================
+
+  __notasPlanillaLoadedKey = cacheKey;
+
   notasSetSubtitulo_();
 
   return true;
 }
 
+async function notasAbrirPlanillaActual_(opts = {}) {
 
+    const silent = opts?.silent === true;
+    const useCache = opts?.useCache !== false;
 
-async function notasAbrirPlanillaActual_(opts = {}){
-  const silent = opts?.silent === true;
-  const useCache = opts?.useCache !== false;
+    // ============================================================
+    // IDENTIFICADOR ÚNICO DE ESTA CARGA
+    // ============================================================
+    // Cada nueva solicitud invalida automáticamente cualquier
+    // solicitud anterior que todavía esté esperando respuesta.
+    // ============================================================
+    const requestId = ++__notasPlanillaRequestId;
 
-  const curso = String(notasCursoEl?.value || "").trim();
-  const asignatura = notasEnsureAsignatura_();
-  const periodo = String(notasPeriodoEl?.value || "1").trim();
+    const curso = String(
+        notasCursoEl?.value || ""
+    ).trim();
 
-  const profile = typeof loadProfile === "function" ? loadProfile() : {};
-  const email = String(profile?.email || "").trim().toLowerCase();
+    const asignatura = notasEnsureAsignatura_();
 
-  notasSetSubtitulo_();
+    const periodo = String(
+        notasPeriodoEl?.value || "1"
+    ).trim();
 
-  if (!curso) {
-    __notasEstudiantes = [];
-    notasRenderGrid_();
-    return notasSetHint_("Selecciona un curso.");
-  }
+    const profile =
+        typeof loadProfile === "function"
+            ? loadProfile()
+            : {};
 
-  if (!asignatura) {
-    __notasEstudiantes = [];
-    notasRenderGrid_();
-    return notasSetHint_("Selecciona una asignatura.");
-  }
+    const email = String(
+        profile?.email || ""
+    ).trim().toLowerCase();
 
-  if (!email) return notasSetHint_("No encontré el correo del docente.");
+    notasSetSubtitulo_();
 
-  const cacheKey = notasPlanillaCacheKey_(curso, asignatura, periodo, email);
-const cached = useCache ? notasPlanillaCacheRead_(cacheKey) : null;
+    // ============================================================
+    // VALIDACIONES BÁSICAS
+    // ============================================================
 
-if (cached?.value) {
-  notasAplicarPlanillaCache_(cached.value);
-} else if (useCache) {
-  const idbCached = await notasIdbGet_(NOTAS_IDB_PLANILLAS, cacheKey);
-  if (idbCached?.value) {
-    notasAplicarPlanillaCache_(idbCached.value);
-  }
-}
+    if (!curso) {
 
-if (!navigator.onLine) {
-  const students = await gsCourseStudentsCached(curso);
+        __notasEstudiantes = [];
 
- if (Array.isArray(students) && students.length) {
+        notasRenderGrid_();
 
-  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
-
-  __notasEstudiantes = students.map(name => ({
-    estudiante: String(name || "").trim(),
-    notas: {}
-  })).filter(x => x.estudiante);
-
-    notasRenderColumnas_();
-    notasRenderGrid_();
-
-    notasSetHint_("Planilla abierta en modo offline ✅ Estudiantes cargados desde este curso.");
-  } else {
-    __notasEstudiantes = [];
-    notasRenderColumnas_();
-    notasRenderGrid_();
-
-    notasSetHint_("Sin internet y sin estudiantes guardados para este curso.");
-  }
-
-  return;
-}
-
-  try {
-    if (!silent) {
-      setLoading(true, "Cargando…", "Abriendo planilla de notas.");
+        return notasSetHint_(
+            "Selecciona un curso."
+        );
     }
 
-    const res = await fetch(GS_WEBAPP_URL, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "notas_planilla_get",
+    if (!asignatura) {
+
+        __notasEstudiantes = [];
+
+        notasRenderGrid_();
+
+        return notasSetHint_(
+            "Selecciona una asignatura."
+        );
+    }
+
+    if (!email) {
+        return notasSetHint_(
+            "No encontré el correo del docente."
+        );
+    }
+
+    // ============================================================
+    // IDENTIDAD EXACTA DE ESTA PLANILLA
+    // ============================================================
+
+    const cacheKey = notasPlanillaCacheKey_(
         curso,
         asignatura,
         periodo,
-        year: new Date().getFullYear(),
-        email,
-        key: GS_API_KEY
-      })
-    });
+        email
+    );
 
-    const data = await res.json();
-    if (!data.ok) throw new Error(data.msg || data.error || "notas_planilla_get_failed");
 
-    if (data.exists) {
-      __notasColumnas = (data.columnas || []).map((c, idx) => ({
-        orden: Number(c.orden || idx + 1),
-        nombre: String(c.nombre || `Actividad ${idx + 1}`),
-        porcentaje: Number(c.porcentaje || 0),
-        componente: String(c.componente || "procedimental").trim().toLowerCase()
-      }));
+    // ============================================================
+// PROTECCIÓN CONTRA RECARGA DE UNA PLANILLA CON CAMBIOS PENDIENTES
+// ============================================================
 
-      __notasEstudiantes = (data.estudiantes || []).map(r => ({
-        estudiante: String(r.estudiante || "").trim(),
-        notas: r.notas || {}
-      })).filter(x => x.estudiante);
+let planillaTieneCambiosPendientes = false;
 
-      notasPlanillaCacheWrite_(cacheKey, {
-        columnas: __notasColumnas,
-        estudiantes: __notasEstudiantes
-      });
+try {
 
-      notasRenderColumnas_();
-      notasRenderGrid_();
-      notasSetHint_(`Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`);
-      return;
+    const pendiente =
+        await notasIdbGet_(
+            NOTAS_IDB_QUEUE,
+            cacheKey
+        );
+
+    if (
+        pendiente?.payload &&
+        typeof pendiente.payload === "object"
+    ) {
+
+        planillaTieneCambiosPendientes = true;
+
+        console.log(
+            "🟡 PLANILLA CON CAMBIOS LOCALES PENDIENTES:",
+            {
+                cacheKey,
+                save_version:
+                    pendiente.payload.save_version,
+                curso,
+                asignatura,
+                periodo
+            }
+        );
     }
 
-    const students = await gsCourseStudentsCached(curso);
-
-    __notasColumnas = notasColumnasDefault_();
-    __notasEstudiantes = (students || []).map(name => ({
-      estudiante: String(name || "").trim(),
-      notas: {}
-    })).filter(x => x.estudiante);
-
-    notasPlanillaCacheWrite_(cacheKey, {
-      columnas: __notasColumnas,
-      estudiantes: __notasEstudiantes
-    });
-
-    notasRenderColumnas_();
-    notasRenderGrid_();
-    notasSetHint_("Planilla nueva. Guarda para conservar las notas.");
 } catch (e) {
-  const students = await gsCourseStudentsCached(curso);
 
-if (!__notasEstudiantes.length && Array.isArray(students) && students.length) {
+    console.warn(
+        "No se pudo comprobar la cola pendiente:",
+        e
+    );
+}
 
-  __notasColumnas = notasColumnasDefault_(); // 👈 AQUÍ
+    // ============================================================
+    // INDICA SI ESTA PLANILLA YA FUE CARGADA DESDE CACHE
+    // ============================================================
+    // Si existe una copia de ESTA misma planilla, jamás debemos
+    // reemplazarla por una planilla nueva/vacía solo porque estamos
+    // offline.
+    // ============================================================
 
-  __notasEstudiantes = students.map(name => ({
-    estudiante: String(name || "").trim(),
-    notas: {}
-  })).filter(x => x.estudiante);
+    let planillaCargadaDesdeCache = false;
 
-    notasRenderColumnas_();
-    notasRenderGrid_();
+    // ============================================================
+    // CACHE LOCAL SEGURO
+    // ============================================================
+    // El cache solamente puede aplicarse si esta carga sigue siendo
+    // la solicitud vigente.
+    // ============================================================
 
-    notasSetHint_("Sin respuesta del servidor. Planilla nueva abierta con estudiantes locales ✅");
-  } else if (__notasEstudiantes.length) {
-    notasRenderColumnas_();
-    notasRenderGrid_();
+if (useCache && !planillaTieneCambiosPendientes) {
 
-    notasSetHint_("Sin conexión o sin respuesta del servidor. Planilla abierta desde guardado local ✅");
-  } else {
-    notasSetHint_(String(e?.message || e));
-  }
-} finally {
-    if (!silent) setLoading(false);
-  }
+        const cached =
+            notasPlanillaCacheRead_(cacheKey);
+
+        // --------------------------------------------------------
+        // LOCALSTORAGE
+        // --------------------------------------------------------
+
+        if (cached?.value) {
+
+            // La selección pudo cambiar mientras se procesaba
+            // esta carga.
+            if (
+                requestId !==
+                __notasPlanillaRequestId
+            ) {
+                return;
+            }
+
+            notasAplicarPlanillaCache_(
+                cached.value
+            );
+
+            // Esta planilla ya tiene datos propios.
+            planillaCargadaDesdeCache = true;
+
+            // Registrar exactamente qué planilla está en memoria.
+            __notasPlanillaLoadedKey = cacheKey;
+
+        } else {
+
+            // ----------------------------------------------------
+            // INDEXEDDB
+            // ----------------------------------------------------
+
+            const idbCached =
+                await notasIdbGet_(
+                    NOTAS_IDB_PLANILLAS,
+                    cacheKey
+                );
+
+            // ====================================================
+            // PROTECCIÓN CONTRA CACHE INDEXEDDB ATRASADO
+            // ====================================================
+
+            if (
+                requestId !==
+                __notasPlanillaRequestId
+            ) {
+
+                console.warn(
+                    "Cache IndexedDB descartado por estar desactualizado.",
+                    {
+                        requestId,
+                        requestActual:
+                            __notasPlanillaRequestId,
+                        curso,
+                        asignatura,
+                        periodo
+                    }
+                );
+
+                return;
+            }
+
+            if (idbCached?.value) {
+
+                notasAplicarPlanillaCache_(
+                    idbCached.value
+                );
+
+                // Esta planilla ya tiene datos propios.
+                planillaCargadaDesdeCache = true;
+
+                // Registrar exactamente qué planilla está en memoria.
+                __notasPlanillaLoadedKey = cacheKey;
+            }
+        }
+    }
+
+    // ============================================================
+    // MODO OFFLINE
+    // ============================================================
+
+    if (!navigator.onLine) {
+
+        // ========================================================
+        // PROTECCIÓN CRÍTICA OFFLINE
+        // ========================================================
+        // Si ya cargamos una copia de ESTA misma planilla desde
+        // localStorage o IndexedDB, NO podemos reemplazarla por
+        // estudiantes con notas vacías.
+        // ========================================================
+
+        if (planillaCargadaDesdeCache) {
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Planilla cargada desde guardado local seguro ✅"
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // IMPORTANTE:
+        // Si no tenemos una copia segura de esta planilla,
+        // podemos mostrar estudiantes del curso para permitir
+        // trabajo offline, PERO esa memoria todavía queda
+        // identificada como esta planilla.
+        //
+        // La protección de guardado impedirá guardar si la
+        // identidad no está confirmada.
+        // ========================================================
+
+        const students =
+            await gsCourseStudentsCached(curso);
+
+        if (
+            Array.isArray(students) &&
+            students.length
+        ) {
+
+            __notasColumnas =
+                notasColumnasDefault_();
+
+            __notasEstudiantes =
+                notasDedupEstudiantes_(
+                    students
+                        .map(name => ({
+                            estudiante:
+                                String(
+                                    name || ""
+                                ).trim(),
+                            notas: {}
+                        }))
+                        .filter(
+                            x => x.estudiante
+                        )
+                );
+
+            // Esta memoria corresponde a la selección actual,
+            // pero NO proviene de una planilla existente.
+            __notasPlanillaLoadedKey =
+                cacheKey;
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Planilla abierta en modo offline ✅ Estudiantes cargados desde este curso."
+            );
+
+        } else {
+
+            __notasEstudiantes = [];
+
+            __notasColumnas =
+                notasColumnasDefault_();
+
+            // No consideramos esta memoria como una planilla
+            // segura para guardar.
+            __notasPlanillaLoadedKey = null;
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Sin internet y sin estudiantes guardados para este curso."
+            );
+        }
+
+        return;
+    }
+
+    // ============================================================
+    // CONSULTA AL SERVIDOR
+    // ============================================================
+
+    try {
+
+        if (!silent) {
+
+            setLoading(
+                true,
+                "Cargando…",
+                "Abriendo planilla de notas."
+            );
+        }
+
+        const res = await fetch(
+            GS_WEBAPP_URL,
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    action: "notas_planilla_get",
+                    curso,
+                    asignatura,
+                    periodo,
+                    year: new Date().getFullYear(),
+                    email,
+                    key: GS_API_KEY
+                })
+            }
+        );
+
+        const data =
+            await res.json();
+
+        // ========================================================
+        // PROTECCIÓN CONTRA RESPUESTAS ATRASADAS
+        // ========================================================
+        // Si mientras esperábamos esta respuesta el usuario cambió
+        // de curso, asignatura o periodo, esta solicitud ya no es
+        // la solicitud vigente.
+        //
+        // En ese caso:
+        // - NO aplicamos estudiantes.
+        // - NO aplicamos columnas.
+        // - NO escribimos cache.
+        // - NO renderizamos.
+        // - NO mostramos sus datos.
+        // ========================================================
+
+        if (
+            requestId !==
+            __notasPlanillaRequestId
+        ) {
+
+            console.warn(
+                "Carga de planilla descartada por estar desactualizada.",
+                {
+                    requestId,
+                    requestActual:
+                        __notasPlanillaRequestId,
+                    curso,
+                    asignatura,
+                    periodo
+                }
+            );
+
+            return;
+        }
+
+        if (!data.ok) {
+
+            throw new Error(
+                data.msg ||
+                data.error ||
+                "notas_planilla_get_failed"
+            );
+        }
+
+        // ========================================================
+        // PLANILLA EXISTENTE
+        // ========================================================
+
+        if (data.exists) {
+
+            __notasColumnas =
+                (data.columnas || [])
+                    .map((c, idx) => ({
+                        orden:
+                            Number(
+                                c.orden ||
+                                idx + 1
+                            ),
+
+                        nombre:
+                            String(
+                                c.nombre ||
+                                `Actividad ${idx + 1}`
+                            ),
+
+                        porcentaje:
+                            Number(
+                                c.porcentaje ||
+                                0
+                            ),
+
+                        componente:
+                            String(
+                                c.componente ||
+                                "procedimental"
+                            )
+                                .trim()
+                                .toLowerCase()
+                    }));
+
+            __notasEstudiantes =
+                notasDedupEstudiantes_(
+                    (data.estudiantes || [])
+                        .map(r => ({
+                            estudiante:
+                                String(
+                                    r.estudiante ||
+                                    ""
+                                ).trim(),
+
+                            notas:
+                                r.notas || {}
+                        }))
+                        .filter(
+                            x => x.estudiante
+                        )
+                );
+
+            // ====================================================
+            // GARANTÍA DE PLANILLA COMPLETA
+            // ====================================================
+            // La planilla guardada en Supabase solo trae los
+            // estudiantes que ya tenían un registro de notas.
+            // Si el curso tiene estudiantes activos que todavía
+            // no aparecen ahí (recién matriculados, o que se
+            // perdieron por una carga previa incompleta), los
+            // agregamos aquí con notas vacías — SIN tocar ni
+            // sobrescribir las notas de los que ya existen.
+            // ====================================================
+
+            try {
+
+                const rosterCompleto =
+                    await gsCourseStudentsCached(curso);
+
+                if (
+                    requestId ===
+                    __notasPlanillaRequestId &&
+                    Array.isArray(rosterCompleto) &&
+                    rosterCompleto.length
+                ) {
+
+                    const yaPresentes =
+                        new Set(
+                            __notasEstudiantes.map(x =>
+                                normalizeNombreClave_(x.estudiante)
+                            )
+                        );
+
+                    rosterCompleto
+                        .map(n => String(n || "").trim())
+                        .filter(Boolean)
+                        .forEach(nombre => {
+
+                            const key =
+                                normalizeNombreClave_(nombre);
+
+                            if (yaPresentes.has(key)) return;
+
+                            yaPresentes.add(key);
+
+                            __notasEstudiantes.push({
+                                estudiante: nombre,
+                                notas: {}
+                            });
+                        });
+                }
+
+            } catch (eRoster) {
+
+                console.warn(
+                    "No se pudo verificar que la planilla esté completa frente al curso:",
+                    eRoster
+                );
+            }
+
+
+// ============================================================
+// RESTAURAR VERSIÓN REAL DE ESTA PLANILLA
+// ============================================================
+
+__notasPlanillaSaveVersion =
+    Number.isFinite(Number(data.planilla?.save_version))
+        ? Number(data.planilla.save_version)
+        : 0;
+
+console.log(
+    "🔢 VERSIÓN CARGADA DESDE SUPABASE:",
+    {
+        planilla_id: data.planilla?.id,
+        save_version: __notasPlanillaSaveVersion,
+        curso,
+        asignatura,
+        periodo
+    }
+);
+            // ====================================================
+            // ESTA ES LA PLANILLA REAL DEL SERVIDOR
+            // ====================================================
+
+            __notasPlanillaLoadedKey =
+                cacheKey;
+
+            // ====================================================
+            // GUARDAR COPIA LOCAL
+            // ====================================================
+
+  notasPlanillaCacheWrite_(
+    cacheKey,
+    {
+        columnas:
+            __notasColumnas,
+
+        estudiantes:
+            __notasEstudiantes,
+
+        save_version:
+            __notasPlanillaSaveVersion
+    }
+);
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                `Planilla cargada ✅ Estudiantes: ${__notasEstudiantes.length}`
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // PLANILLA NUEVA
+        // ========================================================
+        // IMPORTANTE:
+        // Solo llegamos aquí porque el servidor respondió
+        // explícitamente que data.exists === false.
+        //
+        // Eso es diferente a un error de red.
+        // ========================================================
+
+        const students =
+            await gsCourseStudentsCached(curso);
+
+        __notasColumnas =
+            notasColumnasDefault_();
+
+        __notasEstudiantes =
+            notasDedupEstudiantes_(
+                (students || [])
+                    .map(name => ({
+                        estudiante:
+                            String(
+                                name || ""
+                            ).trim(),
+
+                        notas: {}
+                    }))
+                    .filter(
+                        x => x.estudiante
+                    )
+            );
+
+        // Esta memoria corresponde a la planilla seleccionada,
+        // aunque todavía no exista guardada en Supabase.
+        __notasPlanillaLoadedKey =
+            cacheKey;
+
+        notasPlanillaCacheWrite_(
+            cacheKey,
+            {
+                columnas:
+                    __notasColumnas,
+
+                estudiantes:
+                    __notasEstudiantes
+            }
+        );
+
+        notasRenderColumnas_();
+        notasRenderGrid_();
+
+        notasSetHint_(
+            "Planilla nueva. Guarda para conservar las notas."
+        );
+
+    } catch (e) {
+
+        // ========================================================
+        // PASO 1.10 — PROTECCIÓN CRÍTICA DEL CATCH
+        // ========================================================
+        // Un error de red, servidor o consulta NO significa que
+        // la planilla existente esté vacía.
+        //
+        // NUNCA creamos aquí una planilla default encima de una
+        // planilla existente.
+        // ========================================================
+
+        if (
+            requestId !==
+            __notasPlanillaRequestId
+        ) {
+
+            console.warn(
+                "Error de una carga antigua descartado.",
+                {
+                    requestId,
+                    requestActual:
+                        __notasPlanillaRequestId,
+                    curso,
+                    asignatura,
+                    periodo
+                }
+            );
+
+            return;
+        }
+
+        const planillaActualKeyCatch =
+            notasPlanillaCacheKey_(
+                curso,
+                asignatura,
+                periodo,
+                email
+            );
+
+        // ========================================================
+        // SI LA MEMORIA CORRESPONDE A ESTA PLANILLA
+        // ========================================================
+
+        if (
+            __notasPlanillaLoadedKey &&
+            __notasPlanillaLoadedKey ===
+                planillaActualKeyCatch &&
+            Array.isArray(
+                __notasEstudiantes
+            ) &&
+            __notasEstudiantes.length
+        ) {
+
+            notasRenderColumnas_();
+            notasRenderGrid_();
+
+            notasSetHint_(
+                "Sin conexión o sin respuesta del servidor. Planilla conservada desde guardado local ✅"
+            );
+
+            return;
+        }
+
+        // ========================================================
+        // SI NO TENEMOS UNA PLANILLA SEGURA
+        // ========================================================
+        // No reutilizamos datos de otra asignatura.
+        // No fabricamos estudiantes.
+        // No ponemos notas vacías para después guardarlas.
+        // ========================================================
+
+        __notasPlanillaLoadedKey = null;
+
+        __notasEstudiantes = [];
+
+        __notasColumnas =
+            notasColumnasDefault_();
+
+        notasRenderColumnas_();
+        notasRenderGrid_();
+
+        notasSetHint_(
+            "No fue posible cargar esta planilla. Por seguridad no se realizará ningún guardado."
+        );
+
+    } finally {
+
+        if (!silent) {
+            setLoading(false);
+        }
+    }
 }
 
 const NOTAS_LAST_SELECTION_KEY = "notas_last_selection_v1";
@@ -21223,6 +22864,24 @@ setStatus("warn", "Sincronizando…", "Enviando planilla a Supabase.");
 
 const data = await notasEnviarPayloadSupabase_(payload);
 
+
+// ============================================================
+// ACTUALIZAR VERSIÓN LOCAL CON LA VERSIÓN CONFIRMADA
+// POR SUPABASE
+// ============================================================
+
+if (Number.isFinite(Number(data.save_version))) {
+
+    __notasPlanillaSaveVersion =
+        Number(data.save_version);
+
+    // IMPORTANTE:
+    // El payload local debe conservar la misma versión
+    // confirmada por Supabase.
+    payload.save_version =
+        Number(data.save_version);
+}
+
     // 3) Si subió bien, marca como sincronizada
     await notasGuardarLocalSeguro_(payload, { pending: false });
     await notasIdbDelete_(NOTAS_IDB_QUEUE, notasPayloadCacheKey_(payload));
@@ -21232,10 +22891,37 @@ const data = await notasEnviarPayloadSupabase_(payload);
     }
 
     notasSetHint_(data.msg || "Planilla guardada y sincronizada ✅");
-  } catch (e) {
-    // Aunque falle Supabase, NO se pierde el trabajo
-    notasSetHint_("Planilla guardada localmente ✅ Pendiente por sincronizar.");
-  } finally {
+ } catch (e) {
+
+    // ============================================================
+    // BLOQUEO DE SEGURIDAD DEL BACKEND
+    // ============================================================
+    // Un 409 significa que la planilla cambió en Supabase.
+    // NO debemos presentar esto como un simple problema de conexión.
+    // ============================================================
+
+    if (
+        e?.status === 409 ||
+        e?.response?.status === 409 ||
+        String(e?.message || "").includes("versión desactualizada") ||
+        String(e?.message || "").includes("version")
+    ) {
+
+        notasSetHint_(
+            "Guardado bloqueado: la planilla fue modificada. Recarga la planilla antes de guardar."
+        );
+
+        return;
+    }
+
+    // ============================================================
+    // ERROR NORMAL DE CONEXIÓN
+    // ============================================================
+
+    notasSetHint_(
+        "Planilla guardada localmente ✅ Pendiente por sincronizar."
+    );
+} finally {
     setLoading(false);
   }
 }
@@ -21358,7 +23044,24 @@ function notasProgramarCargaPlanilla_(){
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
-  el?.addEventListener("change", () => {
+  el?.addEventListener("change", async () => {
+    // ============================================================
+    // ✅ FIX: antes de programar la carga de la nueva planilla
+    // (que reemplazará __notasEstudiantes/__notasColumnas en
+    // memoria), guardamos DE INMEDIATO cualquier nota que el
+    // usuario acabe de escribir y que todavía no se hubiera
+    // sincronizado. __notasPrevSel guarda la identidad (curso/
+    // asignatura/periodo) de la planilla que se está abandonando,
+    // capturada ANTES de este cambio.
+    // ============================================================
+    const identidadAnterior = { ...__notasPrevSel };
+    try {
+      await notasFlushGuardadoPendiente_(identidadAnterior);
+    } catch (e) {
+      console.warn("No se pudo forzar el guardado antes de cambiar de planilla:", e);
+    }
+
+    notasSnapshotPrevSel_();
     notasSaveLastSelection_();
     notasProgramarCargaPlanilla_();
   });
@@ -21385,7 +23088,19 @@ async function notasAutoLoadStudentsOnCourse_(){
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
-  el?.addEventListener("change", () => {
+  el?.addEventListener("change", async () => {
+    // ✅ FIX: mismo guardado forzado que en el listener anterior
+    // (este segundo listener ya existía en el código como
+    // duplicado del primero; si no se protege aquí también, puede
+    // ganar la carrera y disparar la recarga de la planilla antes
+    // de que el guardado forzado del primer listener termine).
+    const identidadAnterior = { ...__notasPrevSel };
+    try {
+      await notasFlushGuardadoPendiente_(identidadAnterior);
+    } catch (e) {
+      console.warn("No se pudo forzar el guardado antes de cambiar de planilla:", e);
+    }
+    notasSnapshotPrevSel_();
     notasSaveLastSelection_();
     notasProgramarCargaPlanilla_();
   });
@@ -22146,9 +23861,21 @@ async function notasAlertasBuscar_(opts = {}){
 
   if (useCache) {
     const cached = notasCacheRead_(cacheKey);
-    if (cached?.value) {
-      notasAlertasAplicarItems_(cached.value);
-    }
+ if (cached?.value) {
+
+  // La selección pudo cambiar mientras se procesaba la carga.
+  if (requestId !== __notasPlanillaRequestId) {
+    return;
+  }
+
+  notasAplicarPlanillaCache_(cached.value);
+
+  // Esta planilla ya tiene datos propios.
+  // NO debe ser reemplazada por una planilla vacía.
+  planillaCargadaDesdeCache = true;
+
+  __notasPlanillaLoadedKey = cacheKey;
+}
   }
 
   try {
@@ -22178,7 +23905,7 @@ async function notasAlertasBuscar_(opts = {}){
   } finally {
     if (!silent) setLoading(false);
   }
-}
+}  
 
 async function notasAlertasOpen_(){
   if (!notasAlertasModal) return;
@@ -24941,8 +26668,59 @@ async function gsAdminStudentSave(payload = {}) {
 }
 
 function clearStudentsCache_(course) {
+  const cursoClean = String(course || "").trim();
+
   try {
-    localStorage.removeItem(LS_STUDENTS_CACHE_PREFIX + String(course || "").trim());
+    localStorage.removeItem(LS_STUDENTS_CACHE_PREFIX + cursoClean);
+  } catch {}
+
+  // ============================================================
+  // ✅ SINCRONIZACIÓN ENTRE TODAS LAS PLANILLAS DEL MISMO CURSO/GRADO
+  // ============================================================
+  // Al agregar, editar o eliminar un estudiante desde el gestor de
+  // Notas, además del cache general de estudiantes del curso (arriba)
+  // hay otras dos cachés locales que pueden quedar desactualizadas:
+  //  1) La caché de estudiantes del módulo de Reportes
+  //     (__reportesStudentsByCourse), que se lee "cache-first".
+  //  2) La caché de cada planilla de Notas por asignatura/periodo
+  //     (NOTAS_PLANILLA_CACHE_PREFIX), que guarda su propia lista de
+  //     estudiantes por separado para cada combinación curso+asignatura+periodo.
+  // Se invalidan ambas para ese curso/grado, sin tocar ninguna otra
+  // caché ni curso distinto, para que la próxima vez que se abra
+  // cualquier planilla de ese grado se traiga la lista actualizada.
+  // ============================================================
+  try {
+    if (typeof reportesNormalizeCourseKey_ === "function" &&
+        typeof __reportesStudentsByCourse === "object" &&
+        __reportesStudentsByCourse) {
+      const reportesKey = reportesNormalizeCourseKey_(cursoClean);
+      if (Object.prototype.hasOwnProperty.call(__reportesStudentsByCourse, reportesKey)) {
+        delete __reportesStudentsByCourse[reportesKey];
+        if (typeof reportesSaveStudentsCache_ === "function") {
+          reportesSaveStudentsCache_();
+        }
+      }
+    }
+  } catch {}
+
+  try {
+    if (typeof NOTAS_PLANILLA_CACHE_PREFIX === "string" && cursoClean) {
+      const prefix = NOTAS_PLANILLA_CACHE_PREFIX + "::";
+      const keysToRemove = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !k.startsWith(prefix)) continue;
+
+        // Formato de la clave: prefix::year::email::curso::asignatura::periodo
+        const partes = k.split("::");
+        if (partes[3] === cursoClean) keysToRemove.push(k);
+      }
+
+      keysToRemove.forEach(k => {
+        try { localStorage.removeItem(k); } catch {}
+      });
+    }
   } catch {}
 }
 
@@ -25015,6 +26793,86 @@ function normalizeText(v) {
     .replace(/\s+/g, " ");
 }
 
+// ============================================================
+// CLAVE DE ESTUDIANTE INDEPENDIENTE DEL ORDEN DE LAS PALABRAS
+// ============================================================
+// "Angie Daiana Torres Torres" y "Torres Torres Angie Daiana"
+// deben identificar al MISMO estudiante. normalizeText() por sí
+// sola no lo garantiza porque compara el texto tal cual está
+// escrito. Esta función ordena alfabéticamente las palabras del
+// nombre ya normalizado, generando una clave estable sin
+// importar en qué orden se haya escrito el nombre.
+// ============================================================
+function normalizeNombreClave_(v) {
+  return normalizeText(v)
+    .split(" ")
+    .filter(Boolean)
+    .sort()
+    .join(" ");
+}
+
+// ============================================================
+// DEDUPLICAR ESTUDIANTES DE UNA PLANILLA (SIN PERDER NOTAS)
+// ============================================================
+// Recibe la lista de estudiantes de una planilla y devuelve una
+// lista donde cada estudiante aparece una sola vez, usando la
+// clave independiente del orden de palabras. Si el mismo
+// estudiante aparecía dos veces (p. ej. por orden distinto del
+// nombre), se fusiona en una sola fila conservando:
+//  - el nombre más completo (más largo) como nombre visible
+//  - todas las notas que ya se habían registrado en cualquiera
+//    de las filas duplicadas (nunca se descarta una nota real)
+// ============================================================
+function notasDedupEstudiantes_(lista) {
+  const arr = Array.isArray(lista) ? lista : [];
+  const porClave = new Map();
+  const orden = [];
+
+  arr.forEach(item => {
+    const nombre = String(item?.estudiante || "").trim();
+    if (!nombre) return;
+
+    const clave = normalizeNombreClave_(nombre);
+    const notasItem = item?.notas || {};
+
+    if (!porClave.has(clave)) {
+      porClave.set(clave, {
+        estudiante: nombre,
+        notas: { ...notasItem }
+      });
+      orden.push(clave);
+      return;
+    }
+
+    const existente = porClave.get(clave);
+
+    // Conserva como nombre visible el más completo de los dos.
+    if (nombre.length > existente.estudiante.length) {
+      existente.estudiante = nombre;
+    }
+
+    // Fusiona notas sin pisar valores ya existentes no vacíos.
+    Object.keys(notasItem).forEach(k => {
+      const valorNuevo = notasItem[k];
+      const valorActual = existente.notas[k];
+      const actualVacio =
+        valorActual === undefined ||
+        valorActual === null ||
+        valorActual === "";
+      const nuevoTieneValor =
+        valorNuevo !== undefined &&
+        valorNuevo !== null &&
+        valorNuevo !== "";
+
+      if (actualVacio && nuevoTieneValor) {
+        existente.notas[k] = valorNuevo;
+      }
+    });
+  });
+
+  return orden.map(clave => porClave.get(clave));
+}
+
 
 async function notasStudentSaveAction_(mode) {
 const course = String(notasCursoEl?.value || "").trim();
@@ -25037,6 +26895,38 @@ const studentPlanillaCtx_ = {
     return;
   }
 
+  // ============================================================
+  // BLOQUEO DE DUPLICADOS (independiente del orden de las palabras)
+  // ============================================================
+  // Antes de crear o renombrar un estudiante, se verifica contra
+  // la lista completa del curso ya cargada en memoria (que incluye
+  // todo el roster gracias a la reconciliación). Si el nombre ya
+  // existe -aunque esté escrito en otro orden- no se crea una fila
+  // nueva; se avisa y se detiene la operación.
+  // ============================================================
+  if (mode === "add" || mode === "edit") {
+    const claveNueva = normalizeNombreClave_(newName);
+    const claveVieja = normalizeNombreClave_(oldName);
+
+    const coincidencia = __notasEstudiantes.find(x => {
+      const clave = normalizeNombreClave_(String(x.estudiante || ""));
+      if (clave !== claveNueva) return false;
+      // En modo edición, no cuenta como duplicado el propio estudiante
+      // que se está editando (aunque no haya cambiado el nombre).
+      if (mode === "edit" && clave === claveVieja) return false;
+      return true;
+    });
+
+    if (coincidencia) {
+      alert(
+        `Ya existe un estudiante con ese nombre en este curso: "${coincidencia.estudiante}".\n\n` +
+        `Para evitar duplicados no se creó/renombró el registro. Si es la misma persona, ` +
+        `usa "Editar" sobre esa fila; si es alguien distinto, ajusta el nombre para diferenciarlo.`
+      );
+      return;
+    }
+  }
+
   try {
     setLoading(true, "Guardando…", "Actualizando estudiante.");
 
@@ -25049,7 +26939,7 @@ const studentPlanillaCtx_ = {
 });
 
       if (!__notasEstudiantes.some(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(newName)
+        normalizeNombreClave_(String(x.estudiante || "")) === normalizeNombreClave_(newName)
       )) {
         __notasEstudiantes.push({
           estudiante: newName,
@@ -25073,7 +26963,7 @@ const studentPlanillaCtx_ = {
 });
 
       const found = __notasEstudiantes.find(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
+        normalizeNombreClave_(String(x.estudiante || "")) === normalizeNombreClave_(oldName)
       );
 
       if (found) found.estudiante = newName;
@@ -25101,7 +26991,7 @@ const studentPlanillaCtx_ = {
   ...studentPlanillaCtx_
 });
       __notasEstudiantes = __notasEstudiantes.filter(x =>
-        normalizeText(String(x.estudiante || "")) !== normalizeText(oldName)
+        normalizeNombreClave_(String(x.estudiante || "")) !== normalizeNombreClave_(oldName)
       );
     }
 
