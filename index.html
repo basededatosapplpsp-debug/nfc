@@ -23861,21 +23861,11 @@ async function notasAlertasBuscar_(opts = {}){
 
   if (useCache) {
     const cached = notasCacheRead_(cacheKey);
- if (cached?.value) {
-
-  // La selección pudo cambiar mientras se procesaba la carga.
-  if (requestId !== __notasPlanillaRequestId) {
-    return;
-  }
-
-  notasAplicarPlanillaCache_(cached.value);
-
-  // Esta planilla ya tiene datos propios.
-  // NO debe ser reemplazada por una planilla vacía.
-  planillaCargadaDesdeCache = true;
-
-  __notasPlanillaLoadedKey = cacheKey;
-}
+    if (cached?.value) {
+      // Muestra de inmediato lo que haya en cache mientras se
+      // consulta la versión actualizada al servidor.
+      notasAlertasAplicarItems_(cached.value);
+    }
   }
 
   try {
