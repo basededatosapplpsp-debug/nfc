@@ -20633,7 +20633,6 @@ function notasPayloadCacheKey_(payload){
     payload.email
   );
 }
-
 async function notasGuardarLocalSeguro_(payload, { pending = true } = {}) {
     if (!payload) return null;
 
@@ -20658,24 +20657,79 @@ async function notasGuardarLocalSeguro_(payload, { pending = true } = {}) {
         }
     };
 
-    // Mantiene tu cache actual
-    notasPlanillaCacheWrite_(cacheKey, localValue);
+    // ============================================================
+    // CACHE LOCAL
+    // ============================================================
 
-    // Copia fuerte en IndexedDB
-    await notasIdbPut_(NOTAS_IDB_PLANILLAS, {
-        id: cacheKey,
-        ts: now,
-        value: localValue
-    });
+    notasPlanillaCacheWrite_(
+        cacheKey,
+        localValue
+    );
 
-    // Cola de sincronización
-    if (pending) {
-        await notasIdbPut_(NOTAS_IDB_QUEUE, {
+    // ============================================================
+    // INDEXEDDB — COPIA LOCAL
+    // ============================================================
+
+    await notasIdbPut_(
+        NOTAS_IDB_PLANILLAS,
+        {
             id: cacheKey,
             ts: now,
-            attempts: 0,
-            payload
-        });
+            value: localValue
+        }
+    );
+
+    // ============================================================
+    // COLA DE SINCRONIZACIÓN
+    // ============================================================
+
+    if (pending) {
+
+        // --------------------------------------------------------
+        // IMPORTANTE:
+        // Siempre reemplazamos la entrada anterior de ESTA
+        // planilla por el payload más reciente.
+        //
+        // Así nunca quedan varias versiones pendientes de la
+        // misma planilla esperando ser enviadas.
+        // --------------------------------------------------------
+
+        await notasIdbPut_(
+            NOTAS_IDB_QUEUE,
+            {
+                id: cacheKey,
+                ts: now,
+                attempts: 0,
+                payload: {
+                    ...payload,
+                    save_version: saveVersion
+                }
+            }
+        );
+
+        console.log(
+            "🟡 COLA NOTAS ACTUALIZADA:",
+            {
+                cacheKey,
+                save_version: saveVersion,
+                curso: payload.curso,
+                asignatura: payload.asignatura,
+                periodo: payload.periodo
+            }
+        );
+
+    } else {
+
+        console.log(
+            "🟢 PLANILLA MARCADA COMO SINCRONIZADA:",
+            {
+                cacheKey,
+                save_version: saveVersion,
+                curso: payload.curso,
+                asignatura: payload.asignatura,
+                periodo: payload.periodo
+            }
+        );
     }
 
     try {
@@ -20686,27 +20740,100 @@ async function notasGuardarLocalSeguro_(payload, { pending = true } = {}) {
 }
 
 async function notasEnviarPayloadSupabase_(payload) {
-    const res = await fetch(GS_WEBAPP_URL, {
-        method: "POST",
-        body: JSON.stringify(payload)
+
+    console.group("📝 NOTAS → ENVÍO A SUPABASE");
+
+    console.log("PAYLOAD:", {
+        curso: payload?.curso,
+        asignatura: payload?.asignatura,
+        periodo: payload?.periodo,
+        year: payload?.year,
+        save_version: payload?.save_version,
+        columnas: payload?.columnas?.length,
+        estudiantes: payload?.estudiantes?.length
     });
 
-    const data = await res.json();
+    console.log("COLUMNAS:", payload?.columnas);
+    console.log("ESTUDIANTES:", payload?.estudiantes);
 
-    if (!data.ok) {
-        const error = new Error(
-            data.msg ||
-            data.error ||
-            "notas_planilla_save_failed"
+    try {
+
+        const res = await fetch(GS_WEBAPP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+
+        console.log("HTTP STATUS:", res.status);
+
+        const texto = await res.text();
+
+        console.log("RESPUESTA RAW:", texto);
+
+        let data;
+
+        try {
+            data = JSON.parse(texto);
+        } catch (parseError) {
+
+            console.error(
+                "❌ RESPUESTA NO ES JSON:",
+                parseError
+            );
+
+            throw new Error(
+                "Respuesta inválida del servidor."
+            );
+        }
+
+        console.log("RESPUESTA JSON:", data);
+
+        if (!data.ok) {
+
+            const error = new Error(
+                data.msg ||
+                data.error ||
+                "notas_planilla_save_failed"
+            );
+
+            error.status = res.status;
+            error.data = data;
+
+            console.error(
+                "❌ SUPABASE RECHAZÓ EL GUARDADO:",
+                {
+                    status: res.status,
+                    data
+                }
+            );
+
+            throw error;
+        }
+
+        console.log(
+            "✅ SUPABASE CONFIRMÓ:",
+            {
+                planilla_id: data.planilla_id,
+                save_version: data.save_version,
+                total_estudiantes:
+                    data.total_estudiantes
+            }
         );
 
-        error.status = res.status;
-        error.data = data;
+        console.groupEnd();
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            "❌ ERROR EN ENVÍO:",
+            error
+        );
+
+        console.groupEnd();
 
         throw error;
     }
-
-    return data;
 }
 
 async function notasSyncPendientes_({ silent = true } = {}) {
@@ -20990,35 +21117,40 @@ if (
                     });
                 }
 
-            } catch (e) {
+  } catch (e) {
 
-                // ====================================================
-                // EL ELEMENTO NO SE BORRA
-                // ====================================================
-                // Si falla, permanece en la cola para poder intentar
-                // nuevamente.
-                // ====================================================
+    console.error(
+        "❌ ERROR SINCRONIZANDO PLANILLA PENDIENTE",
+        {
+            error: e,
+            mensaje: e?.message,
+            status: e?.status,
+            data: e?.data,
+            itemId: item?.id,
+            payload: item?.payload
+        }
+    );
 
-                await notasIdbPut_(
-                    NOTAS_IDB_QUEUE,
-                    {
-                        ...item,
+    await notasIdbPut_(
+        NOTAS_IDB_QUEUE,
+        {
+            ...item,
 
-                        attempts:
-                            Number(
-                                item.attempts || 0
-                            ) + 1,
+            attempts:
+                Number(
+                    item.attempts || 0
+                ) + 1,
 
-                        lastError:
-                            String(
-                                e?.message || e
-                            ),
+            lastError:
+                String(
+                    e?.message || e
+                ),
 
-                        lastAttempt:
-                            Date.now()
-                    }
-                );
-            }
+            lastAttempt:
+                Date.now()
+        }
+    );
+}
         }
 
     } finally {
@@ -21554,6 +21686,49 @@ async function notasAbrirPlanillaActual_(opts = {}) {
         email
     );
 
+
+    // ============================================================
+// PROTECCIÓN CONTRA RECARGA DE UNA PLANILLA CON CAMBIOS PENDIENTES
+// ============================================================
+
+let planillaTieneCambiosPendientes = false;
+
+try {
+
+    const pendiente =
+        await notasIdbGet_(
+            NOTAS_IDB_QUEUE,
+            cacheKey
+        );
+
+    if (
+        pendiente?.payload &&
+        typeof pendiente.payload === "object"
+    ) {
+
+        planillaTieneCambiosPendientes = true;
+
+        console.log(
+            "🟡 PLANILLA CON CAMBIOS LOCALES PENDIENTES:",
+            {
+                cacheKey,
+                save_version:
+                    pendiente.payload.save_version,
+                curso,
+                asignatura,
+                periodo
+            }
+        );
+    }
+
+} catch (e) {
+
+    console.warn(
+        "No se pudo comprobar la cola pendiente:",
+        e
+    );
+}
+
     // ============================================================
     // INDICA SI ESTA PLANILLA YA FUE CARGADA DESDE CACHE
     // ============================================================
@@ -21571,7 +21746,7 @@ async function notasAbrirPlanillaActual_(opts = {}) {
     // la solicitud vigente.
     // ============================================================
 
-    if (useCache) {
+if (useCache && !planillaTieneCambiosPendientes) {
 
         const cached =
             notasPlanillaCacheRead_(cacheKey);
@@ -21878,16 +22053,84 @@ async function notasAbrirPlanillaActual_(opts = {}) {
                         x => x.estudiante
                     );
 
+            // ====================================================
+            // GARANTÍA DE PLANILLA COMPLETA
+            // ====================================================
+            // La planilla guardada en Supabase solo trae los
+            // estudiantes que ya tenían un registro de notas.
+            // Si el curso tiene estudiantes activos que todavía
+            // no aparecen ahí (recién matriculados, o que se
+            // perdieron por una carga previa incompleta), los
+            // agregamos aquí con notas vacías — SIN tocar ni
+            // sobrescribir las notas de los que ya existen.
+            // ====================================================
+
+            try {
+
+                const rosterCompleto =
+                    await gsCourseStudentsCached(curso);
+
+                if (
+                    requestId ===
+                    __notasPlanillaRequestId &&
+                    Array.isArray(rosterCompleto) &&
+                    rosterCompleto.length
+                ) {
+
+                    const yaPresentes =
+                        new Set(
+                            __notasEstudiantes.map(x =>
+                                normalizeText(x.estudiante)
+                            )
+                        );
+
+                    rosterCompleto
+                        .map(n => String(n || "").trim())
+                        .filter(Boolean)
+                        .forEach(nombre => {
+
+                            const key =
+                                normalizeText(nombre);
+
+                            if (yaPresentes.has(key)) return;
+
+                            yaPresentes.add(key);
+
+                            __notasEstudiantes.push({
+                                estudiante: nombre,
+                                notas: {}
+                            });
+                        });
+                }
+
+            } catch (eRoster) {
+
+                console.warn(
+                    "No se pudo verificar que la planilla esté completa frente al curso:",
+                    eRoster
+                );
+            }
 
 
-                    // ============================================================
+// ============================================================
 // RESTAURAR VERSIÓN REAL DE ESTA PLANILLA
 // ============================================================
 
 __notasPlanillaSaveVersion =
-    Number.isFinite(Number(data.save_version))
-        ? Number(data.save_version)
+    Number.isFinite(Number(data.planilla?.save_version))
+        ? Number(data.planilla.save_version)
         : 0;
+
+console.log(
+    "🔢 VERSIÓN CARGADA DESDE SUPABASE:",
+    {
+        planilla_id: data.planilla?.id,
+        save_version: __notasPlanillaSaveVersion,
+        curso,
+        asignatura,
+        periodo
+    }
+);
             // ====================================================
             // ESTA ES LA PLANILLA REAL DEL SERVIDOR
             // ====================================================
@@ -21899,16 +22142,19 @@ __notasPlanillaSaveVersion =
             // GUARDAR COPIA LOCAL
             // ====================================================
 
-            notasPlanillaCacheWrite_(
-                cacheKey,
-                {
-                    columnas:
-                        __notasColumnas,
+  notasPlanillaCacheWrite_(
+    cacheKey,
+    {
+        columnas:
+            __notasColumnas,
 
-                    estudiantes:
-                        __notasEstudiantes
-                }
-            );
+        estudiantes:
+            __notasEstudiantes,
+
+        save_version:
+            __notasPlanillaSaveVersion
+    }
+);
 
             notasRenderColumnas_();
             notasRenderGrid_();
@@ -22455,7 +22701,15 @@ const data = await notasEnviarPayloadSupabase_(payload);
 // ============================================================
 
 if (Number.isFinite(Number(data.save_version))) {
-    __notasPlanillaSaveVersion = Number(data.save_version);
+
+    __notasPlanillaSaveVersion =
+        Number(data.save_version);
+
+    // IMPORTANTE:
+    // El payload local debe conservar la misma versión
+    // confirmada por Supabase.
+    payload.save_version =
+        Number(data.save_version);
 }
 
     // 3) Si subió bien, marca como sincronizada
