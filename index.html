@@ -20409,6 +20409,93 @@ let __notasSyncRunning = false;
 let __notasAutoSaveTimer = null;
 let __notasLastAutoSaveHash = "";
 
+// ================================================================
+// ✅ FIX: identidad (curso/asignatura/periodo) de la planilla que
+// está actualmente abierta en los combos, capturada ANTES de que
+// el usuario cambie de selección. Un evento "change" de <select>
+// dispara con el valor NUEVO ya puesto en el elemento, así que la
+// única forma confiable de saber cuál era la asignatura/curso
+// ANTERIOR es guardarla de antemano (al enfocar/tocar el combo).
+// Se usa para poder guardar de inmediato la nota recién escrita
+// en la planilla que se está abandonando, en vez de perderla.
+// ================================================================
+let __notasPrevSel = { curso: "", asignatura: "", periodo: "1" };
+
+function notasSnapshotPrevSel_() {
+    __notasPrevSel = {
+        curso: String(notasCursoEl?.value || "").trim(),
+        asignatura: String(notasAsignaturaEl?.value || "").trim(),
+        periodo: String(notasPeriodoEl?.value || "1").trim()
+    };
+}
+
+// Captura inicial + cada vez que el usuario interactúa con un combo
+// (antes de que el valor cambie), para que siempre tengamos a mano
+// cuál era la selección anterior.
+notasSnapshotPrevSel_();
+[notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
+    if (!el) return;
+    el.addEventListener("focus", notasSnapshotPrevSel_);
+    el.addEventListener("mousedown", notasSnapshotPrevSel_);
+    el.addEventListener("keydown", notasSnapshotPrevSel_);
+});
+
+// ================================================================
+// ✅ FIX: guardado FORZADO e INMEDIATO (sin esperar el debounce de
+// 900ms) de cualquier cambio pendiente, usando una identidad
+// explícita de planilla (curso/asignatura/periodo). Se usa justo
+// antes de que el usuario abandone la planilla actual (cambio de
+// curso/asignatura/periodo), para que una nota recién escrita que
+// todavía no se había sincronizado NO se pierda.
+// ================================================================
+async function notasFlushGuardadoPendiente_(identidad) {
+
+    // Si no hay ningún autoguardado programado, no hay nada
+    // pendiente que forzar.
+    if (!__notasAutoSaveTimer) return false;
+
+    clearTimeout(__notasAutoSaveTimer);
+    __notasAutoSaveTimer = null;
+
+    const curso = String(identidad?.curso || "").trim();
+    const asignatura = String(identidad?.asignatura || "").trim();
+
+    if (!curso || !asignatura) return false;
+
+    // notasBuildSavePayload_ ya valida internamente que la memoria
+    // (__notasEstudiantes/__notasColumnas) corresponda EXACTAMENTE
+    // a esta identidad (__notasPlanillaLoadedKey). Si el usuario ya
+    // cambió de planilla y la memoria fue reemplazada, esto
+    // devuelve null y no se guarda nada incorrecto.
+    const payload = notasBuildSavePayload_(identidad);
+    if (!payload) return false;
+
+    const currentHash = JSON.stringify({
+        curso: payload.curso,
+        asignatura: payload.asignatura,
+        periodo: payload.periodo,
+        columnas: payload.columnas,
+        estudiantes: payload.estudiantes
+    });
+
+    // Si ya está guardado (no hay cambios reales), no repetimos.
+    if (currentHash === __notasLastAutoSaveHash) return false;
+
+    await notasGuardarLocalSeguro_(payload, { pending: true });
+    __notasLastAutoSaveHash = currentHash;
+
+    console.log(
+        "🟢 GUARDADO FORZADO ANTES DE CAMBIAR DE PLANILLA:",
+        { curso: payload.curso, asignatura: payload.asignatura, periodo: payload.periodo }
+    );
+
+    if (navigator.onLine) {
+        notasSyncPendientes_({ silent: true }).catch(() => {});
+    }
+
+    return true;
+}
+
 function notasIdbOpen_(){
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(NOTAS_IDB_NAME, NOTAS_IDB_VERSION);
@@ -20504,10 +20591,20 @@ async function notasIdbDelete_(storeName, id){
   });
 }
 
-function notasBuildSavePayload_() {
-    const curso = String(notasCursoEl?.value || "").trim();
-    const asignatura = String(notasAsignaturaEl?.value || "").trim();
-    const periodo = String(notasPeriodoEl?.value || "1").trim();
+function notasBuildSavePayload_(identidad) {
+    // ============================================================
+    // ✅ FIX: permitir pasar una identidad explícita (curso/
+    // asignatura/periodo) en lugar de leer siempre el valor ACTUAL
+    // de los combos. Esto es indispensable para poder guardar de
+    // forma segura los cambios de una planilla que el usuario ya
+    // abandonó (por ejemplo, cambió de asignatura en el combo)
+    // sin arriesgarnos a mezclar datos de la planilla nueva.
+    // Si no se pasa nada, el comportamiento es EXACTAMENTE el
+    // mismo que antes (lee los combos actuales).
+    // ============================================================
+    const curso = String((identidad?.curso ?? notasCursoEl?.value) || "").trim();
+    const asignatura = String((identidad?.asignatura ?? notasAsignaturaEl?.value) || "").trim();
+    const periodo = String((identidad?.periodo ?? notasPeriodoEl?.value) || "1").trim();
 
     // ============================================================
     // PROTECCIÓN CRÍTICA DE IDENTIDAD DE PLANILLA
@@ -22874,7 +22971,24 @@ function notasProgramarCargaPlanilla_(){
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
-  el?.addEventListener("change", () => {
+  el?.addEventListener("change", async () => {
+    // ============================================================
+    // ✅ FIX: antes de programar la carga de la nueva planilla
+    // (que reemplazará __notasEstudiantes/__notasColumnas en
+    // memoria), guardamos DE INMEDIATO cualquier nota que el
+    // usuario acabe de escribir y que todavía no se hubiera
+    // sincronizado. __notasPrevSel guarda la identidad (curso/
+    // asignatura/periodo) de la planilla que se está abandonando,
+    // capturada ANTES de este cambio.
+    // ============================================================
+    const identidadAnterior = { ...__notasPrevSel };
+    try {
+      await notasFlushGuardadoPendiente_(identidadAnterior);
+    } catch (e) {
+      console.warn("No se pudo forzar el guardado antes de cambiar de planilla:", e);
+    }
+
+    notasSnapshotPrevSel_();
     notasSaveLastSelection_();
     notasProgramarCargaPlanilla_();
   });
@@ -22901,7 +23015,19 @@ async function notasAutoLoadStudentsOnCourse_(){
 }
 
 [notasCursoEl, notasAsignaturaEl, notasPeriodoEl].forEach(el => {
-  el?.addEventListener("change", () => {
+  el?.addEventListener("change", async () => {
+    // ✅ FIX: mismo guardado forzado que en el listener anterior
+    // (este segundo listener ya existía en el código como
+    // duplicado del primero; si no se protege aquí también, puede
+    // ganar la carrera y disparar la recarga de la planilla antes
+    // de que el guardado forzado del primer listener termine).
+    const identidadAnterior = { ...__notasPrevSel };
+    try {
+      await notasFlushGuardadoPendiente_(identidadAnterior);
+    } catch (e) {
+      console.warn("No se pudo forzar el guardado antes de cambiar de planilla:", e);
+    }
+    notasSnapshotPrevSel_();
     notasSaveLastSelection_();
     notasProgramarCargaPlanilla_();
   });
