@@ -20383,7 +20383,7 @@ function notasAplicarPlanillaCache_(cachedValue){
   }
 
   if (Array.isArray(cachedValue.estudiantes)) {
-    __notasEstudiantes = cachedValue.estudiantes;
+    __notasEstudiantes = notasDedupEstudiantes_(cachedValue.estudiantes);
   }
 
   notasRenderColumnas_();
@@ -21973,17 +21973,19 @@ if (useCache && !planillaTieneCambiosPendientes) {
                 notasColumnasDefault_();
 
             __notasEstudiantes =
-                students
-                    .map(name => ({
-                        estudiante:
-                            String(
-                                name || ""
-                            ).trim(),
-                        notas: {}
-                    }))
-                    .filter(
-                        x => x.estudiante
-                    );
+                notasDedupEstudiantes_(
+                    students
+                        .map(name => ({
+                            estudiante:
+                                String(
+                                    name || ""
+                                ).trim(),
+                            notas: {}
+                        }))
+                        .filter(
+                            x => x.estudiante
+                        )
+                );
 
             // Esta memoria corresponde a la selección actual,
             // pero NO proviene de una planilla existente.
@@ -22135,20 +22137,22 @@ if (useCache && !planillaTieneCambiosPendientes) {
                     }));
 
             __notasEstudiantes =
-                (data.estudiantes || [])
-                    .map(r => ({
-                        estudiante:
-                            String(
-                                r.estudiante ||
-                                ""
-                            ).trim(),
+                notasDedupEstudiantes_(
+                    (data.estudiantes || [])
+                        .map(r => ({
+                            estudiante:
+                                String(
+                                    r.estudiante ||
+                                    ""
+                                ).trim(),
 
-                        notas:
-                            r.notas || {}
-                    }))
-                    .filter(
-                        x => x.estudiante
-                    );
+                            notas:
+                                r.notas || {}
+                        }))
+                        .filter(
+                            x => x.estudiante
+                        )
+                );
 
             // ====================================================
             // GARANTÍA DE PLANILLA COMPLETA
@@ -22177,7 +22181,7 @@ if (useCache && !planillaTieneCambiosPendientes) {
                     const yaPresentes =
                         new Set(
                             __notasEstudiantes.map(x =>
-                                normalizeText(x.estudiante)
+                                normalizeNombreClave_(x.estudiante)
                             )
                         );
 
@@ -22187,7 +22191,7 @@ if (useCache && !planillaTieneCambiosPendientes) {
                         .forEach(nombre => {
 
                             const key =
-                                normalizeText(nombre);
+                                normalizeNombreClave_(nombre);
 
                             if (yaPresentes.has(key)) return;
 
@@ -22280,18 +22284,20 @@ console.log(
             notasColumnasDefault_();
 
         __notasEstudiantes =
-            (students || [])
-                .map(name => ({
-                    estudiante:
-                        String(
-                            name || ""
-                        ).trim(),
+            notasDedupEstudiantes_(
+                (students || [])
+                    .map(name => ({
+                        estudiante:
+                            String(
+                                name || ""
+                            ).trim(),
 
-                    notas: {}
-                }))
-                .filter(
-                    x => x.estudiante
-                );
+                        notas: {}
+                    }))
+                    .filter(
+                        x => x.estudiante
+                    )
+            );
 
         // Esta memoria corresponde a la planilla seleccionada,
         // aunque todavía no exista guardada en Supabase.
@@ -26669,6 +26675,86 @@ function normalizeText(v) {
     .replace(/\s+/g, " ");
 }
 
+// ============================================================
+// CLAVE DE ESTUDIANTE INDEPENDIENTE DEL ORDEN DE LAS PALABRAS
+// ============================================================
+// "Angie Daiana Torres Torres" y "Torres Torres Angie Daiana"
+// deben identificar al MISMO estudiante. normalizeText() por sí
+// sola no lo garantiza porque compara el texto tal cual está
+// escrito. Esta función ordena alfabéticamente las palabras del
+// nombre ya normalizado, generando una clave estable sin
+// importar en qué orden se haya escrito el nombre.
+// ============================================================
+function normalizeNombreClave_(v) {
+  return normalizeText(v)
+    .split(" ")
+    .filter(Boolean)
+    .sort()
+    .join(" ");
+}
+
+// ============================================================
+// DEDUPLICAR ESTUDIANTES DE UNA PLANILLA (SIN PERDER NOTAS)
+// ============================================================
+// Recibe la lista de estudiantes de una planilla y devuelve una
+// lista donde cada estudiante aparece una sola vez, usando la
+// clave independiente del orden de palabras. Si el mismo
+// estudiante aparecía dos veces (p. ej. por orden distinto del
+// nombre), se fusiona en una sola fila conservando:
+//  - el nombre más completo (más largo) como nombre visible
+//  - todas las notas que ya se habían registrado en cualquiera
+//    de las filas duplicadas (nunca se descarta una nota real)
+// ============================================================
+function notasDedupEstudiantes_(lista) {
+  const arr = Array.isArray(lista) ? lista : [];
+  const porClave = new Map();
+  const orden = [];
+
+  arr.forEach(item => {
+    const nombre = String(item?.estudiante || "").trim();
+    if (!nombre) return;
+
+    const clave = normalizeNombreClave_(nombre);
+    const notasItem = item?.notas || {};
+
+    if (!porClave.has(clave)) {
+      porClave.set(clave, {
+        estudiante: nombre,
+        notas: { ...notasItem }
+      });
+      orden.push(clave);
+      return;
+    }
+
+    const existente = porClave.get(clave);
+
+    // Conserva como nombre visible el más completo de los dos.
+    if (nombre.length > existente.estudiante.length) {
+      existente.estudiante = nombre;
+    }
+
+    // Fusiona notas sin pisar valores ya existentes no vacíos.
+    Object.keys(notasItem).forEach(k => {
+      const valorNuevo = notasItem[k];
+      const valorActual = existente.notas[k];
+      const actualVacio =
+        valorActual === undefined ||
+        valorActual === null ||
+        valorActual === "";
+      const nuevoTieneValor =
+        valorNuevo !== undefined &&
+        valorNuevo !== null &&
+        valorNuevo !== "";
+
+      if (actualVacio && nuevoTieneValor) {
+        existente.notas[k] = valorNuevo;
+      }
+    });
+  });
+
+  return orden.map(clave => porClave.get(clave));
+}
+
 
 async function notasStudentSaveAction_(mode) {
 const course = String(notasCursoEl?.value || "").trim();
@@ -26691,6 +26777,38 @@ const studentPlanillaCtx_ = {
     return;
   }
 
+  // ============================================================
+  // BLOQUEO DE DUPLICADOS (independiente del orden de las palabras)
+  // ============================================================
+  // Antes de crear o renombrar un estudiante, se verifica contra
+  // la lista completa del curso ya cargada en memoria (que incluye
+  // todo el roster gracias a la reconciliación). Si el nombre ya
+  // existe -aunque esté escrito en otro orden- no se crea una fila
+  // nueva; se avisa y se detiene la operación.
+  // ============================================================
+  if (mode === "add" || mode === "edit") {
+    const claveNueva = normalizeNombreClave_(newName);
+    const claveVieja = normalizeNombreClave_(oldName);
+
+    const coincidencia = __notasEstudiantes.find(x => {
+      const clave = normalizeNombreClave_(String(x.estudiante || ""));
+      if (clave !== claveNueva) return false;
+      // En modo edición, no cuenta como duplicado el propio estudiante
+      // que se está editando (aunque no haya cambiado el nombre).
+      if (mode === "edit" && clave === claveVieja) return false;
+      return true;
+    });
+
+    if (coincidencia) {
+      alert(
+        `Ya existe un estudiante con ese nombre en este curso: "${coincidencia.estudiante}".\n\n` +
+        `Para evitar duplicados no se creó/renombró el registro. Si es la misma persona, ` +
+        `usa "Editar" sobre esa fila; si es alguien distinto, ajusta el nombre para diferenciarlo.`
+      );
+      return;
+    }
+  }
+
   try {
     setLoading(true, "Guardando…", "Actualizando estudiante.");
 
@@ -26703,7 +26821,7 @@ const studentPlanillaCtx_ = {
 });
 
       if (!__notasEstudiantes.some(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(newName)
+        normalizeNombreClave_(String(x.estudiante || "")) === normalizeNombreClave_(newName)
       )) {
         __notasEstudiantes.push({
           estudiante: newName,
@@ -26727,7 +26845,7 @@ const studentPlanillaCtx_ = {
 });
 
       const found = __notasEstudiantes.find(x =>
-        normalizeText(String(x.estudiante || "")) === normalizeText(oldName)
+        normalizeNombreClave_(String(x.estudiante || "")) === normalizeNombreClave_(oldName)
       );
 
       if (found) found.estudiante = newName;
@@ -26755,7 +26873,7 @@ const studentPlanillaCtx_ = {
   ...studentPlanillaCtx_
 });
       __notasEstudiantes = __notasEstudiantes.filter(x =>
-        normalizeText(String(x.estudiante || "")) !== normalizeText(oldName)
+        normalizeNombreClave_(String(x.estudiante || "")) !== normalizeNombreClave_(oldName)
       );
     }
 
